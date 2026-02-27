@@ -1,12 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Loader2, Copy, Check, FileDown } from 'lucide-react';
+import { Sparkles, Loader2, Copy, Check, FileDown, Share2 } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
 import { enhanceNotes } from '@/lib/llm';
 import { buildUnifiedMeetingMarkdown } from '@/lib/meeting-export';
-
-type ShareChannel = 'feishu' | 'wecom';
 
 export default function EnhancedNotes() {
   const {
@@ -113,9 +111,8 @@ export default function EnhancedNotes() {
     }
   };
 
-  const handleExperimentalShare = (channel: ShareChannel) => {
-    const channelName = channel === 'feishu' ? '飞书' : '企业微信';
-    const tip = `实验功能：后续开放 ${channelName} webhook 接入`;
+  const handleExperimentalShare = () => {
+    const tip = '实验功能：后续接入飞书、企业微信 webhook 功能';
     setFeedback(tip);
     window.alert(tip);
   };
@@ -185,18 +182,11 @@ export default function EnhancedNotes() {
                 )}
               </button>
               <button
-                onClick={() => handleExperimentalShare('feishu')}
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-[#3370FF] text-[11px] font-semibold text-white transition-opacity hover:opacity-90"
-                title="飞书（实验功能）"
+                onClick={handleExperimentalShare}
+                className="rounded p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
+                title="实验功能（飞书/企业微信）"
               >
-                飞
-              </button>
-              <button
-                onClick={() => handleExperimentalShare('wecom')}
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-[#07C160] text-[11px] font-semibold text-white transition-opacity hover:opacity-90"
-                title="企业微信（实验功能）"
-              >
-                企
+                <Share2 size={14} />
               </button>
               <button
                 onClick={handleGenerate}
