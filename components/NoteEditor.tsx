@@ -25,75 +25,65 @@ export default function NoteEditor() {
 
   if (status === 'idle') {
     return (
-      <div className="flex h-full flex-col items-center justify-center text-zinc-400">
-        <FileText size={48} strokeWidth={1} className="mb-4 opacity-50" />
-        <p className="text-sm font-medium">笔记编辑器</p>
-        <p className="mt-1 text-xs">开始录音后，在这里记录你的要点</p>
-        <p className="mt-3 max-w-[200px] text-center text-xs leading-relaxed text-zinc-300">
-          AI 会将你的手写要点与转写内容融合，生成结构化会议纪要
+      <div className="flex h-full flex-col items-center justify-center text-gray-400 bg-white">
+        <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-6">
+          <FileText size={24} className="text-gray-300" strokeWidth={1.5} />
+        </div>
+        <p className="text-base font-medium text-gray-600">灵感与笔记</p>
+        <p className="mt-2 text-sm text-center text-gray-400 max-w-[240px] leading-relaxed">
+          一个纯净的书写空间。<br/>开始录音后，你的要点会与转写自动融合。
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-2">
-        <h3 className="text-sm font-semibold text-zinc-700">我的笔记</h3>
-        <span className="text-xs text-zinc-400">边听边记要点</span>
-      </div>
-
-      {/* 工具栏 */}
+    <div className="flex h-full flex-col bg-white">
+      {/* 极简工具栏悬浮 */}
       {editor && (
-        <div className="flex items-center gap-0.5 border-b border-zinc-100 px-3 py-1.5">
+        <div className="sticky top-0 z-10 flex items-center gap-1 bg-white/80 backdrop-blur-sm px-6 py-3 border-b border-black/5">
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             active={editor.isActive('heading', { level: 2 })}
             title="标题"
           >
-            <Heading2 size={14} />
+            <Heading2 size={16} />
           </ToolbarButton>
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBold().run()}
             active={editor.isActive('bold')}
             title="加粗"
           >
-            <Bold size={14} />
+            <Bold size={16} />
           </ToolbarButton>
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleItalic().run()}
             active={editor.isActive('italic')}
             title="斜体"
           >
-            <Italic size={14} />
+            <Italic size={16} />
           </ToolbarButton>
-          <div className="mx-1 h-4 w-px bg-zinc-200" />
+          <div className="mx-2 h-4 w-px bg-gray-200" />
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             active={editor.isActive('bulletList')}
             title="无序列表"
           >
-            <List size={14} />
+            <List size={16} />
           </ToolbarButton>
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             active={editor.isActive('orderedList')}
             title="有序列表"
           >
-            <ListOrdered size={14} />
+            <ListOrdered size={16} />
           </ToolbarButton>
         </div>
       )}
 
-      {/* 编辑区 */}
-      <div className="flex-1 overflow-y-auto">
+      {/* 沉浸式编辑区 */}
+      <div className="flex-1 overflow-y-auto px-8 py-6">
         <EditorContent editor={editor} />
-      </div>
-
-      <div className="border-t border-zinc-100 px-4 py-2">
-        <p className="text-xs text-zinc-400">
-          提示：记录关键要点，AI 会融合转写内容生成完整纪要
-        </p>
       </div>
     </div>
   );
@@ -114,10 +104,10 @@ function ToolbarButton({
     <button
       onClick={onClick}
       title={title}
-      className={`rounded p-1.5 transition-colors ${
+      className={`rounded-lg p-2 transition-all ${
         active
-          ? 'bg-zinc-200 text-zinc-800'
-          : 'text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600'
+          ? 'bg-gray-100 text-gray-900'
+          : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700'
       }`}
     >
       {children}

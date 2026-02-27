@@ -282,25 +282,25 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-zinc-50">
+    <div className="flex h-screen flex-col bg-[#F9F9FB]">
       {/* 顶栏 */}
-      <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-5 py-3 shadow-sm">
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-white/70 px-4 py-4 backdrop-blur-md md:px-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-sm">
             <Mic size={16} className="text-white" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-zinc-800">AI Notepad</h1>
-            <p className="text-xs text-zinc-400">智能会议笔记助手</p>
+            <h1 className="text-base font-bold text-gray-900">AI Notepad</h1>
+            <p className="text-xs text-gray-400 tracking-wider">智能会议笔记助手</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <input
             value={meetingTitle}
             onChange={(e) => setMeetingTitle(e.target.value)}
-            placeholder="输入会议标题..."
-            className="w-64 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-700 placeholder:text-zinc-300 focus:border-zinc-400 focus:outline-none transition-colors"
+            placeholder="无标题文档..."
+            className="w-36 rounded-lg border-transparent bg-transparent px-3 py-1.5 text-lg font-semibold text-gray-900 placeholder:text-gray-300 transition-all hover:bg-black/5 focus:bg-white focus:outline-none sm:w-52 md:w-64 md:text-2xl"
           />
 
           <AudioRecorder />
@@ -335,15 +335,18 @@ export default function Home() {
       </header>
 
       {/* 主体 */}
-      <main ref={mainRef} className="flex flex-1 overflow-hidden">
+      <main
+        ref={mainRef}
+        className="flex flex-1 gap-4 overflow-x-auto overflow-y-hidden bg-[#F9F9FB] p-4"
+      >
         {/* 左侧边栏 - 会议历史 */}
         <div
           style={{ width: effectivePanelWidths.history }}
-          className="flex shrink-0 flex-col border-r border-zinc-200 bg-zinc-50"
+          className="flex shrink-0 flex-col bg-transparent"
         >
-          <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-2.5">
-            <History size={14} className="text-zinc-400" />
-            <h3 className="text-sm font-semibold text-zinc-600">会议记录</h3>
+          <div className="flex items-center gap-2 px-4 py-2.5">
+            <History size={14} className="text-gray-400" />
+            <h3 className="text-sm font-semibold text-gray-500">会议记录</h3>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             <MeetingHistory />
@@ -352,39 +355,39 @@ export default function Home() {
 
         <div
           onMouseDown={(e) => handleDividerMouseDown('history', e)}
-          className="group relative w-2 shrink-0 cursor-col-resize bg-zinc-50"
+          className="group relative w-2 shrink-0 cursor-col-resize bg-transparent"
           title="拖动调整会议记录宽度"
         >
-          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-zinc-200 transition-colors group-hover:bg-amber-400" />
+          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-black/5 opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
 
         {/* 左栏 - 实时转写 */}
         <div
           style={{ width: effectivePanelWidths.transcript }}
-          className="flex shrink-0 flex-col border-r border-zinc-200 bg-white"
+          className="flex shrink-0 flex-col bg-white rounded-3xl shadow-sm"
         >
           <TranscriptPanel />
         </div>
 
         <div
           onMouseDown={(e) => handleDividerMouseDown('transcript', e)}
-          className="group relative w-2 shrink-0 cursor-col-resize bg-zinc-50"
+          className="group relative w-2 shrink-0 cursor-col-resize bg-transparent"
           title="拖动调整实时转写宽度"
         >
-          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-zinc-200 transition-colors group-hover:bg-amber-400" />
+          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-black/5 opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
 
         {/* 中栏 - 笔记编辑器 + AI 笔记 */}
         <div
           style={{ width: effectivePanelWidths.notes }}
-          className="flex shrink-0 flex-col border-r border-zinc-200 bg-white"
+          className="flex shrink-0 flex-col bg-white rounded-3xl shadow-sm overflow-hidden"
         >
           <div className="flex-1 overflow-y-auto">
             <NoteEditor />
           </div>
 
           {(status === 'ended' || segments.length > 0) && (
-            <div className="border-t border-zinc-200 bg-zinc-50 p-4 space-y-4 max-h-[50%] overflow-y-auto">
+            <div className="border-t border-gray-100 bg-[#F9F9FB] p-6 space-y-4 max-h-[50%] overflow-y-auto">
               <PromptSettings />
               <SpeakerManager />
               <EnhancedNotes />
@@ -394,20 +397,20 @@ export default function Home() {
 
         <div
           onMouseDown={(e) => handleDividerMouseDown('notes', e)}
-          className="group relative w-2 shrink-0 cursor-col-resize bg-zinc-50"
+          className="group relative w-2 shrink-0 cursor-col-resize bg-transparent"
           title="拖动调整笔记区宽度"
         >
-          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-zinc-200 transition-colors group-hover:bg-amber-400" />
+          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-black/5 opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
 
         {/* 右栏 - Chat */}
-        <div className="flex min-w-[320px] flex-1 flex-col bg-white">
+        <div className="flex min-w-[320px] flex-1 flex-col bg-indigo-50/30 rounded-3xl shadow-sm">
           <ChatPanel />
         </div>
       </main>
 
       {/* 底栏状态 */}
-      <footer className="flex items-center justify-between border-t border-zinc-200 bg-white px-5 py-2">
+      <footer className="flex items-center justify-between bg-white px-6 py-3 border-t border-black/5">
         <div className="flex items-center gap-4 text-xs text-zinc-400">
           <span>
             {status === 'idle' && '准备就绪 — Botless 双通道采集'}

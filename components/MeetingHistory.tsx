@@ -50,17 +50,17 @@ export default function MeetingHistory() {
   if (isLoadingList) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 size={16} className="animate-spin text-zinc-400" />
+        <Loader2 size={16} className="animate-spin text-gray-400" />
       </div>
     );
   }
 
   if (meetingList.length === 0) {
     return (
-      <div className="px-4 py-6 text-center text-xs text-zinc-400">
-        <FileText size={20} className="mx-auto mb-2 opacity-40" />
+      <div className="px-4 py-10 text-center text-xs text-gray-400">
+        <FileText size={20} className="mx-auto mb-3 opacity-40" />
         <p>暂无会议记录</p>
-        <p className="mt-1 text-zinc-300">录音结束后会自动保存</p>
+        <p className="mt-1 text-gray-300">录音结束后会自动保存</p>
       </div>
     );
   }
@@ -73,25 +73,25 @@ export default function MeetingHistory() {
           <div
             key={m.id}
             onClick={() => loadMeeting(m.id)}
-            className={`group flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 transition-colors ${
+            className={`group flex cursor-pointer items-start gap-3 rounded-2xl px-4 py-3 transition-all ${
               isActive
-                ? 'bg-amber-50 border border-amber-200'
-                : 'hover:bg-zinc-100 border border-transparent'
+                ? 'bg-white shadow-sm'
+                : 'hover:bg-black/5 border border-transparent'
             }`}
           >
             <div className="flex-1 min-w-0">
               <p
-                className={`text-sm font-medium truncate ${
-                  isActive ? 'text-amber-800' : 'text-zinc-700'
+                className={`line-clamp-2 text-[15px] font-medium leading-6 ${
+                  isActive ? 'text-gray-900' : 'text-gray-700'
                 }`}
               >
-                {m.title || '未命名会议'}
+                {m.title || '无标题记录'}
               </p>
-              <div className="mt-1 flex items-center gap-2 text-xs text-zinc-400">
+              <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-400">
                 <span>{formatDate(m.date)}</span>
                 {m.duration > 0 && (
                   <>
-                    <span>·</span>
+                    <span className="opacity-50">·</span>
                     <span className="flex items-center gap-0.5">
                       <Clock size={10} />
                       {formatDuration(m.duration)}
@@ -100,7 +100,7 @@ export default function MeetingHistory() {
                 )}
                 {m._count.segments > 0 && (
                   <>
-                    <span>·</span>
+                    <span className="opacity-50">·</span>
                     <span className="flex items-center gap-0.5">
                       <MessageSquare size={10} />
                       {m._count.segments}
@@ -116,7 +116,7 @@ export default function MeetingHistory() {
                   deleteMeeting(m.id);
                 }
               }}
-              className="mt-0.5 rounded p-1 text-zinc-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-400 group-hover:opacity-100"
+              className="mt-0.5 rounded-lg p-1.5 text-gray-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-400 group-hover:opacity-100"
               title="删除"
             >
               <Trash2 size={12} />

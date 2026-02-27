@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { Mic, Square, Clock, Monitor, Volume2 } from 'lucide-react';
+import { Mic, Square, Monitor, Volume2, Sparkles } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
 import { v4 as uuidv4 } from 'uuid';
 import type { AsrStatus } from '@/lib/asr';
@@ -57,7 +57,7 @@ interface AliyunChannelRuntime {
 
 function LevelBar({ level, color }: { level: number; color: string }) {
   return (
-    <div className="h-1.5 w-16 overflow-hidden rounded-full bg-zinc-100">
+    <div className="h-1 w-12 overflow-hidden rounded-full bg-gray-100">
       <div
         className={`h-full rounded-full transition-all duration-75 ${color}`}
         style={{ width: `${Math.min(level * 500, 100)}%` }}
@@ -706,49 +706,58 @@ export default function AudioRecorder() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleStart}
-            className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-red-600 active:scale-95"
+            className="group flex items-center gap-2.5 rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-200 transition-all hover:bg-black hover:scale-105 active:scale-95"
           >
-            <Mic size={16} />
+            <div className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+            </div>
             开始录音
           </button>
+          
           <button
             onClick={() => setShowGuide(!showGuide)}
-            className="rounded-lg border border-zinc-200 p-2 text-zinc-400 transition-colors hover:border-zinc-300 hover:text-zinc-600"
+            className="rounded-full bg-white border border-gray-100 p-2.5 text-gray-400 transition-all hover:bg-gray-50 hover:text-gray-600 shadow-sm"
             title="录音说明"
           >
-            <Monitor size={14} />
+            <Monitor size={16} />
           </button>
+
           {asrStatus && (
-            <span className="rounded-full border border-zinc-200 bg-white px-2 py-1 text-[11px] text-zinc-500">
-              {asrStatus.mode === 'aliyun' ? '阿里云 ASR（实时）' : 'Web Speech（Demo）'}
+            <span className="hidden md:inline-block rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-500 tracking-tight">
+              {asrStatus.mode === 'aliyun' ? 'AI 增强转写' : '标准转写 (Demo)'}
             </span>
           )}
         </div>
       ) : (
         <>
-          {/* 录音状态指示器 */}
-          <div className="flex items-center gap-3 rounded-lg bg-red-50 px-3 py-2">
-            <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-            <Clock size={14} className="text-red-500" />
-            <span className="font-mono text-sm text-red-600">
-              {formatDuration(duration)}
-            </span>
-
-            {/* 双通道音量指示 */}
-            <div className="ml-1 flex items-center gap-2 border-l border-red-200 pl-3">
-              <div className="flex items-center gap-1.5" title="麦克风（你的声音）">
-                <Mic size={12} className={micActive ? 'text-blue-500' : 'text-zinc-300'} />
-                <LevelBar level={micLevel} color="bg-blue-400" />
+          {/* 正在录音：高级感呼吸药囊 */}
+          <div className="flex items-center gap-4 rounded-full bg-white px-4 py-2 border border-red-100 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
               </div>
-              <div className="flex items-center gap-1.5" title="系统音频（对方声音）">
+              <span className="font-mono text-sm font-bold text-gray-900">
+                {formatDuration(duration)}
+              </span>
+            </div>
+
+            {/* 双通道音量指示：更紧凑 */}
+            <div className="flex items-center gap-4 border-l border-gray-100 pl-4">
+              <div className="flex items-center gap-2" title="我">
+                <Mic size={14} className={micActive ? 'text-indigo-500' : 'text-gray-300'} />
+                <LevelBar level={micLevel} color="bg-indigo-400" />
+              </div>
+              <div className="flex items-center gap-2" title="对方">
                 <Volume2
-                  size={12}
-                  className={systemAudioActive ? 'text-green-500' : 'text-zinc-300'}
+                  size={14}
+                  className={systemAudioActive ? 'text-teal-500' : 'text-gray-300'}
                 />
                 {hasSystemAudio ? (
-                  <LevelBar level={systemLevel} color="bg-green-400" />
+                  <LevelBar level={systemLevel} color="bg-teal-400" />
                 ) : (
-                  <span className="text-xs text-zinc-300">未采集</span>
+                  <span className="text-[10px] text-gray-300 font-medium">无采集</span>
                 )}
               </div>
             </div>
@@ -756,53 +765,50 @@ export default function AudioRecorder() {
 
           <button
             onClick={handleStop}
-            className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-zinc-900 active:scale-95"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-all hover:bg-red-50 hover:text-red-600 active:scale-90 shadow-sm"
+            title="停止录音"
           >
-            <Square size={14} />
-            结束
+            <Square size={16} fill="currentColor" />
           </button>
         </>
       )}
 
-      {/* 录音引导弹窗 */}
+      {/* 引导弹窗：更像一张精致的卡片 */}
       {showGuide && (status === 'idle' || status === 'ended') && (
-        <div className="absolute top-16 right-5 z-50 w-80 rounded-xl border border-zinc-200 bg-white p-4 shadow-xl">
-          <h4 className="mb-2 text-sm font-semibold text-zinc-800">
-            Botless 双通道录音
+        <div className="absolute top-20 right-6 z-50 w-80 rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <h4 className="mb-3 text-base font-bold text-gray-900 flex items-center gap-2">
+            <Sparkles size={18} className="text-indigo-500" />
+            隐私录制说明
           </h4>
           {asrStatus && (
-            <p className="mb-2 rounded-md bg-zinc-50 px-2 py-1.5 text-[11px] text-zinc-500">
+            <p className="mb-4 rounded-xl bg-indigo-50/50 px-3 py-2 text-[11px] text-indigo-600 leading-normal">
               {asrStatus.message}
             </p>
           )}
-          <div className="space-y-2 text-xs text-zinc-500 leading-relaxed">
-            <p>
-              点击「开始录音」后，系统会依次请求：
-            </p>
-            <div className="rounded-lg bg-blue-50 p-2.5 text-blue-700">
-              <div className="flex items-center gap-2 font-medium">
-                <Mic size={12} />
-                1. 麦克风权限 — 采集你的声音
+          <div className="space-y-3 text-xs text-gray-500 leading-relaxed">
+            <div className="rounded-2xl bg-gray-50 p-4 border border-gray-100">
+              <div className="flex items-center gap-3 font-semibold text-gray-700 mb-1">
+                <Mic size={14} className="text-indigo-500" />
+                1. 采集你的声音
               </div>
+              <p className="pl-6 text-[11px] text-gray-400">点击允许麦克风权限</p>
             </div>
-            <div className="rounded-lg bg-green-50 p-2.5 text-green-700">
-              <div className="flex items-center gap-2 font-medium">
-                <Monitor size={12} />
-                2. 屏幕共享 — 采集会议中对方的声音
+            <div className="rounded-2xl bg-gray-50 p-4 border border-gray-100">
+              <div className="flex items-center gap-3 font-semibold text-gray-700 mb-1">
+                <Monitor size={14} className="text-teal-500" />
+                2. 采集对方的声音
               </div>
-              <p className="mt-1 text-green-600">
-                请选择会议所在的浏览器标签页，并勾选「共享标签页音频」
-              </p>
+              <p className="pl-6 text-[11px] text-gray-400">选择会议标签页并勾选「共享音频」</p>
             </div>
-            <p className="text-zinc-400">
-              无需 Bot 进入会议 — 不会在会议中显示任何额外参会者
+            <p className="text-center italic text-gray-400 py-1">
+              像使用笔记本一样简单，没有任何 Bot 会干扰会议
             </p>
           </div>
           <button
             onClick={() => setShowGuide(false)}
-            className="mt-3 w-full rounded-lg bg-zinc-100 py-1.5 text-xs text-zinc-600 hover:bg-zinc-200"
+            className="mt-4 w-full rounded-xl bg-gray-900 py-2.5 text-sm font-semibold text-white hover:bg-black transition-colors"
           >
-            知道了
+            准备好了
           </button>
         </div>
       )}
