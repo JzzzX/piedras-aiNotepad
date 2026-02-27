@@ -1,6 +1,12 @@
 import { TranscriptSegment, ChatMessage } from './types';
 import type { PromptOptions } from './types';
 
+export interface GlobalChatFilters {
+  titleKeyword?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
 // 构建转写文本（带说话人标注）
 function buildTranscriptText(
   segments: TranscriptSegment[],
@@ -87,6 +93,32 @@ export async function chatWithMeeting(
   if (!res.ok) {
     const detail = await res.text();
     throw new Error(detail ? `Chat 请求失败：${detail}` : 'Chat 请求失败');
+  }
+
+  return res.body;
+}
+
+// 跨会议 Chat
+export async function chatAcrossMeetings(
+  chatHistory: ChatMessage[],
+  question: string,
+  filters?: GlobalChatFilters,
+  promptOptions?: PromptOptions
+): Promise<ReadableStream<Uint8Array> | null> {
+  const res = await fetch('/api/chat/global', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chatHistory: chatHistory.slice(-10),
+      question,
+      filters,
+      promptOptions,
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(detail ? `跨会议 Chat 请求失败：${detail}` : '跨会议 Chat 请求失败');
   }
 
   return res.body;
