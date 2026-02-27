@@ -18,7 +18,7 @@
 | 编辑器 | Tiptap (ProseMirror) |
 | 状态管理 | Zustand |
 | ASR | 阿里云智能语音交互（实时转写） |
-| LLM | MiniMax |
+| LLM | Gemini（默认）+ MiniMax（回退） |
 | 存储 | SQLite (本地) |
 
 ## 快速开始
@@ -44,7 +44,9 @@ npm run dev
 - `ASR_MODE` - `browser`（默认 Demo）或 `aliyun`（启用阿里云实时转写）
 - `ALICLOUD_ACCESS_KEY_ID` / `ALICLOUD_ACCESS_KEY_SECRET` / `ALICLOUD_ASR_APP_KEY` - 阿里云语音服务
 - `ALICLOUD_ASR_TOKEN` - 可选，临时 Token 直连模式（演示联调更快，需同时配置 `ALICLOUD_ASR_APP_KEY`）
-- `MINIMAX_API_KEY` / `MINIMAX_GROUP_ID` - MiniMax 大模型
+- `GEMINI_API_KEY` / `GEMINI_MODEL` - Gemini 大模型（默认主通道）
+- `MINIMAX_API_KEY` / `MINIMAX_GROUP_ID` / `MINIMAX_MODEL` - MiniMax 大模型（回退通道）
+- `LLM_PROVIDER` / `LLM_FALLBACKS` / `LLM_TIMEOUT_MS` / `LLM_RETRIES` - LLM 路由与稳定性参数
 
 ## 与 Granola 的差异化
 
