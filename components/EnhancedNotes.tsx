@@ -1,15 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Loader2, Copy, Check, FileDown } from 'lucide-react';
+import { Sparkles, Loader2, Copy, Check, FileDown, Send } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
 import { enhanceNotes } from '@/lib/llm';
+import { buildUnifiedMeetingMarkdown } from '@/lib/meeting-export';
+
+type ShareChannel = 'feishu' | 'wecom';
 
 export default function EnhancedNotes() {
   const {
     segments,
     userNotes,
     meetingTitle,
+    meetingDate,
     enhancedNotes,
     isEnhancing,
     speakers,
@@ -20,6 +24,9 @@ export default function EnhancedNotes() {
   } = useMeetingStore();
 
   const [copied, setCopied] = useState(false);
+  const [isExportingDocx, setIsExportingDocx] = useState(false);
+  const [sharingChannel, setSharingChannel] = useState<ShareChannel | null>(null);
+  const [feedback, setFeedback] = useState('');
 
   const handleGenerate = async () => {
     if (isEnhancing) return;
@@ -44,19 +51,95 @@ export default function EnhancedNotes() {
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(enhancedNotes);
+    const markdown = buildUnifiedMeetingMarkdown({
+      meetingTitle,
+      meetingDate,
+      enhancedNotes,
+    });
+    await navigator.clipboard.writeText(markdown);
     setCopied(true);
+    setFeedback('已复制统一结构化 Markdown');
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleExport = () => {
-    const blob = new Blob([enhancedNotes], { type: 'text/markdown' });
+  const handleExportMarkdown = () => {
+    const markdown = buildUnifiedMeetingMarkdown({
+      meetingTitle,
+      meetingDate,
+      enhancedNotes,
+    });
+    const blob = new Blob([markdown], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `${meetingTitle || '会议纪要'}_${new Date().toLocaleDateString('zh-CN')}.md`;
     a.click();
     URL.revokeObjectURL(url);
+    setFeedback('Markdown 导出成功');
+  };
+
+  const handleExportDocx = async () => {
+    if (isExportingDocx) return;
+    setIsExportingDocx(true);
+    setFeedback('');
+    try {
+      const res = await fetch('/api/export/docx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meetingTitle,
+          meetingDate,
+          enhancedNotes,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Docx 导出失败');
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${meetingTitle || '会议纪要'}_${new Date().toLocaleDateString('zh-CN')}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setFeedback('Docx 导出成功');
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : '未知错误';
+      setFeedback(`Docx 导出失败：${detail}`);
+    } finally {
+      setIsExportingDocx(false);
+    }
+  };
+
+  const handleShare = async (channel: ShareChannel) => {
+    if (sharingChannel) return;
+    setSharingChannel(channel);
+    setFeedback('');
+    try {
+      const res = await fetch('/api/share/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel,
+          meetingTitle,
+          meetingDate,
+          enhancedNotes,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'Webhook 推送失败');
+      }
+      setFeedback(`${channel === 'feishu' ? '飞书' : '企业微信'} 推送成功`);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : '未知错误';
+      setFeedback(`${channel === 'feishu' ? '飞书' : '企业微信'} 推送失败：${detail}`);
+    } finally {
+      setSharingChannel(null);
+    }
   };
 
   const canGenerate = status === 'ended' || segments.length > 0;
@@ -105,11 +188,47 @@ export default function EnhancedNotes() {
                 {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
               </button>
               <button
-                onClick={handleExport}
+                onClick={handleExportMarkdown}
                 className="rounded p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
                 title="导出 Markdown"
               >
                 <FileDown size={14} />
+              </button>
+              <button
+                onClick={handleExportDocx}
+                disabled={isExportingDocx}
+                className="rounded p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-40"
+                title="导出 Docx"
+              >
+                {isExportingDocx ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <span className="text-[11px] font-semibold">DOCX</span>
+                )}
+              </button>
+              <button
+                onClick={() => handleShare('feishu')}
+                disabled={!!sharingChannel}
+                className="rounded p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-40"
+                title="推送飞书"
+              >
+                {sharingChannel === 'feishu' ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Send size={14} />
+                )}
+              </button>
+              <button
+                onClick={() => handleShare('wecom')}
+                disabled={!!sharingChannel}
+                className="rounded p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-40"
+                title="推送企业微信"
+              >
+                {sharingChannel === 'wecom' ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <span className="text-[11px] font-semibold">企微</span>
+                )}
               </button>
               <button
                 onClick={handleGenerate}
@@ -125,6 +244,9 @@ export default function EnhancedNotes() {
               {enhancedNotes}
             </div>
           </div>
+          {feedback && (
+            <p className="text-xs text-zinc-500">{feedback}</p>
+          )}
         </>
       )}
     </div>

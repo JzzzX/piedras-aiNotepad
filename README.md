@@ -10,6 +10,7 @@
 - **会议 Chat** - 基于会议内容的 AI 问答，提取行动项、总结等
 - **模版系统** - 本土化 Recipes（销售复盘、用户访谈、站会、1on1 等），Chat 中 "/" 调用，支持自定义模板持久化与排序
 - **Prompt 参数化** - 按会议类型、输出风格、行动项开关控制 AI 输出
+- **导出与分享** - 统一结构导出 Markdown/Docx，预留飞书/企业微信 webhook 推送
 
 ## 技术栈
 
@@ -49,6 +50,7 @@ npm run dev
 - `MINIMAX_API_KEY` / `MINIMAX_GROUP_ID` / `MINIMAX_MODEL` - MiniMax 大模型（回退通道）
 - `MINIMAX_USE_STREAM` - MiniMax 流式 SSE 开关（默认 `true`，异常时自动降级非流式）
 - `LLM_PROVIDER` / `LLM_FALLBACKS` / `LLM_TIMEOUT_MS` / `LLM_RETRIES` - LLM 路由与稳定性参数
+- `FEISHU_WEBHOOK_URL` / `WECOM_WEBHOOK_URL` - 分享推送地址（阶段4预留，可为空）
 - 有 API Key 时，LLM 调用失败会直接返回可定位错误，不再回退 Demo 内容
 
 ## 与 Granola 的差异化
