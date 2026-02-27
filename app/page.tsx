@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { Mic, RotateCcw, Save, Check, History } from 'lucide-react';
 import AudioRecorder from '@/components/AudioRecorder';
 import TranscriptPanel from '@/components/TranscriptPanel';
@@ -11,6 +11,74 @@ import SpeakerManager from '@/components/SpeakerManager';
 import MeetingHistory from '@/components/MeetingHistory';
 import PromptSettings from '@/components/PromptSettings';
 import { useMeetingStore } from '@/lib/store';
+
+const PANEL_MIN_WIDTH = {
+  history: 180,
+  transcript: 280,
+  notes: 320,
+  chat: 320,
+};
+
+const DIVIDER_COUNT = 3;
+const DIVIDER_WIDTH = 8;
+const WIDTH_STORAGE_KEY = 'ai-notepad-panel-widths-v1';
+
+type ResizablePanel = 'history' | 'transcript' | 'notes';
+
+interface PanelWidths {
+  history: number;
+  transcript: number;
+  notes: number;
+}
+
+function normalizePanelWidths(widths: PanelWidths, mainWidth: number): PanelWidths {
+  if (mainWidth <= 0) return widths;
+
+  const panelAreaWidth = mainWidth - DIVIDER_COUNT * DIVIDER_WIDTH;
+  let history = Math.max(widths.history, PANEL_MIN_WIDTH.history);
+  let transcript = Math.max(widths.transcript, PANEL_MIN_WIDTH.transcript);
+  let notes = Math.max(widths.notes, PANEL_MIN_WIDTH.notes);
+
+  const maxFixed = panelAreaWidth - PANEL_MIN_WIDTH.chat;
+  if (maxFixed <= 0) {
+    return {
+      history: PANEL_MIN_WIDTH.history,
+      transcript: PANEL_MIN_WIDTH.transcript,
+      notes: PANEL_MIN_WIDTH.notes,
+    };
+  }
+
+  let fixedTotal = history + transcript + notes;
+  if (fixedTotal <= maxFixed) {
+    return { history, transcript, notes };
+  }
+
+  let excess = fixedTotal - maxFixed;
+
+  const reduce = (value: number, min: number) => {
+    const canReduce = Math.max(value - min, 0);
+    const amount = Math.min(canReduce, excess);
+    excess -= amount;
+    return value - amount;
+  };
+
+  notes = reduce(notes, PANEL_MIN_WIDTH.notes);
+  transcript = reduce(transcript, PANEL_MIN_WIDTH.transcript);
+  history = reduce(history, PANEL_MIN_WIDTH.history);
+
+  fixedTotal = history + transcript + notes;
+  if (fixedTotal > maxFixed) {
+    // 极端窄屏下，至少保证不会出现负宽度
+    const fallback = Math.max(maxFixed / 3, 120);
+    return {
+      history: Math.max(Math.floor(fallback), 120),
+      transcript: Math.max(Math.floor(fallback), 120),
+      notes: Math.max(Math.floor(fallback), 120),
+    };
+  }
+
+  return { history, transcript, notes };
+}
 
 export default function Home() {
   const {
@@ -26,6 +94,46 @@ export default function Home() {
 
   const prevStatusRef = useRef(status);
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mainRef = useRef<HTMLElement | null>(null);
+  const [mainWidth, setMainWidth] = useState(0);
+  const [panelWidths, setPanelWidths] = useState<PanelWidths>(() => {
+    if (typeof window === 'undefined') {
+      return {
+        history: 224,
+        transcript: 420,
+        notes: 420,
+      };
+    }
+    try {
+      const raw = window.localStorage.getItem(WIDTH_STORAGE_KEY);
+      if (!raw) {
+        return {
+          history: 224,
+          transcript: 420,
+          notes: 420,
+        };
+      }
+      const parsed = JSON.parse(raw) as Partial<PanelWidths>;
+      if (
+        typeof parsed.history === 'number' &&
+        typeof parsed.transcript === 'number' &&
+        typeof parsed.notes === 'number'
+      ) {
+        return {
+          history: parsed.history,
+          transcript: parsed.transcript,
+          notes: parsed.notes,
+        };
+      }
+    } catch {
+      // 忽略损坏的 localStorage 数据
+    }
+    return {
+      history: 224,
+      transcript: 420,
+      notes: 420,
+    };
+  });
 
   // 录音结束时自动保存
   useEffect(() => {
@@ -72,6 +180,106 @@ export default function Home() {
   }, [saveMeeting, reset, loadMeetingList]);
 
   const hasContent = segments.length > 0;
+
+  // 保存面板宽度
+  useEffect(() => {
+    window.localStorage.setItem(WIDTH_STORAGE_KEY, JSON.stringify(panelWidths));
+  }, [panelWidths]);
+
+  // 监听主区域宽度变化
+  useEffect(() => {
+    if (!mainRef.current) return;
+    const element = mainRef.current;
+    const observer = new ResizeObserver(([entry]) => {
+      setMainWidth(entry.contentRect.width);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const effectivePanelWidths = useMemo(
+    () => normalizePanelWidths(panelWidths, mainWidth),
+    [panelWidths, mainWidth]
+  );
+
+  const startResize = useCallback(
+    (panel: ResizablePanel, startX: number, startWidth: number) => {
+      const onMouseMove = (event: MouseEvent) => {
+        const delta = event.clientX - startX;
+
+        setPanelWidths((prev) => {
+          const panelAreaWidth = mainWidth - DIVIDER_COUNT * DIVIDER_WIDTH;
+          const history = prev.history;
+          const transcript = prev.transcript;
+          const notes = prev.notes;
+
+          if (panelAreaWidth <= 0) return prev;
+
+          if (panel === 'history') {
+            const max =
+              panelAreaWidth -
+              transcript -
+              notes -
+              PANEL_MIN_WIDTH.chat;
+            const nextHistory = Math.min(
+              Math.max(startWidth + delta, PANEL_MIN_WIDTH.history),
+              Math.max(max, PANEL_MIN_WIDTH.history)
+            );
+            return normalizePanelWidths({ ...prev, history: nextHistory }, mainWidth);
+          }
+
+          if (panel === 'transcript') {
+            const max =
+              panelAreaWidth -
+              history -
+              notes -
+              PANEL_MIN_WIDTH.chat;
+            const nextTranscript = Math.min(
+              Math.max(startWidth + delta, PANEL_MIN_WIDTH.transcript),
+              Math.max(max, PANEL_MIN_WIDTH.transcript)
+            );
+            return normalizePanelWidths(
+              { ...prev, transcript: nextTranscript },
+              mainWidth
+            );
+          }
+
+          const max =
+            panelAreaWidth -
+            history -
+            transcript -
+            PANEL_MIN_WIDTH.chat;
+          const nextNotes = Math.min(
+            Math.max(startWidth + delta, PANEL_MIN_WIDTH.notes),
+            Math.max(max, PANEL_MIN_WIDTH.notes)
+          );
+          return normalizePanelWidths({ ...prev, notes: nextNotes }, mainWidth);
+        });
+      };
+
+      const onMouseUp = () => {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    },
+    [mainWidth]
+  );
+
+  const handleDividerMouseDown = (
+    panel: ResizablePanel,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    event.preventDefault();
+    const startWidth = effectivePanelWidths[panel];
+    startResize(panel, event.clientX, startWidth);
+  };
 
   return (
     <div className="flex h-screen flex-col bg-zinc-50">
@@ -127,9 +335,12 @@ export default function Home() {
       </header>
 
       {/* 主体 */}
-      <main className="flex flex-1 overflow-hidden">
+      <main ref={mainRef} className="flex flex-1 overflow-hidden">
         {/* 左侧边栏 - 会议历史 */}
-        <div className="flex w-56 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50">
+        <div
+          style={{ width: effectivePanelWidths.history }}
+          className="flex shrink-0 flex-col border-r border-zinc-200 bg-zinc-50"
+        >
           <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-2.5">
             <History size={14} className="text-zinc-400" />
             <h3 className="text-sm font-semibold text-zinc-600">会议记录</h3>
@@ -139,13 +350,35 @@ export default function Home() {
           </div>
         </div>
 
+        <div
+          onMouseDown={(e) => handleDividerMouseDown('history', e)}
+          className="group relative w-2 shrink-0 cursor-col-resize bg-zinc-50"
+          title="拖动调整会议记录宽度"
+        >
+          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-zinc-200 transition-colors group-hover:bg-amber-400" />
+        </div>
+
         {/* 左栏 - 实时转写 */}
-        <div className="flex flex-1 flex-col border-r border-zinc-200 bg-white">
+        <div
+          style={{ width: effectivePanelWidths.transcript }}
+          className="flex shrink-0 flex-col border-r border-zinc-200 bg-white"
+        >
           <TranscriptPanel />
         </div>
 
+        <div
+          onMouseDown={(e) => handleDividerMouseDown('transcript', e)}
+          className="group relative w-2 shrink-0 cursor-col-resize bg-zinc-50"
+          title="拖动调整实时转写宽度"
+        >
+          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-zinc-200 transition-colors group-hover:bg-amber-400" />
+        </div>
+
         {/* 中栏 - 笔记编辑器 + AI 笔记 */}
-        <div className="flex flex-1 flex-col border-r border-zinc-200 bg-white">
+        <div
+          style={{ width: effectivePanelWidths.notes }}
+          className="flex shrink-0 flex-col border-r border-zinc-200 bg-white"
+        >
           <div className="flex-1 overflow-y-auto">
             <NoteEditor />
           </div>
@@ -159,8 +392,16 @@ export default function Home() {
           )}
         </div>
 
+        <div
+          onMouseDown={(e) => handleDividerMouseDown('notes', e)}
+          className="group relative w-2 shrink-0 cursor-col-resize bg-zinc-50"
+          title="拖动调整笔记区宽度"
+        >
+          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-zinc-200 transition-colors group-hover:bg-amber-400" />
+        </div>
+
         {/* 右栏 - Chat */}
-        <div className="flex flex-1 flex-col bg-white">
+        <div className="flex min-w-[320px] flex-1 flex-col bg-white">
           <ChatPanel />
         </div>
       </main>
