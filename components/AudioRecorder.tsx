@@ -703,28 +703,28 @@ export default function AudioRecorder() {
   return (
     <div className="flex items-center gap-3">
       {status === 'idle' || status === 'ended' ? (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={handleStart}
-            className="group flex items-center gap-2.5 rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-200 transition-all hover:bg-black hover:scale-105 active:scale-95"
+            className="group flex items-center gap-2.5 rounded-full bg-sky-500 px-6 py-2.5 text-[15px] font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 hover:scale-[1.02] active:scale-[0.98]"
           >
             <div className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
             </div>
             开始录音
           </button>
           
           <button
             onClick={() => setShowGuide(!showGuide)}
-            className="rounded-full bg-white border border-gray-100 p-2.5 text-gray-400 transition-all hover:bg-gray-50 hover:text-gray-600 shadow-sm"
+            className="rounded-full bg-white border border-stone-200/60 p-2.5 text-stone-400 transition-all hover:bg-stone-50 hover:text-stone-600 hover:shadow-sm"
             title="录音说明"
           >
             <Monitor size={16} />
           </button>
 
           {asrStatus && (
-            <span className="hidden md:inline-block rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-500 tracking-tight">
+            <span className="hidden md:inline-block rounded-full bg-white border border-stone-200/60 px-3 py-1 text-[11px] font-medium text-stone-500 tracking-tight shadow-sm">
               {asrStatus.mode === 'aliyun' ? 'AI 增强转写' : '标准转写 (Demo)'}
             </span>
           )}
@@ -732,32 +732,32 @@ export default function AudioRecorder() {
       ) : (
         <>
           {/* 正在录音：高级感呼吸药囊 */}
-          <div className="flex items-center gap-4 rounded-full bg-white px-4 py-2 border border-red-100 shadow-sm">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4 rounded-full bg-white px-5 py-2 border border-sky-100 shadow-sm shadow-sky-500/5">
+            <div className="flex items-center gap-2.5">
               <div className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-500"></span>
               </div>
-              <span className="font-mono text-sm font-bold text-gray-900">
+              <span className="font-mono text-sm font-semibold text-stone-700 tracking-wide">
                 {formatDuration(duration)}
               </span>
             </div>
 
             {/* 双通道音量指示：更紧凑 */}
-            <div className="flex items-center gap-4 border-l border-gray-100 pl-4">
+            <div className="flex items-center gap-4 border-l border-stone-100 pl-4">
               <div className="flex items-center gap-2" title="我">
-                <Mic size={14} className={micActive ? 'text-indigo-500' : 'text-gray-300'} />
-                <LevelBar level={micLevel} color="bg-indigo-400" />
+                <Mic size={14} className={micActive ? 'text-sky-500' : 'text-stone-300'} />
+                <LevelBar level={micLevel} color="bg-sky-400" />
               </div>
               <div className="flex items-center gap-2" title="对方">
                 <Volume2
                   size={14}
-                  className={systemAudioActive ? 'text-teal-500' : 'text-gray-300'}
+                  className={systemAudioActive ? 'text-teal-500' : 'text-stone-300'}
                 />
                 {hasSystemAudio ? (
                   <LevelBar level={systemLevel} color="bg-teal-400" />
                 ) : (
-                  <span className="text-[10px] text-gray-300 font-medium">无采集</span>
+                  <span className="text-[10px] text-stone-300 font-medium">无采集</span>
                 )}
               </div>
             </div>
@@ -765,10 +765,10 @@ export default function AudioRecorder() {
 
           <button
             onClick={handleStop}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-all hover:bg-red-50 hover:text-red-600 active:scale-90 shadow-sm"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-stone-200/60 text-stone-500 transition-all hover:bg-red-50 hover:text-red-500 hover:border-red-100 active:scale-90 shadow-sm"
             title="停止录音"
           >
-            <Square size={16} fill="currentColor" />
+            <Square size={14} fill="currentColor" />
           </button>
         </>
       )}

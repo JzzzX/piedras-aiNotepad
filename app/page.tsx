@@ -255,33 +255,33 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-[#F9F9FB]">
+    <div className="flex h-screen flex-col bg-[#F9F8F6]">
       {/* 顶栏 */}
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-white/70 px-4 py-4 backdrop-blur-md md:px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-sm">
-            <Mic size={16} className="text-white" />
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-transparent px-4 py-6 md:px-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 shadow-sm border border-sky-100/50">
+            <Mic size={20} className="text-sky-500" strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-base font-bold text-gray-900">AI Notepad</h1>
-            <p className="text-xs text-gray-400 tracking-wider">智能会议笔记助手</p>
+            <h1 className="text-xl font-serif font-semibold text-stone-800 tracking-tight">AI Notepad</h1>
+            <p className="text-[13px] text-stone-400 font-medium">智能会议笔记助手</p>
           </div>
           <button
             onClick={() => setShowHistoryDrawer(true)}
-            className="ml-1 flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-xs text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-700"
+            className="ml-4 flex items-center gap-1.5 rounded-xl border border-stone-200/60 px-3 py-2 text-[13px] font-medium text-stone-500 transition-all hover:bg-white hover:border-stone-300 hover:text-stone-700 hover:shadow-sm"
             title="打开会议记录"
           >
-            <History size={12} />
+            <History size={14} />
             会议记录
           </button>
         </div>
 
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center gap-4">
           <input
             value={meetingTitle}
             onChange={(e) => setMeetingTitle(e.target.value)}
             placeholder="无标题文档..."
-            className="w-36 rounded-lg border-transparent bg-transparent px-3 py-1.5 text-lg font-semibold text-gray-900 placeholder:text-gray-300 transition-all hover:bg-black/5 focus:bg-white focus:outline-none sm:w-52 md:w-64 md:text-2xl"
+            className="w-36 rounded-xl border-transparent bg-transparent px-3 py-2 text-xl font-serif font-medium text-stone-800 placeholder:text-stone-300 transition-all hover:bg-white/50 focus:bg-white focus:shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-100 sm:w-52 md:w-72"
           />
 
           <AudioRecorder />
@@ -291,13 +291,13 @@ export default function Home() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-xs text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-700 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl border border-stone-200/60 px-4 py-2 text-[13px] font-medium text-stone-500 transition-all hover:bg-white hover:border-stone-300 hover:text-stone-700 hover:shadow-sm disabled:opacity-50 disabled:hover:bg-transparent"
               title="保存会议"
             >
               {isSaving ? (
-                <Save size={12} className="animate-pulse" />
+                <Save size={14} className="animate-pulse text-sky-500" />
               ) : (
-                <Check size={12} />
+                <Check size={14} className="text-stone-400" />
               )}
               {isSaving ? '保存中...' : '保存'}
             </button>
@@ -306,9 +306,9 @@ export default function Home() {
           {status === 'ended' && (
             <button
               onClick={handleNewMeeting}
-              className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-xs text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-700"
+              className="flex items-center gap-2 rounded-xl border border-stone-200/60 px-4 py-2 text-[13px] font-medium text-stone-500 transition-all hover:bg-white hover:border-stone-300 hover:text-stone-700 hover:shadow-sm"
             >
-              <RotateCcw size={12} />
+              <RotateCcw size={14} className="text-stone-400" />
               新会议
             </button>
           )}
@@ -353,35 +353,35 @@ export default function Home() {
       {/* 主体 */}
       <main
         ref={mainRef}
-        className="flex flex-1 gap-4 overflow-hidden bg-[#F9F9FB] p-4"
+        className="flex flex-1 gap-6 overflow-hidden bg-transparent px-8 pb-8"
       >
         {/* 左栏 - 实时转写 */}
         <div
           style={{ width: effectivePanelWidths.transcript }}
-          className="flex shrink-0 flex-col bg-white rounded-3xl shadow-sm"
+          className="flex shrink-0 flex-col bg-white rounded-2xl border border-black/[0.04] shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
         >
           <TranscriptPanel />
         </div>
 
         <div
           onMouseDown={(e) => handleDividerMouseDown('transcript', e)}
-          className="group relative w-2 shrink-0 cursor-col-resize bg-transparent"
+          className="group relative w-1 shrink-0 cursor-col-resize bg-transparent"
           title="拖动调整实时转写宽度"
         >
-          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-black/5 opacity-0 transition-opacity group-hover:opacity-100" />
+          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-stone-200 opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
 
         {/* 中栏 - 笔记编辑器 + AI 笔记 */}
         <div
           style={{ width: effectivePanelWidths.notes }}
-          className="flex shrink-0 flex-col bg-white rounded-3xl shadow-sm overflow-hidden"
+          className="flex shrink-0 flex-col bg-white rounded-2xl border border-black/[0.04] shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden"
         >
           <div className="flex-1 overflow-y-auto">
             <NoteEditor />
           </div>
 
           {(status === 'ended' || segments.length > 0) && (
-            <div className="border-t border-gray-100 bg-[#F9F9FB] p-6 space-y-4 max-h-[50%] overflow-y-auto">
+            <div className="border-t border-stone-100 bg-[#F9F8F6]/50 p-6 space-y-4 max-h-[50%] overflow-y-auto">
               <PromptSettings />
               <SpeakerManager />
               <EnhancedNotes />
@@ -391,38 +391,38 @@ export default function Home() {
 
         <div
           onMouseDown={(e) => handleDividerMouseDown('notes', e)}
-          className="group relative w-2 shrink-0 cursor-col-resize bg-transparent"
+          className="group relative w-1 shrink-0 cursor-col-resize bg-transparent"
           title="拖动调整笔记区宽度"
         >
-          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-black/5 opacity-0 transition-opacity group-hover:opacity-100" />
+          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-stone-200 opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
 
         {/* 右栏 - Chat */}
-        <div className="flex min-w-0 flex-1 flex-col rounded-3xl bg-indigo-50/30 shadow-sm">
+        <div className="flex min-w-0 flex-1 flex-col bg-white rounded-2xl border border-black/[0.04] shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative overflow-hidden">
           <ChatPanel />
         </div>
       </main>
 
       {/* 底栏状态 */}
-      <footer className="flex items-center justify-between bg-white px-6 py-3 border-t border-black/5">
-        <div className="flex items-center gap-4 text-xs text-zinc-400">
+      <footer className="flex items-center justify-between bg-transparent px-8 py-4">
+        <div className="flex items-center gap-4 text-xs font-medium text-stone-400">
           <span>
             {status === 'idle' && '准备就绪 — Botless 双通道采集'}
             {status === 'recording' && '正在录音 — 无 Bot 进入会议 · 每30s自动保存'}
             {status === 'ended' && '录音已结束 — 已自动保存'}
           </span>
           {segments.length > 0 && (
-            <span>{segments.length} 条转写</span>
+            <span className="flex items-center gap-1.5 before:block before:w-1 before:h-1 before:rounded-full before:bg-stone-300">{segments.length} 条转写</span>
           )}
           {isSaving && (
-            <span className="flex items-center gap-1 text-amber-500">
-              <Save size={10} className="animate-pulse" />
+            <span className="flex items-center gap-1.5 text-sky-500 before:block before:w-1 before:h-1 before:rounded-full before:bg-stone-300">
+              <Save size={12} className="animate-pulse" />
               保存中...
             </span>
           )}
         </div>
-        <div className="text-xs text-zinc-300">
-          Botless 模式 · 麦克风 + 系统音频 · 数据存储在本地 SQLite
+        <div className="text-[11px] font-medium text-stone-300 tracking-wide uppercase">
+          Botless · 本地 SQLite 存储
         </div>
       </footer>
     </div>

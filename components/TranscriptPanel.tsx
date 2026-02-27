@@ -49,37 +49,39 @@ export default function TranscriptPanel() {
 
   if (status === 'idle') {
     return (
-      <div className="flex h-full flex-col items-center justify-center px-6 bg-white text-gray-400">
-        <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-6">
-          <MessageSquare size={24} className="text-gray-300" strokeWidth={1.5} />
+      <div className="flex h-full flex-col items-center justify-center p-6 bg-transparent text-stone-400">
+        <div className="w-full max-w-[280px] rounded-2xl border border-dashed border-stone-200 bg-white/50 p-8 flex flex-col items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center mb-4 shadow-sm border border-sky-100/50">
+            <MessageSquare size={20} className="text-sky-400" strokeWidth={2} />
+          </div>
+          <p className="text-[15px] font-serif font-semibold text-stone-700 mb-1">准备聆听...</p>
+          <p className="text-center text-[13px] leading-relaxed text-stone-400">
+            保持安静，或点击顶部按钮开始记录
+          </p>
         </div>
-        <p className="text-base font-medium text-gray-600">准备聆听...</p>
-        <p className="mt-2 text-sm text-center text-gray-400 max-w-[240px] leading-relaxed">
-          保持安静，或者点击顶部按钮开始记录您的会议对话
-        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col bg-white">
-      <div className="flex items-center justify-between border-b border-black/5 px-6 py-4">
-        <h3 className="text-base font-semibold text-gray-900">实时转写</h3>
+    <div className="flex h-full flex-col bg-transparent">
+      <div className="flex items-center justify-between border-b border-black/[0.04] px-6 py-5">
+        <h3 className="text-[15px] font-serif font-semibold text-stone-800">实时转写</h3>
         <div className="flex items-center gap-3">
           {/* 实时通道状态 */}
           {status === 'recording' && (
             <div className="flex items-center gap-2">
               <div
-                className={`flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-medium tracking-wider uppercase ${
-                  micActive ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-400'
+                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase ${
+                  micActive ? 'bg-sky-50 text-sky-600 border border-sky-100' : 'bg-[#F9F8F6] text-stone-400 border border-black/[0.02]'
                 }`}
               >
                 <Mic size={10} />
                 <span>ME</span>
               </div>
               <div
-                className={`flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-medium tracking-wider uppercase ${
-                  systemAudioActive ? 'bg-teal-50 text-teal-600' : 'bg-gray-50 text-gray-400'
+                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase ${
+                  systemAudioActive ? 'bg-teal-50 text-teal-600 border border-teal-100' : 'bg-[#F9F8F6] text-stone-400 border border-black/[0.02]'
                 }`}
               >
                 <Volume2 size={10} />
@@ -87,13 +89,13 @@ export default function TranscriptPanel() {
               </div>
             </div>
           )}
-          <span className="rounded-full bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-500">
+          <span className="rounded-full bg-[#F9F8F6] border border-black/[0.04] px-2.5 py-1 text-[11px] font-medium text-stone-500">
             {segments.length} 条
           </span>
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
         {segments.map((seg) => {
           const style = getSpeakerStyle(seg.speaker);
           const isSystemPlaceholder = seg.text.startsWith('[对方正在发言');
@@ -101,15 +103,15 @@ export default function TranscriptPanel() {
           return (
             <div
               key={seg.id}
-              className={`rounded-2xl p-4 transition-all ${style.bg} ${
+              className={`rounded-2xl px-5 py-4 transition-all bg-white border border-black/[0.04] shadow-sm ${
                 isSystemPlaceholder ? 'opacity-60' : ''
               }`}
             >
-              <div className="mb-2 flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-gray-400 tracking-widest uppercase">
+              <div className="mb-2.5 flex items-center gap-2">
+                <span className="text-[10px] font-bold text-stone-400 tracking-widest uppercase bg-[#F9F8F6] px-2 py-0.5 rounded-md">
                   {style.label || getSpeakerDisplayName(seg.speaker)}
                 </span>
-                <span className="text-[11px] text-gray-300">
+                <span className="text-[11px] text-stone-300 font-medium">
                   {new Date(seg.startTime).toLocaleTimeString('zh-CN', {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -117,8 +119,8 @@ export default function TranscriptPanel() {
                 </span>
               </div>
               <p
-                className={`text-[15px] text-gray-800 leading-[1.8] ${
-                  isSystemPlaceholder ? 'italic opacity-70 text-gray-500' : ''
+                className={`text-[15px] text-stone-800 leading-relaxed font-sans ${
+                  isSystemPlaceholder ? 'italic opacity-70 text-stone-500' : ''
                 }`}
               >
                 {seg.text}

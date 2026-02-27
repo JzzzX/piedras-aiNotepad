@@ -25,23 +25,25 @@ export default function NoteEditor() {
 
   if (status === 'idle') {
     return (
-      <div className="flex h-full flex-col items-center justify-center text-gray-400 bg-white">
-        <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-6">
-          <FileText size={24} className="text-gray-300" strokeWidth={1.5} />
+      <div className="flex h-full flex-col items-center justify-center p-6 text-stone-400 bg-transparent">
+        <div className="w-full max-w-[280px] rounded-2xl border border-dashed border-stone-200 bg-white/50 p-8 flex flex-col items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center mb-4 shadow-sm border border-sky-100/50">
+            <FileText size={20} className="text-sky-400" strokeWidth={2} />
+          </div>
+          <p className="text-[15px] font-serif font-semibold text-stone-700 mb-1">灵感与笔记</p>
+          <p className="text-center text-[13px] leading-relaxed text-stone-400">
+            一个纯净的书写空间。<br/>开始录音后，你的要点会与转写自动融合。
+          </p>
         </div>
-        <p className="text-base font-medium text-gray-600">灵感与笔记</p>
-        <p className="mt-2 text-sm text-center text-gray-400 max-w-[240px] leading-relaxed">
-          一个纯净的书写空间。<br/>开始录音后，你的要点会与转写自动融合。
-        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="flex h-full flex-col bg-transparent">
       {/* 极简工具栏悬浮 */}
       {editor && (
-        <div className="sticky top-0 z-10 flex items-center gap-1 bg-white/80 backdrop-blur-sm px-6 py-3 border-b border-black/5">
+        <div className="sticky top-0 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-md px-6 py-4 border-b border-black/[0.04]">
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             active={editor.isActive('heading', { level: 2 })}
@@ -63,7 +65,7 @@ export default function NoteEditor() {
           >
             <Italic size={16} />
           </ToolbarButton>
-          <div className="mx-2 h-4 w-px bg-gray-200" />
+          <div className="mx-2 h-4 w-px bg-stone-200/60" />
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             active={editor.isActive('bulletList')}
@@ -82,7 +84,7 @@ export default function NoteEditor() {
       )}
 
       {/* 沉浸式编辑区 */}
-      <div className="flex-1 overflow-y-auto px-8 py-6">
+      <div className="flex-1 overflow-y-auto px-8 py-8 bg-white">
         <EditorContent editor={editor} />
       </div>
     </div>
@@ -104,10 +106,10 @@ function ToolbarButton({
     <button
       onClick={onClick}
       title={title}
-      className={`rounded-lg p-2 transition-all ${
+      className={`rounded-xl p-2 transition-all ${
         active
-          ? 'bg-gray-100 text-gray-900'
-          : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700'
+          ? 'bg-sky-50 text-sky-600 shadow-sm border border-sky-100/50'
+          : 'text-stone-400 hover:bg-[#F9F8F6] hover:text-stone-600 border border-transparent'
       }`}
     >
       {children}
