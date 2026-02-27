@@ -47,6 +47,7 @@ npm run dev
 - `GEMINI_API_KEY` / `GEMINI_MODEL` - Gemini 大模型（默认主通道）
 - `MINIMAX_API_KEY` / `MINIMAX_GROUP_ID` / `MINIMAX_MODEL` - MiniMax 大模型（回退通道）
 - `LLM_PROVIDER` / `LLM_FALLBACKS` / `LLM_TIMEOUT_MS` / `LLM_RETRIES` - LLM 路由与稳定性参数
+- `LLM_STRICT_MODE` - `false` 时 LLM 故障自动回退 Demo 内容，`true` 时直接报错
 
 ## 与 Granola 的差异化
 

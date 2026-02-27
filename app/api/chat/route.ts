@@ -73,20 +73,38 @@ ${enhancedNotes || '（无）'}`;
       { role: 'user', content: question },
     ];
 
-    const { content, provider } = await generateTextWithFallback({
-      messages,
-      temperature: 0.5,
-      maxTokens: 4096,
-    });
+    try {
+      const { content, provider } = await generateTextWithFallback({
+        messages,
+        temperature: 0.5,
+        maxTokens: 4096,
+      });
 
-    const stream = createTextStream(content);
+      const stream = createTextStream(content);
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'X-LLM-Provider': provider,
-      },
-    });
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'X-LLM-Provider': provider,
+        },
+      });
+    } catch (llmError) {
+      const strictMode = process.env.LLM_STRICT_MODE === 'true';
+      const message =
+        llmError instanceof Error ? llmError.message : '未知 LLM 错误';
+      if (strictMode) {
+        throw llmError;
+      }
+
+      const fallback = `${getDemoResponse(question)}\n\n⚠️ LLM 调用失败，已回退到 Demo 内容：${message}`;
+      const stream = createTextStream(fallback);
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'X-LLM-Provider': 'demo',
+        },
+      });
+    }
   } catch (error) {
     console.error('Chat error:', error);
     return new Response(

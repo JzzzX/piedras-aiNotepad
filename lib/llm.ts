@@ -36,7 +36,18 @@ export async function enhanceNotes(
   });
 
   if (!res.ok) {
-    throw new Error('AI 笔记生成失败');
+    let detail = '';
+    try {
+      const errData = await res.json();
+      detail = errData?.error || '';
+    } catch {
+      try {
+        detail = await res.text();
+      } catch {
+        detail = '';
+      }
+    }
+    throw new Error(detail ? `AI 笔记生成失败：${detail}` : 'AI 笔记生成失败');
   }
 
   const data = await res.json();
@@ -69,7 +80,8 @@ export async function chatWithMeeting(
   });
 
   if (!res.ok) {
-    throw new Error('Chat 请求失败');
+    const detail = await res.text();
+    throw new Error(detail ? `Chat 请求失败：${detail}` : 'Chat 请求失败');
   }
 
   return res.body;

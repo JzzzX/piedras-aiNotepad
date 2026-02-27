@@ -43,6 +43,8 @@ interface AsrSessionResponse {
 interface AliyunChannelRuntime {
   appKey: string;
   taskId: string;
+  started: boolean;
+  pendingPcm: ArrayBuffer[];
   sourceType: AudioSourceType;
   speaker: string;
   sessionStartTime: number;
@@ -277,7 +279,7 @@ export default function AudioRecorder() {
     aliyunEnabledRef.current = false;
 
     channels.forEach((channel) => {
-      if (channel.ws.readyState === WebSocket.OPEN) {
+      if (channel.ws.readyState === WebSocket.OPEN && channel.started) {
         channel.ws.send(
           JSON.stringify({
             header: {
@@ -399,6 +401,17 @@ export default function AudioRecorder() {
           const message = JSON.parse(event.data) as AliyunWsMessage;
           const eventName = message.header?.name;
           const result = message.payload?.result?.trim() || '';
+          const runtime = aliyunChannelsRef.current.find(
+            (c) => c.taskId === taskId && c.sourceType === sourceType
+          );
+
+          if (eventName === 'TranscriptionStarted' && runtime) {
+            runtime.started = true;
+            for (const pcm of runtime.pendingPcm) {
+              ws.send(pcm);
+            }
+            runtime.pendingPcm = [];
+          }
 
           if (eventName === 'TranscriptionResultChanged' && sourceType === 'mic') {
             setCurrentPartial(result);
@@ -427,6 +440,10 @@ export default function AudioRecorder() {
 
           if (eventName === 'TaskFailed') {
             console.error('Aliyun ASR failed:', message.header?.status_text || event.data);
+            if (runtime) {
+              runtime.started = false;
+              runtime.pendingPcm = [];
+            }
           }
         } catch {
           // 忽略非 JSON 事件
@@ -444,12 +461,28 @@ export default function AudioRecorder() {
         const input = event.inputBuffer.getChannelData(0);
         const downsampled = downsampleTo16k(input, audioContext.sampleRate);
         const pcmBuffer = toInt16PcmBuffer(downsampled);
+        const runtime = aliyunChannelsRef.current.find(
+          (c) => c.taskId === taskId && c.sourceType === sourceType
+        );
+
+        if (!runtime || !runtime.started) {
+          if (runtime) {
+            runtime.pendingPcm.push(pcmBuffer);
+            if (runtime.pendingPcm.length > 12) {
+              runtime.pendingPcm.shift();
+            }
+          }
+          return;
+        }
+
         ws.send(pcmBuffer);
       };
 
       const runtime: AliyunChannelRuntime = {
         appKey: session.appKey,
         taskId,
+        started: false,
+        pendingPcm: [],
         sourceType,
         speaker,
         sessionStartTime,

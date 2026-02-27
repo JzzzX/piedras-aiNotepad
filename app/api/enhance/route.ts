@@ -39,12 +39,13 @@ export async function POST(req: NextRequest) {
 
 要求：以用户手写要点为优先参考，用转写内容补充细节和上下文。使用中文输出。`;
 
-    const { content, provider } = await generateTextWithFallback({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        {
-          role: 'user',
-          content: `会议标题：${meetingTitle || '未命名会议'}
+    try {
+      const { content, provider } = await generateTextWithFallback({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          {
+            role: 'user',
+            content: `会议标题：${meetingTitle || '未命名会议'}
 
 --- 会议转写记录 ---
 ${transcript || '（无转写内容）'}
@@ -53,13 +54,28 @@ ${transcript || '（无转写内容）'}
 ${userNotes || '（用户未记录要点）'}
 
 请根据以上内容生成结构化会议纪要。`,
-        },
-      ],
-      temperature: 0.3,
-      maxTokens: 4096,
-    });
+          },
+        ],
+        temperature: 0.3,
+        maxTokens: 4096,
+      });
 
-    return NextResponse.json({ content, provider });
+      return NextResponse.json({ content, provider });
+    } catch (llmError) {
+      const strictMode = process.env.LLM_STRICT_MODE === 'true';
+      const message =
+        llmError instanceof Error ? llmError.message : '未知 LLM 错误';
+
+      if (strictMode) {
+        throw llmError;
+      }
+
+      return NextResponse.json({
+        content: `${generateDemoEnhancedNotes(transcript, userNotes, meetingTitle)}\n\n---\n⚠️ LLM 调用失败，已回退到 Demo 内容：${message}`,
+        provider: 'demo',
+        warning: message,
+      });
+    }
   } catch (error) {
     console.error('Enhance error:', error);
     return NextResponse.json(
