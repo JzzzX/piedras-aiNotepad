@@ -1,200 +1,24 @@
-import { Template } from './types';
+import type { Template } from './types';
 
-export const templates: Template[] = [
-  {
-    id: 'sales',
-    name: '销售复盘',
-    command: '/sales',
-    icon: '💰',
-    description: '分析客户态度、异议点和下一步跟进计划',
-    category: '复盘',
-    prompt: `你是一位资深销售教练。请根据以下会议转写和用户笔记，生成一份销售复盘报告：
+export const TEMPLATE_CATEGORIES = ['复盘', '记录', '分析', '工具'];
 
-## 客户态度分析
-- 整体态度（积极/中立/消极）
-- 关键兴趣点
-- 明确的顾虑和异议
-
-## 竞品提及
-- 客户提到的替代方案或竞品
-
-## 决策信号
-- 购买信号（正面）
-- 风险信号（负面）
-
-## 行动项
-- 需要跟进的事项（含负责人和建议时间）
-
-## 下一步建议
-- 推荐的跟进策略和话术要点`,
-  },
-  {
-    id: 'interview',
-    name: '用户访谈',
-    command: '/interview',
-    icon: '🎯',
-    description: '提取用户需求、痛点，并引用原话作为证据',
-    category: '记录',
-    prompt: `你是一位用户研究专家。请根据以下访谈转写和用户笔记，生成结构化的访谈洞察报告：
-
-## 用户画像速写
-- 基本信息（从对话推断）
-- 使用场景
-
-## 核心需求（按优先级排列）
-每条需求请附上原话引用作为证据，格式：
-- 需求描述 —— "用户原话..."
-
-## 痛点与不满
-- 当前解决方案的问题
-- 未被满足的期望
-
-## 机会点
-- 可以改进或新增的功能方向
-
-## 意外发现
-- 访谈中出现的计划外但有价值的信息`,
-  },
-  {
-    id: 'standup',
-    name: '站会/周会',
-    command: '/standup',
-    icon: '📋',
-    description: '提取每人的进度、阻塞项和计划',
-    category: '记录',
-    prompt: `你是一位项目管理助手。请根据以下会议转写和用户笔记，按参会人生成站会/周会纪要：
-
-对每位参会者整理：
-## [姓名]
-### 已完成
-- 具体完成事项
-
-### 进行中
-- 当前在做的事项及进度
-
-### 阻塞项
-- 遇到的阻碍和需要协助的地方
-
-### 下周计划
-- 接下来要做的事
-
----
-## 全局风险与待协调事项
-- 需要整个团队关注的问题`,
-  },
-  {
-    id: '1on1',
-    name: '一对一',
-    command: '/1on1',
-    icon: '🤝',
-    description: '整理反馈、成长建议和行动承诺',
-    category: '记录',
-    prompt: `你是一位管理教练。请根据以下 1:1 会议转写和用户笔记，生成结构化的 1:1 纪要：
-
-## 讨论要点
-- 本次 1:1 覆盖的主要话题
-
-## 反馈记录
-### 正面反馈
-- 被认可的工作和表现
-
-### 改进建议
-- 需要提升的方面
-
-## 职业发展
-- 讨论到的成长方向和目标
-
-## 行动承诺
-- 双方承诺的具体行动（含负责人和时间）
-
-## 下次跟进
-- 下次 1:1 需要回顾的事项`,
-  },
-  {
-    id: 'brainstorm',
-    name: '脑暴总结',
-    command: '/brainstorm',
-    icon: '💡',
-    description: '归类创意、评估可行性',
-    category: '分析',
-    prompt: `你是一位创新顾问。请根据以下脑暴会议转写和用户笔记，整理出结构化的创意报告：
-
-## 创意汇总（按主题分类）
-每个创意包含：
-- 创意描述
-- 提出者
-- 可行性评估（高/中/低）
-- 预计投入（大/中/小）
-
-## 最具潜力的 Top 3
-- 为什么值得优先推进
-
-## 待验证假设
-- 需要进一步调研或验证的关键假设
-
-## 下一步
-- 建议的推进计划`,
-  },
-  {
-    id: 'coach',
-    name: '教练模式',
-    command: '/coach',
-    icon: '🎓',
-    description: '分析你的表达能力，给出改进建议',
-    category: '分析',
-    prompt: `你是一位沟通教练。请根据以下会议转写，**专门分析"我"（麦克风录入的说话人）的沟通表现**：
-
-## 沟通评分（1-10）
-- 表达清晰度
-- 逻辑结构
-- 倾听与回应
-- 说服力
-
-## 表达亮点
-- 做得好的地方，附原话引用
-
-## 改进空间
-- 可以提升的地方，附具体建议和改进话术示例
-
-## 语言习惯分析
-- 口头禅/重复用语
-- 语速节奏
-- 专业术语使用是否恰当
-
-## 一句话建议
-- 最需要改进的一个点`,
-  },
-  {
-    id: 'translate',
-    name: '翻译笔记',
-    command: '/translate',
-    icon: '🌐',
-    description: '将会议笔记中英互译',
-    category: '工具',
-    prompt: `请将以下会议纪要翻译为另一种语言：
-- 如果原文是中文，翻译为英文
-- 如果原文是英文，翻译为中文
-- 如果是中英混合，统一翻译为中文
-
-要求：
-1. 保留原文的结构和格式
-2. 专业术语保留英文原文并在括号中标注
-3. 人名保持原文
-4. 行动项中的时间和负责人信息准确翻译`,
-  },
-];
-
-export function findTemplateByCommand(input: string): Template | undefined {
-  const cmd = input.trim().toLowerCase();
-  return templates.find(t => t.command === cmd);
+export function normalizeTemplateCommand(input: string): string {
+  const raw = input.trim().toLowerCase();
+  if (!raw) return '';
+  return raw.startsWith('/') ? raw : `/${raw}`;
 }
 
-export function filterTemplates(query: string): Template[] {
-  const q = query.toLowerCase();
+export function filterTemplates(templates: Template[], query: string): Template[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return templates;
   return templates.filter(
-    t =>
-      t.name.includes(q) ||
-      t.command.includes(q) ||
-      t.description.includes(q)
+    (t) =>
+      t.name.toLowerCase().includes(q) ||
+      t.command.toLowerCase().includes(q) ||
+      t.description.toLowerCase().includes(q)
   );
+}
+
+export function isValidTemplateCategory(category: string): boolean {
+  return TEMPLATE_CATEGORIES.includes(category);
 }

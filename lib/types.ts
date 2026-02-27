@@ -37,7 +37,9 @@ export interface Template {
   icon: string;
   description: string;
   prompt: string;
-  category: '复盘' | '记录' | '分析' | '工具';
+  category: string;
+  isSystem?: boolean;
+  sortOrder?: number;
 }
 
 export interface Meeting {

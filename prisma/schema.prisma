@@ -46,3 +46,17 @@ model ChatMessage {
   meetingId String
   meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 }
+
+model PromptTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  command     String   @unique
+  icon        String   @default("📝")
+  description String
+  prompt      String
+  category    String   @default("记录")
+  isSystem    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
