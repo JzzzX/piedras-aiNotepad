@@ -6,6 +6,8 @@ import { useMeetingStore } from '@/lib/store';
 import { enhanceNotes } from '@/lib/llm';
 import { buildUnifiedMeetingMarkdown } from '@/lib/meeting-export';
 
+type ShareChannel = 'feishu' | 'wecom';
+
 export default function EnhancedNotes() {
   const {
     segments,
@@ -111,8 +113,11 @@ export default function EnhancedNotes() {
     }
   };
 
-  const handleExperimentalFeature = () => {
-    setFeedback('实验功能：后续开放飞书、企业微信 webhook 接入');
+  const handleExperimentalShare = (channel: ShareChannel) => {
+    const channelName = channel === 'feishu' ? '飞书' : '企业微信';
+    const tip = `实验功能：后续开放 ${channelName} webhook 接入`;
+    setFeedback(tip);
+    window.alert(tip);
   };
 
   const canGenerate = status === 'ended' || segments.length > 0;
@@ -180,11 +185,18 @@ export default function EnhancedNotes() {
                 )}
               </button>
               <button
-                onClick={handleExperimentalFeature}
-                className="rounded p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-40"
-                title="实验功能"
+                onClick={() => handleExperimentalShare('feishu')}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-[#3370FF] text-[11px] font-semibold text-white transition-opacity hover:opacity-90"
+                title="飞书（实验功能）"
               >
-                <span className="text-[11px] font-semibold">实验</span>
+                飞
+              </button>
+              <button
+                onClick={() => handleExperimentalShare('wecom')}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-[#07C160] text-[11px] font-semibold text-white transition-opacity hover:opacity-90"
+                title="企业微信（实验功能）"
+              >
+                企
               </button>
               <button
                 onClick={handleGenerate}
