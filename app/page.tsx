@@ -345,7 +345,7 @@ export default function Home() {
             </button>
           </div>
           <div className="h-[calc(100%-49px)] overflow-y-auto p-2">
-            <MeetingHistory />
+            <MeetingHistory onSelectMeeting={() => setShowHistoryDrawer(false)} />
           </div>
         </aside>
       </div>

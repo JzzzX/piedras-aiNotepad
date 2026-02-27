@@ -4,7 +4,11 @@ import { useEffect } from 'react';
 import { useMeetingStore, MeetingListItem } from '@/lib/store';
 import { Clock, MessageSquare, FileText, Trash2, Loader2 } from 'lucide-react';
 
-export default function MeetingHistory() {
+interface MeetingHistoryProps {
+  onSelectMeeting?: () => void;
+}
+
+export default function MeetingHistory({ onSelectMeeting }: MeetingHistoryProps) {
   const {
     meetingList,
     isLoadingList,
@@ -47,6 +51,11 @@ export default function MeetingHistory() {
     return `${m}m${s > 0 ? `${s}s` : ''}`;
   };
 
+  const handleSelectMeeting = async (id: string) => {
+    await loadMeeting(id);
+    onSelectMeeting?.();
+  };
+
   if (isLoadingList) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -72,7 +81,7 @@ export default function MeetingHistory() {
         return (
           <div
             key={m.id}
-            onClick={() => loadMeeting(m.id)}
+            onClick={() => handleSelectMeeting(m.id)}
             className={`group flex cursor-pointer items-start gap-3 rounded-2xl px-4 py-3 transition-all ${
               isActive
                 ? 'bg-white shadow-sm'
