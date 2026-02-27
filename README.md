@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Notepad - 智能会议笔记助手
 
-## Getting Started
+类 Granola 的 AI 会议记录工具，面向中国市场。核心理念：**人机协作式笔记** —— 不是纯粹的转写工具，而是将用户手写要点与 AI 转写融合，生成结构化会议纪要。
 
-First, run the development server:
+## 核心特性
+
+- **实时语音转写** - 浏览器录音 + 阿里云 ASR，支持中文/中英夹杂
+- **说话人分离** - 区分不同说话人，标注"谁说了什么"
+- **手写笔记 + AI 融合** - 边听边记要点，会后 AI 融合转写与笔记生成结构化纪要
+- **会议 Chat** - 基于会议内容的 AI 问答，提取行动项、总结等
+- **模版系统** - 本土化 Recipes（销售复盘、用户访谈、站会、1on1 等），Chat 中 "/" 调用
+
+## 技术栈
+
+| 模块 | 技术选型 |
+|------|---------|
+| 前端 | Next.js 15 + React 19 + Tailwind CSS |
+| 编辑器 | Tiptap (ProseMirror) |
+| 状态管理 | Zustand |
+| ASR | 阿里云智能语音交互（实时转写） |
+| LLM | MiniMax |
+| 存储 | SQLite (本地) |
+
+## 快速开始
 
 ```bash
+# 安装依赖
+npm install
+
+# 配置环境变量
+cp .env.example .env.local
+# 编辑 .env.local 填入你的 API 密钥
+
+# 启动开发服务器
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+浏览器打开 [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 环境变量
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+参见 `.env.example`，需要配置：
 
-## Learn More
+- `ALICLOUD_ACCESS_KEY_ID` / `ALICLOUD_ACCESS_KEY_SECRET` / `ALICLOUD_ASR_APP_KEY` - 阿里云语音服务
+- `MINIMAX_API_KEY` / `MINIMAX_GROUP_ID` - MiniMax 大模型
 
-To learn more about Next.js, take a look at the following resources:
+## 与 Granola 的差异化
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| 维度 | Granola | 本项目 |
+|------|---------|--------|
+| 说话人分离 | 桌面端不支持 | Day 1 核心能力 |
+| 中文支持 | 有限 | 中文优先 + 中英夹杂 |
+| 模版 | 通用场景 | 本土化（销售复盘、访谈等） |
+| 数据存储 | 美国 AWS | 本地 SQLite，数据不出境 |
+| 教练模式 | 无 | 分析沟通表现，给出改进建议 |
