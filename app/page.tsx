@@ -31,6 +31,12 @@ interface PanelWidths {
   notes: number;
 }
 
+const DEFAULT_PANEL_WIDTHS: PanelWidths = {
+  history: 224,
+  transcript: 420,
+  notes: 420,
+};
+
 function normalizePanelWidths(widths: PanelWidths, mainWidth: number): PanelWidths {
   if (mainWidth <= 0) return widths;
 
@@ -96,22 +102,16 @@ export default function Home() {
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mainRef = useRef<HTMLElement | null>(null);
   const [mainWidth, setMainWidth] = useState(0);
-  const [panelWidths, setPanelWidths] = useState<PanelWidths>(() => {
-    if (typeof window === 'undefined') {
-      return {
-        history: 224,
-        transcript: 420,
-        notes: 420,
-      };
-    }
+  const [panelWidths, setPanelWidths] = useState<PanelWidths>(DEFAULT_PANEL_WIDTHS);
+  const [widthsHydrated, setWidthsHydrated] = useState(false);
+
+  // 首次挂载后再读取 localStorage，避免 SSR 与客户端首帧不一致导致 hydration 警告
+  useEffect(() => {
     try {
       const raw = window.localStorage.getItem(WIDTH_STORAGE_KEY);
       if (!raw) {
-        return {
-          history: 224,
-          transcript: 420,
-          notes: 420,
-        };
+        setWidthsHydrated(true);
+        return;
       }
       const parsed = JSON.parse(raw) as Partial<PanelWidths>;
       if (
@@ -119,21 +119,18 @@ export default function Home() {
         typeof parsed.transcript === 'number' &&
         typeof parsed.notes === 'number'
       ) {
-        return {
+        setPanelWidths({
           history: parsed.history,
           transcript: parsed.transcript,
           notes: parsed.notes,
-        };
+        });
       }
     } catch {
       // 忽略损坏的 localStorage 数据
+    } finally {
+      setWidthsHydrated(true);
     }
-    return {
-      history: 224,
-      transcript: 420,
-      notes: 420,
-    };
-  });
+  }, []);
 
   // 录音结束时自动保存
   useEffect(() => {
@@ -183,8 +180,9 @@ export default function Home() {
 
   // 保存面板宽度
   useEffect(() => {
+    if (!widthsHydrated) return;
     window.localStorage.setItem(WIDTH_STORAGE_KEY, JSON.stringify(panelWidths));
-  }, [panelWidths]);
+  }, [panelWidths, widthsHydrated]);
 
   // 监听主区域宽度变化
   useEffect(() => {
