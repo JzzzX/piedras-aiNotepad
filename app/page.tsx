@@ -82,8 +82,8 @@ export default function Home() {
       <footer className="flex items-center justify-between border-t border-zinc-200 bg-white px-5 py-2">
         <div className="flex items-center gap-4 text-xs text-zinc-400">
           <span>
-            {status === 'idle' && '准备就绪'}
-            {status === 'recording' && '正在录音...'}
+            {status === 'idle' && '准备就绪 — Botless 双通道采集'}
+            {status === 'recording' && '正在录音 — 无 Bot 进入会议'}
             {status === 'ended' && '录音已结束'}
           </span>
           {segments.length > 0 && (
@@ -91,7 +91,7 @@ export default function Home() {
           )}
         </div>
         <div className="text-xs text-zinc-300">
-          Demo 模式 - 使用浏览器语音识别 | 阿里云 ASR + MiniMax
+          Botless 模式 · 麦克风 + 系统音频 · 阿里云 ASR + MiniMax
         </div>
       </footer>
     </div>

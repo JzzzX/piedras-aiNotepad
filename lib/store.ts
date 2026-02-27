@@ -29,6 +29,12 @@ interface MeetingStore {
   // 录音计时器
   recordingStartTime: number | null;
 
+  // 双通道音频状态
+  micLevel: number;
+  systemLevel: number;
+  systemAudioActive: boolean;
+  micActive: boolean;
+
   // Actions
   startMeeting: () => void;
   endMeeting: () => void;
@@ -44,6 +50,7 @@ interface MeetingStore {
   addChatMessage: (message: ChatMessage) => void;
   setIsChatLoading: (v: boolean) => void;
   updateDuration: () => void;
+  setAudioLevels: (mic: number, system: number) => void;
   reset: () => void;
 }
 
@@ -62,6 +69,10 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   chatMessages: [],
   isChatLoading: false,
   recordingStartTime: null,
+  micLevel: 0,
+  systemLevel: 0,
+  systemAudioActive: false,
+  micActive: false,
 
   startMeeting: () =>
     set({
@@ -75,6 +86,10 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     set({
       status: 'ended',
       recordingStartTime: null,
+      micLevel: 0,
+      systemLevel: 0,
+      systemAudioActive: false,
+      micActive: false,
     }),
 
   setStatus: (status) => set({ status }),
@@ -123,6 +138,14 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     }
   },
 
+  setAudioLevels: (mic, system) =>
+    set({
+      micLevel: mic,
+      systemLevel: system,
+      micActive: mic > 0.05,
+      systemAudioActive: system > 0.05,
+    }),
+
   reset: () =>
     set({
       meetingId: uuidv4(),
@@ -139,5 +162,9 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       chatMessages: [],
       isChatLoading: false,
       recordingStartTime: null,
+      micLevel: 0,
+      systemLevel: 0,
+      systemAudioActive: false,
+      micActive: false,
     }),
 }));
