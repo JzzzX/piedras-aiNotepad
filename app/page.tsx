@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
-import { Mic, RotateCcw, Save, Check, History } from 'lucide-react';
+import { Mic, RotateCcw, Save, Check, History, X } from 'lucide-react';
 import AudioRecorder from '@/components/AudioRecorder';
 import TranscriptPanel from '@/components/TranscriptPanel';
 import NoteEditor from '@/components/NoteEditor';
@@ -13,26 +13,23 @@ import PromptSettings from '@/components/PromptSettings';
 import { useMeetingStore } from '@/lib/store';
 
 const PANEL_MIN_WIDTH = {
-  history: 180,
   transcript: 280,
   notes: 320,
   chat: 320,
 };
 
-const DIVIDER_COUNT = 3;
+const DIVIDER_COUNT = 2;
 const DIVIDER_WIDTH = 8;
 const WIDTH_STORAGE_KEY = 'ai-notepad-panel-widths-v1';
 
-type ResizablePanel = 'history' | 'transcript' | 'notes';
+type ResizablePanel = 'transcript' | 'notes';
 
 interface PanelWidths {
-  history: number;
   transcript: number;
   notes: number;
 }
 
 const DEFAULT_PANEL_WIDTHS: PanelWidths = {
-  history: 224,
   transcript: 420,
   notes: 420,
 };
@@ -41,22 +38,20 @@ function normalizePanelWidths(widths: PanelWidths, mainWidth: number): PanelWidt
   if (mainWidth <= 0) return widths;
 
   const panelAreaWidth = mainWidth - DIVIDER_COUNT * DIVIDER_WIDTH;
-  let history = Math.max(widths.history, PANEL_MIN_WIDTH.history);
   let transcript = Math.max(widths.transcript, PANEL_MIN_WIDTH.transcript);
   let notes = Math.max(widths.notes, PANEL_MIN_WIDTH.notes);
 
   const maxFixed = panelAreaWidth - PANEL_MIN_WIDTH.chat;
   if (maxFixed <= 0) {
     return {
-      history: PANEL_MIN_WIDTH.history,
       transcript: PANEL_MIN_WIDTH.transcript,
       notes: PANEL_MIN_WIDTH.notes,
     };
   }
 
-  let fixedTotal = history + transcript + notes;
+  let fixedTotal = transcript + notes;
   if (fixedTotal <= maxFixed) {
-    return { history, transcript, notes };
+    return { transcript, notes };
   }
 
   let excess = fixedTotal - maxFixed;
@@ -70,20 +65,17 @@ function normalizePanelWidths(widths: PanelWidths, mainWidth: number): PanelWidt
 
   notes = reduce(notes, PANEL_MIN_WIDTH.notes);
   transcript = reduce(transcript, PANEL_MIN_WIDTH.transcript);
-  history = reduce(history, PANEL_MIN_WIDTH.history);
-
-  fixedTotal = history + transcript + notes;
+  fixedTotal = transcript + notes;
   if (fixedTotal > maxFixed) {
     // 极端窄屏下，至少保证不会出现负宽度
-    const fallback = Math.max(maxFixed / 3, 120);
+    const fallback = Math.max(maxFixed / 2, 120);
     return {
-      history: Math.max(Math.floor(fallback), 120),
       transcript: Math.max(Math.floor(fallback), 120),
       notes: Math.max(Math.floor(fallback), 120),
     };
   }
 
-  return { history, transcript, notes };
+  return { transcript, notes };
 }
 
 export default function Home() {
@@ -104,6 +96,7 @@ export default function Home() {
   const [mainWidth, setMainWidth] = useState(0);
   const [panelWidths, setPanelWidths] = useState<PanelWidths>(DEFAULT_PANEL_WIDTHS);
   const [widthsHydrated, setWidthsHydrated] = useState(false);
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
 
   // 首次挂载后再读取 localStorage，避免 SSR 与客户端首帧不一致导致 hydration 警告
   useEffect(() => {
@@ -115,12 +108,10 @@ export default function Home() {
       }
       const parsed = JSON.parse(raw) as Partial<PanelWidths>;
       if (
-        typeof parsed.history === 'number' &&
         typeof parsed.transcript === 'number' &&
         typeof parsed.notes === 'number'
       ) {
         setPanelWidths({
-          history: parsed.history,
           transcript: parsed.transcript,
           notes: parsed.notes,
         });
@@ -207,29 +198,14 @@ export default function Home() {
 
         setPanelWidths((prev) => {
           const panelAreaWidth = mainWidth - DIVIDER_COUNT * DIVIDER_WIDTH;
-          const history = prev.history;
           const transcript = prev.transcript;
           const notes = prev.notes;
 
           if (panelAreaWidth <= 0) return prev;
 
-          if (panel === 'history') {
-            const max =
-              panelAreaWidth -
-              transcript -
-              notes -
-              PANEL_MIN_WIDTH.chat;
-            const nextHistory = Math.min(
-              Math.max(startWidth + delta, PANEL_MIN_WIDTH.history),
-              Math.max(max, PANEL_MIN_WIDTH.history)
-            );
-            return normalizePanelWidths({ ...prev, history: nextHistory }, mainWidth);
-          }
-
           if (panel === 'transcript') {
             const max =
               panelAreaWidth -
-              history -
               notes -
               PANEL_MIN_WIDTH.chat;
             const nextTranscript = Math.min(
@@ -244,7 +220,6 @@ export default function Home() {
 
           const max =
             panelAreaWidth -
-            history -
             transcript -
             PANEL_MIN_WIDTH.chat;
           const nextNotes = Math.min(
@@ -291,6 +266,14 @@ export default function Home() {
             <h1 className="text-base font-bold text-gray-900">AI Notepad</h1>
             <p className="text-xs text-gray-400 tracking-wider">智能会议笔记助手</p>
           </div>
+          <button
+            onClick={() => setShowHistoryDrawer(true)}
+            className="ml-1 flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-xs text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-700"
+            title="打开会议记录"
+          >
+            <History size={12} />
+            会议记录
+          </button>
         </div>
 
         <div className="flex min-w-0 items-center gap-3">
@@ -332,33 +315,46 @@ export default function Home() {
         </div>
       </header>
 
+      {/* 会议记录抽屉 */}
+      <div
+        className={`fixed inset-0 z-40 transition-opacity ${
+          showHistoryDrawer ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      >
+        <button
+          className="absolute inset-0 bg-black/20"
+          onClick={() => setShowHistoryDrawer(false)}
+          aria-label="关闭会议记录抽屉"
+        />
+        <aside
+          className={`absolute left-0 top-0 h-full w-80 border-r border-black/10 bg-white shadow-2xl transition-transform ${
+            showHistoryDrawer ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-black/5 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <History size={14} className="text-gray-400" />
+              <h3 className="text-sm font-semibold text-gray-600">会议记录</h3>
+            </div>
+            <button
+              onClick={() => setShowHistoryDrawer(false)}
+              className="rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              title="关闭"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <div className="h-[calc(100%-49px)] overflow-y-auto p-2">
+            <MeetingHistory />
+          </div>
+        </aside>
+      </div>
+
       {/* 主体 */}
       <main
         ref={mainRef}
-        className="flex flex-1 gap-4 overflow-x-auto overflow-y-hidden bg-[#F9F9FB] p-4"
+        className="flex flex-1 gap-4 overflow-hidden bg-[#F9F9FB] p-4"
       >
-        {/* 左侧边栏 - 会议历史 */}
-        <div
-          style={{ width: effectivePanelWidths.history }}
-          className="flex shrink-0 flex-col bg-transparent"
-        >
-          <div className="flex items-center gap-2 px-4 py-2.5">
-            <History size={14} className="text-gray-400" />
-            <h3 className="text-sm font-semibold text-gray-500">会议记录</h3>
-          </div>
-          <div className="flex-1 overflow-y-auto p-2">
-            <MeetingHistory />
-          </div>
-        </div>
-
-        <div
-          onMouseDown={(e) => handleDividerMouseDown('history', e)}
-          className="group relative w-2 shrink-0 cursor-col-resize bg-transparent"
-          title="拖动调整会议记录宽度"
-        >
-          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-black/5 opacity-0 transition-opacity group-hover:opacity-100" />
-        </div>
-
         {/* 左栏 - 实时转写 */}
         <div
           style={{ width: effectivePanelWidths.transcript }}
@@ -402,7 +398,7 @@ export default function Home() {
         </div>
 
         {/* 右栏 - Chat */}
-        <div className="flex min-w-[320px] flex-1 flex-col bg-indigo-50/30 rounded-3xl shadow-sm">
+        <div className="flex min-w-0 flex-1 flex-col rounded-3xl bg-indigo-50/30 shadow-sm">
           <ChatPanel />
         </div>
       </main>
