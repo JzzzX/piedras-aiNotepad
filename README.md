@@ -52,12 +52,27 @@ npm run dev
 - `MINIMAX_USE_STREAM` - MiniMax 流式 SSE 开关（默认 `true`，异常时自动降级非流式）
 - `LLM_PROVIDER` / `LLM_FALLBACKS` / `LLM_TIMEOUT_MS` / `LLM_RETRIES` - LLM 路由与稳定性参数
 - `FEISHU_WEBHOOK_URL` / `WECOM_WEBHOOK_URL` - 分享推送地址（阶段4预留，可为空）
+- `MCP_SERVER_TOKEN` - MCP 连接器 Bearer Token；启用后可供外部 AI 工具只读检索会议数据
 - 有 API Key 时，LLM 调用失败会直接返回可定位错误，不再回退 Demo 内容
 
 ## 后续改进记录
 
 - 跨会议检索当前固定本地向量后端（Demo 优先低成本与稳定性）。
 - 后续可升级为“可切换向量后端”（本地向量 / 云端 Embedding），用于质量对比、故障降级与生产化扩展。
+
+## MCP 连接器
+
+已提供一个只读 MCP HTTP 端点：`/api/mcp`
+
+- 鉴权方式：`Authorization: Bearer <MCP_SERVER_TOKEN>`
+- 资源：
+  - `ai-notepad://meetings/list`
+  - `ai-notepad://meetings/{id}`
+  - `ai-notepad://search/meetings`（搜索说明）
+  - `ai-notepad://search/meetings/预算/2026-02-01/2026-02-28/_/10`（搜索结果）
+- 返回内容：JSON 资源，包含会议列表、单会议详情（转写/笔记/聊天记录）和按关键词/日期/文件夹过滤的搜索结果
+
+适合后续接入 Claude Desktop 或其他支持 MCP 的客户端。当前实现为无状态、只读、Token 鉴权，优先满足 Demo 接入和本地数据安全。
 
 ## 与 Granola 的差异化
 
