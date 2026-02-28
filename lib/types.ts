@@ -15,6 +15,26 @@ export interface ChatMessage {
   templateId?: string;
 }
 
+export type LlmSelection = 'auto' | 'gemini' | 'openai';
+
+export interface LlmSettings {
+  provider: LlmSelection;
+  geminiApiKey: string;
+  geminiModel: string;
+  openaiApiKey: string;
+  openaiModel: string;
+  openaiBaseUrl: string;
+}
+
+export interface AsrSettings {
+  vocabularyId: string;
+}
+
+export type LlmRuntimeConfig =
+  | { provider: 'auto' }
+  | { provider: 'gemini'; apiKey: string; model?: string }
+  | { provider: 'openai'; apiKey: string; model: string; baseUrl?: string };
+
 export type MeetingType =
   | '通用'
   | '项目周会'
@@ -40,6 +60,15 @@ export interface Folder {
   name: string;
   color: string;
   sortOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GlossaryTerm {
+  id: string;
+  term: string;
+  pronunciation?: string | null;
+  category: string;
   createdAt?: string;
   updatedAt?: string;
 }

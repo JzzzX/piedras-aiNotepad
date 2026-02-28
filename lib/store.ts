@@ -7,6 +7,8 @@ import {
   PromptOptions,
   RecordingOptions,
   Folder,
+  LlmSettings,
+  AsrSettings,
 } from './types';
 
 // 会议列表项（从 API 返回的精简结构）
@@ -55,6 +57,8 @@ interface MeetingStore {
   isChatLoading: boolean;
   promptOptions: PromptOptions;
   recordingOptions: RecordingOptions;
+  llmSettings: LlmSettings;
+  asrSettings: AsrSettings;
 
   // 录音计时器
   recordingStartTime: number | null;
@@ -89,6 +93,8 @@ interface MeetingStore {
   setIsChatLoading: (v: boolean) => void;
   setPromptOptions: (patch: Partial<PromptOptions>) => void;
   setRecordingOptions: (patch: Partial<RecordingOptions>) => void;
+  setLlmSettings: (patch: Partial<LlmSettings>) => void;
+  setAsrSettings: (patch: Partial<AsrSettings>) => void;
   setCurrentFolderId: (folderId: string | null) => void;
   updateDuration: () => void;
   setAudioLevels: (mic: number, system: number) => void;
@@ -129,6 +135,17 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   recordingOptions: {
     autoStopEnabled: true,
     autoStopMinutes: 10,
+  },
+  llmSettings: {
+    provider: 'auto',
+    geminiApiKey: '',
+    geminiModel: 'gemini-flash-latest',
+    openaiApiKey: '',
+    openaiModel: 'gpt-4.1-mini',
+    openaiBaseUrl: 'https://api.openai.com/v1',
+  },
+  asrSettings: {
+    vocabularyId: '',
   },
   recordingStartTime: null,
   micLevel: 0,
@@ -206,6 +223,14 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     set((state) => ({
       recordingOptions: { ...state.recordingOptions, ...patch },
     })),
+  setLlmSettings: (patch) =>
+    set((state) => ({
+      llmSettings: { ...state.llmSettings, ...patch },
+    })),
+  setAsrSettings: (patch) =>
+    set((state) => ({
+      asrSettings: { ...state.asrSettings, ...patch },
+    })),
   setCurrentFolderId: (folderId) => set({ currentFolderId: folderId }),
 
   updateDuration: () => {
@@ -250,6 +275,8 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
         includeActionItems: true,
       },
       recordingOptions: get().recordingOptions,
+      llmSettings: get().llmSettings,
+      asrSettings: get().asrSettings,
       recordingStartTime: null,
       micLevel: 0,
       systemLevel: 0,

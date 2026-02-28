@@ -6,6 +6,7 @@ interface AsrSessionRequest {
   sampleRate?: number;
   channels?: number;
   includeSystemAudio?: boolean;
+  vocabularyId?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest) {
     const directToken = process.env.ALICLOUD_ASR_TOKEN;
     const token = directToken ? { value: directToken, expireTime: null } : await getAliyunToken();
     const appKey = process.env.ALICLOUD_ASR_APP_KEY;
+    const vocabularyId =
+      payload.vocabularyId?.trim() || process.env.ALICLOUD_ASR_VOCABULARY_ID?.trim() || undefined;
 
     if (!appKey) {
       return NextResponse.json(
@@ -59,6 +62,7 @@ export async function POST(req: NextRequest) {
         token: token.value,
         tokenExpireTime: token.expireTime,
         appKey,
+        vocabularyId,
       },
       message: '阿里云 ASR 会话已创建',
     });

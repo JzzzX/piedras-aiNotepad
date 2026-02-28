@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateTextWithFallback, getConfiguredProviders } from '@/lib/llm-provider';
+import { generateTextWithFallback, hasAvailableLlm } from '@/lib/llm-provider';
+import { buildGlossaryPromptBlock } from '@/lib/glossary';
 import type { PromptOptions } from '@/lib/types';
 
 type PromptOptionsInput = Partial<PromptOptions> | undefined;
@@ -12,7 +13,11 @@ function normalizePromptOptions(input: PromptOptionsInput): PromptOptions {
   };
 }
 
-function buildEnhanceSystemPrompt(options: PromptOptions, templatePrompt?: string): string {
+function buildEnhanceSystemPrompt(
+  options: PromptOptions,
+  templatePrompt?: string,
+  glossaryBlock?: string
+): string {
   const styleMap: Record<PromptOptions['outputStyle'], string> = {
     简洁: '表达尽量精炼，优先输出结论和关键点。',
     平衡: '在信息完整和阅读效率之间保持平衡。',
@@ -49,16 +54,33 @@ function buildEnhanceSystemPrompt(options: PromptOptions, templatePrompt?: strin
 3. ${actionRule}
 4. 使用中文输出，不要捏造会议未出现的信息。`;
 
-  if (!templatePrompt) return basePrompt;
-  return `${templatePrompt.trim()}\n\n补充约束：${basePrompt}`;
+  const sections = [];
+  if (templatePrompt) {
+    sections.push(templatePrompt.trim());
+    sections.push(`补充约束：${basePrompt}`);
+  } else {
+    sections.push(basePrompt);
+  }
+  if (glossaryBlock) {
+    sections.push(glossaryBlock);
+  }
+
+  return sections.join('\n\n');
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { transcript, userNotes, meetingTitle, templatePrompt, promptOptions } =
+    const {
+      transcript,
+      userNotes,
+      meetingTitle,
+      templatePrompt,
+      promptOptions,
+      llmRuntimeConfig,
+    } =
       await req.json();
 
-    if (getConfiguredProviders().length === 0) {
+    if (!hasAvailableLlm(llmRuntimeConfig)) {
       // Demo 模式：无 API Key 时返回模拟结果
       return NextResponse.json({
         content: generateDemoEnhancedNotes(transcript, userNotes, meetingTitle),
@@ -67,7 +89,8 @@ export async function POST(req: NextRequest) {
     }
 
     const options = normalizePromptOptions(promptOptions);
-    const systemPrompt = buildEnhanceSystemPrompt(options, templatePrompt);
+    const glossaryBlock = await buildGlossaryPromptBlock();
+    const systemPrompt = buildEnhanceSystemPrompt(options, templatePrompt, glossaryBlock);
 
     const { content, provider } = await generateTextWithFallback({
       messages: [
@@ -87,6 +110,7 @@ ${userNotes || '（用户未记录要点）'}
       ],
       temperature: 0.3,
       maxTokens: 4096,
+      runtimeConfig: llmRuntimeConfig,
     });
 
     return NextResponse.json({ content, provider });
@@ -116,10 +140,10 @@ ${userNotes ? '- 基于用户笔记的重点' : ''}
 
 ## 决策事项
 - 此为 Demo 模式生成的示例内容
-- 配置 Gemini 或 MiniMax API Key 后将使用真实 AI 生成
+- 配置 Gemini 或 OpenAI 兼容 API Key 后将使用真实 AI 生成
 
 ## 行动项
-- [ ] 配置 GEMINI_API_KEY 或 MINIMAX_API_KEY + MINIMAX_GROUP_ID
+- [ ] 配置 Gemini 或 OpenAI 兼容 API Key
 - [ ] 配置阿里云 ASR 相关密钥以启用实时转写
 
 ## 待确认事项

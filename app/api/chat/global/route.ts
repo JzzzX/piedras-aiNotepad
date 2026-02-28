@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { generateTextWithFallback, getConfiguredProviders } from '@/lib/llm-provider';
+import { generateTextWithFallback, hasAvailableLlm } from '@/lib/llm-provider';
 import { retrieveGlobalMeetingContext, type GlobalChatFilters } from '@/lib/global-chat';
+import { buildGlossaryPromptBlock } from '@/lib/glossary';
 import type { PromptOptions } from '@/lib/types';
 
 type PromptOptionsInput = Partial<PromptOptions> | undefined;
@@ -32,7 +33,10 @@ function normalizePromptOptions(input: PromptOptionsInput): PromptOptions {
   };
 }
 
-function buildGlobalChatSystemPrompt(options: PromptOptions): string {
+function buildGlobalChatSystemPrompt(
+  options: PromptOptions,
+  glossaryBlock?: string
+): string {
   const styleMap: Record<PromptOptions['outputStyle'], string> = {
     简洁: '回答尽量精炼，优先给出结论。',
     平衡: '在完整性与简洁性之间保持平衡。',
@@ -44,7 +48,7 @@ function buildGlobalChatSystemPrompt(options: PromptOptions): string {
     ? '当问题涉及执行安排时，尽量提炼行动项。'
     : '除非用户明确要求，不主动输出行动项。';
 
-  return `你是一位跨会议知识助手。你会收到多场历史会议的检索结果（带来源编号 M1/M2/...）。
+  const basePrompt = `你是一位跨会议知识助手。你会收到多场历史会议的检索结果（带来源编号 M1/M2/...）。
 
 回答要求：
 1. 只能使用提供的检索内容回答，不要臆造未出现的信息。
@@ -52,6 +56,8 @@ function buildGlobalChatSystemPrompt(options: PromptOptions): string {
 3. ${actionRule}
 4. 回答中尽量在关键结论后标注来源编号（例如：[M1]、[M2]）。
 5. 使用中文回答。`;
+
+  return glossaryBlock ? `${basePrompt}\n\n${glossaryBlock}` : basePrompt;
 }
 
 function formatSources(sources: Array<{ ref: string; title: string; date: string }>): string {
@@ -84,7 +90,8 @@ function buildNoResultMessage(filters: GlobalChatFilters): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { question, chatHistory, filters, promptOptions } = await req.json();
+    const { question, chatHistory, filters, promptOptions, llmRuntimeConfig } =
+      await req.json();
     const q = (question || '').trim();
     if (!q) {
       return new Response('问题不能为空', { status: 400 });
@@ -97,15 +104,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (getConfiguredProviders().length === 0) {
-      const demo = `当前为 Demo 模式，已检索到 ${retrieval.sources.length} 场相关会议。\n\n你可以配置 Gemini API Key 后获得真实模型回答。\n\n${formatSources(retrieval.sources)}`;
+    if (!hasAvailableLlm(llmRuntimeConfig)) {
+      const demo = `当前为 Demo 模式，已检索到 ${retrieval.sources.length} 场相关会议。\n\n你可以配置 Gemini 或 OpenAI 兼容 API Key 后获得真实模型回答。\n\n${formatSources(retrieval.sources)}`;
       return new Response(createTextStream(demo), {
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       });
     }
 
     const options = normalizePromptOptions(promptOptions);
-    const systemPrompt = buildGlobalChatSystemPrompt(options);
+    const glossaryBlock = await buildGlossaryPromptBlock();
+    const systemPrompt = buildGlobalChatSystemPrompt(options, glossaryBlock);
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -128,6 +136,7 @@ export async function POST(req: NextRequest) {
       messages,
       temperature: 0.4,
       maxTokens: 4096,
+      runtimeConfig: llmRuntimeConfig,
     });
 
     const fullContent = `${content.trim()}\n\n---\n${formatSources(retrieval.sources)}`;

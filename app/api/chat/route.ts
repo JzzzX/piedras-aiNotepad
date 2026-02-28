@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
-import { generateTextWithFallback, getConfiguredProviders } from '@/lib/llm-provider';
+import { generateTextWithFallback, hasAvailableLlm } from '@/lib/llm-provider';
+import { buildGlossaryPromptBlock } from '@/lib/glossary';
 import type { PromptOptions } from '@/lib/types';
 
 type PromptOptionsInput = Partial<PromptOptions> | undefined;
@@ -31,7 +32,11 @@ function normalizePromptOptions(input: PromptOptionsInput): PromptOptions {
   };
 }
 
-function buildChatSystemPrompt(options: PromptOptions, templatePrompt?: string): string {
+function buildChatSystemPrompt(
+  options: PromptOptions,
+  templatePrompt?: string,
+  glossaryBlock?: string
+): string {
   const styleMap: Record<PromptOptions['outputStyle'], string> = {
     简洁: '回答尽量精炼，优先给出结论。',
     平衡: '在完整性与简洁性之间保持平衡。',
@@ -52,8 +57,15 @@ function buildChatSystemPrompt(options: PromptOptions, templatePrompt?: string):
 2. ${actionRule}
 3. 使用中文回答，不要臆造会议中不存在的信息。`;
 
-  if (!templatePrompt) return basePrompt;
-  return `${basePrompt}\n\n当前任务模板指令：${templatePrompt.trim()}`;
+  const sections = [basePrompt];
+  if (glossaryBlock) {
+    sections.push(glossaryBlock);
+  }
+  if (templatePrompt) {
+    sections.push(`当前任务模板指令：${templatePrompt.trim()}`);
+  }
+
+  return sections.join('\n\n');
 }
 
 export async function POST(req: NextRequest) {
@@ -66,9 +78,10 @@ export async function POST(req: NextRequest) {
       question,
       templatePrompt,
       promptOptions,
+      llmRuntimeConfig,
     } = await req.json();
 
-    if (getConfiguredProviders().length === 0) {
+    if (!hasAvailableLlm(llmRuntimeConfig)) {
       // Demo 模式
       const demoResponse = getDemoResponse(question);
       const stream = createTextStream(demoResponse);
@@ -78,7 +91,8 @@ export async function POST(req: NextRequest) {
     }
 
     const options = normalizePromptOptions(promptOptions);
-    const systemPrompt = buildChatSystemPrompt(options, templatePrompt);
+    const glossaryBlock = await buildGlossaryPromptBlock();
+    const systemPrompt = buildChatSystemPrompt(options, templatePrompt, glossaryBlock);
 
     const contextMessage = `--- 会议转写记录 ---
 ${transcript || '（无）'}
@@ -107,6 +121,7 @@ ${enhancedNotes || '（无）'}`;
       messages,
       temperature: 0.5,
       maxTokens: 4096,
+      runtimeConfig: llmRuntimeConfig,
     });
 
     const stream = createTextStream(content);
@@ -128,10 +143,10 @@ ${enhancedNotes || '（无）'}`;
 
 function getDemoResponse(question: string): string {
   if (question.includes('行动') || question.includes('待办') || question.includes('TODO')) {
-    return '根据会议内容，主要的行动项包括：\n\n1. 配置 API 密钥以启用完整 AI 功能\n2. 测试实时语音转写\n3. 完善模版系统\n\n> *当前为 Demo 模式，配置 Gemini 或 MiniMax API 密钥后将基于实际会议内容回答*';
+    return '根据会议内容，主要的行动项包括：\n\n1. 配置 API 密钥以启用完整 AI 功能\n2. 测试实时语音转写\n3. 完善模版系统\n\n> *当前为 Demo 模式，配置 Gemini 或 OpenAI 兼容 API 密钥后将基于实际会议内容回答*';
   }
   if (question.includes('总结') || question.includes('摘要')) {
     return '本次会议的核心内容总结如下：\n\n会议讨论了多项议题，各参会者充分表达了意见并达成初步共识。\n\n> *当前为 Demo 模式*';
   }
-  return `关于您的问题「${question}」：\n\n基于当前会议记录的分析结果将在此显示。配置 Gemini 或 MiniMax API 密钥后，将使用真实 AI 基于转写和笔记内容回答您的问题。\n\n> *当前为 Demo 模式，请配置 .env.local 中的 API 密钥启用完整功能*`;
+  return `关于您的问题「${question}」：\n\n基于当前会议记录的分析结果将在此显示。配置 Gemini 或 OpenAI 兼容 API 密钥后，将使用真实 AI 基于转写和笔记内容回答您的问题。\n\n> *当前为 Demo 模式，请配置 API 密钥启用完整功能*`;
 }

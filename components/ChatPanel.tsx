@@ -11,6 +11,7 @@ import {
   MessageSquare,
   SlidersHorizontal,
   LayoutTemplate,
+  Mic,
 } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
 import { chatAcrossMeetings, chatWithMeeting } from '@/lib/llm';
@@ -31,6 +32,7 @@ export default function ChatPanel() {
     isChatLoading,
     speakers,
     promptOptions,
+    llmSettings,
     status,
     folders,
     addChatMessage,
@@ -58,6 +60,9 @@ export default function ChatPanel() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const dictationRecognitionRef = useRef<SpeechRecognition | null>(null);
+  const dictationBaseRef = useRef('');
+  const [isDictating, setIsDictating] = useState(false);
 
   const resetInputHeight = () => {
     if (!inputRef.current) return;
@@ -123,6 +128,12 @@ export default function ChatPanel() {
 
   const switchMode = (mode: ChatMode) => {
     if (mode === chatMode) return;
+    if (dictationRecognitionRef.current) {
+      dictationRecognitionRef.current.onend = null;
+      dictationRecognitionRef.current.stop();
+      dictationRecognitionRef.current = null;
+      setIsDictating(false);
+    }
     setChatMode(mode);
     setInput('');
     resetInputHeight();
@@ -138,6 +149,13 @@ export default function ChatPanel() {
   ) => {
     const question = displayText || input.trim();
     if (!question || activeLoading) return;
+
+    if (dictationRecognitionRef.current) {
+      dictationRecognitionRef.current.onend = null;
+      dictationRecognitionRef.current.stop();
+      dictationRecognitionRef.current = null;
+      setIsDictating(false);
+    }
 
     setInput('');
     resetInputHeight();
@@ -171,7 +189,8 @@ export default function ChatPanel() {
                 dateTo: globalDateTo,
                 folderId: globalFolderFilter || undefined,
               },
-              promptOptions
+              promptOptions,
+              llmSettings
             )
           : await chatWithMeeting(
               segments,
@@ -181,7 +200,8 @@ export default function ChatPanel() {
               templatePrompt || question,
               speakers,
               templatePrompt,
-              promptOptions
+              promptOptions,
+              llmSettings
             );
 
       if (!stream) {
@@ -260,6 +280,69 @@ export default function ChatPanel() {
     inputRef.current.style.height = 'auto';
     inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`;
   };
+
+  const stopDictation = useCallback(() => {
+    if (dictationRecognitionRef.current) {
+      dictationRecognitionRef.current.onend = null;
+      dictationRecognitionRef.current.stop();
+      dictationRecognitionRef.current = null;
+    }
+    setIsDictating(false);
+  }, []);
+
+  const startDictation = useCallback(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      alert('当前浏览器不支持语音输入，请使用 Chrome');
+      return;
+    }
+
+    const recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'zh-CN';
+    dictationBaseRef.current = input ? `${input.trim()} ` : '';
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let transcript = '';
+      for (let index = event.resultIndex; index < event.results.length; index++) {
+        transcript += event.results[index][0].transcript;
+      }
+
+      handleInputChange(`${dictationBaseRef.current}${transcript.trim()}`.trim());
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.error('Dictation error:', event.error);
+      if (event.error === 'not-allowed') {
+        alert('请允许麦克风权限以使用语音输入');
+      }
+      stopDictation();
+    };
+
+    recognition.onend = () => {
+      dictationRecognitionRef.current = null;
+      setIsDictating(false);
+    };
+
+    recognition.start();
+    dictationRecognitionRef.current = recognition;
+    setIsDictating(true);
+  }, [input, stopDictation]);
+
+  const toggleDictation = () => {
+    if (isDictating) {
+      stopDictation();
+      return;
+    }
+    startDictation();
+  };
+
+  useEffect(() => {
+    return () => {
+      stopDictation();
+    };
+  }, [stopDictation]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (chatMode === 'meeting' && showTemplates && filteredTemplates.length > 0) {
@@ -510,7 +593,7 @@ export default function ChatPanel() {
 
       {/* Floating Command Bar */}
       <div className="absolute bottom-6 left-6 right-6 z-10 pointer-events-none">
-        <div className="pointer-events-auto flex items-end gap-2 rounded-[24px] bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-black/[0.04] transition-all focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.12)] focus-within:ring-2 focus-within:ring-sky-500/20">
+        <div className={`pointer-events-auto flex items-end gap-2 rounded-[24px] bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-black/[0.04] transition-all focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.12)] focus-within:ring-2 focus-within:ring-sky-500/20 ${isDictating ? 'ring-2 ring-sky-300/70 shadow-[0_12px_36px_rgba(14,165,233,0.18)]' : ''}`}>
           <textarea
             ref={inputRef}
             value={input}
@@ -528,6 +611,18 @@ export default function ChatPanel() {
             style={{ minHeight: '44px', maxHeight: '120px' }}
             className="flex-1 resize-none bg-transparent px-4 py-3 text-[15px] text-stone-800 placeholder:text-stone-400 focus:outline-none disabled:opacity-50 leading-relaxed font-sans"
           />
+          <button
+            onClick={toggleDictation}
+            disabled={!canAsk || activeLoading}
+            className={`rounded-full p-3 transition-all flex items-center justify-center mb-0.5 h-11 w-11 ${
+              isDictating
+                ? 'bg-sky-500 text-white shadow-sm animate-pulse'
+                : 'bg-[#F9F8F6] text-stone-400 hover:bg-sky-50 hover:text-sky-500'
+            } disabled:cursor-not-allowed disabled:opacity-40`}
+            title={isDictating ? '停止语音输入' : '语音输入'}
+          >
+            <Mic size={17} />
+          </button>
           <button
             onClick={() => handleSend()}
             disabled={!input.trim() || activeLoading || !canAsk}

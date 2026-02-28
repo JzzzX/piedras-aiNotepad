@@ -1,3 +1,5 @@
+import type { LlmRuntimeConfig } from './types';
+
 export type LlmProvider = 'gemini' | 'minimax' | 'openai';
 
 export interface LlmMessage {
@@ -10,6 +12,7 @@ export interface LlmGenerateInput {
   temperature?: number;
   maxTokens?: number;
   preferredProvider?: LlmProvider;
+  runtimeConfig?: LlmRuntimeConfig;
 }
 
 export interface LlmGenerateOutput {
@@ -20,7 +23,7 @@ export interface LlmGenerateOutput {
 const DEFAULT_TIMEOUT_MS = 25_000;
 const DEFAULT_RETRIES = 1;
 
-type ProviderName = 'Gemini' | 'MiniMax';
+type ProviderName = 'Gemini' | 'MiniMax' | 'OpenAI';
 
 function truncate(text: string, max = 320): string {
   return text.length <= max ? text : `${text.slice(0, max)}...`;
@@ -59,6 +62,45 @@ function isProviderConfigured(provider: LlmProvider): boolean {
   return false;
 }
 
+function isRuntimeConfigReady(runtimeConfig?: LlmRuntimeConfig): boolean {
+  if (!runtimeConfig || runtimeConfig.provider === 'auto') return false;
+  if (runtimeConfig.provider === 'gemini') {
+    return Boolean(runtimeConfig.apiKey || process.env.GEMINI_API_KEY);
+  }
+  if (runtimeConfig.provider === 'openai') {
+    return Boolean(
+      (runtimeConfig.apiKey || process.env.OPENAI_API_KEY) &&
+        (runtimeConfig.model || process.env.OPENAI_MODEL)
+    );
+  }
+  return false;
+}
+
+function getGeminiConfig(input: LlmGenerateInput) {
+  const runtime =
+    input.runtimeConfig?.provider === 'gemini' ? input.runtimeConfig : undefined;
+
+  return {
+    apiKey: runtime?.apiKey || process.env.GEMINI_API_KEY || '',
+    model: runtime?.model || process.env.GEMINI_MODEL || 'gemini-flash-latest',
+  };
+}
+
+function getOpenAIConfig(input: LlmGenerateInput) {
+  const runtime =
+    input.runtimeConfig?.provider === 'openai' ? input.runtimeConfig : undefined;
+
+  return {
+    apiKey: runtime?.apiKey || process.env.OPENAI_API_KEY || '',
+    model: runtime?.model || process.env.OPENAI_MODEL || 'gpt-4.1-mini',
+    baseUrl:
+      (runtime?.baseUrl || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(
+        /\/+$/,
+        ''
+      ),
+  };
+}
+
 export function getConfiguredProviders(): LlmProvider[] {
   const explicit = parseProviderList(process.env.LLM_PROVIDER);
   if (explicit.length > 0) {
@@ -69,7 +111,22 @@ export function getConfiguredProviders(): LlmProvider[] {
   return preferredOrder.filter(isProviderConfigured);
 }
 
-function resolveProviderOrder(preferredProvider?: LlmProvider): LlmProvider[] {
+export function hasAvailableLlm(runtimeConfig?: LlmRuntimeConfig): boolean {
+  if (isRuntimeConfigReady(runtimeConfig)) {
+    return true;
+  }
+
+  return getConfiguredProviders().length > 0;
+}
+
+function resolveProviderOrder(
+  preferredProvider?: LlmProvider,
+  runtimeConfig?: LlmRuntimeConfig
+): LlmProvider[] {
+  if (runtimeConfig && runtimeConfig.provider !== 'auto') {
+    return [runtimeConfig.provider];
+  }
+
   const configured = getConfiguredProviders();
   if (configured.length === 0) return [];
 
@@ -114,10 +171,8 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
 }
 
 async function callGemini(input: LlmGenerateInput): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const { apiKey, model } = getGeminiConfig(input);
   if (!apiKey) throw new Error('GEMINI_API_KEY 未配置');
-
-  const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
   const system = input.messages.find((m) => m.role === 'system')?.content;
   const conversation = input.messages.filter((m) => m.role !== 'system');
 
@@ -163,6 +218,56 @@ async function callGemini(input: LlmGenerateInput): Promise<string> {
 
   if (!content) {
     throw new Error('Gemini 返回为空');
+  }
+
+  return content;
+}
+
+function extractOpenAIContent(content: unknown): string {
+  if (typeof content === 'string') return content;
+  if (!Array.isArray(content)) return '';
+
+  return content
+    .map((part) => {
+      if (typeof part === 'string') return part;
+      if (part && typeof part === 'object' && 'text' in part) {
+        const text = (part as { text?: unknown }).text;
+        return typeof text === 'string' ? text : '';
+      }
+      return '';
+    })
+    .join('');
+}
+
+async function callOpenAI(input: LlmGenerateInput): Promise<string> {
+  const { apiKey, model, baseUrl } = getOpenAIConfig(input);
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY 未配置');
+  }
+
+  const res = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: input.messages,
+      temperature: input.temperature ?? 0.5,
+      max_tokens: input.maxTokens ?? 4096,
+    }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(formatHttpError('OpenAI', res.status, errorText));
+  }
+
+  const data = await res.json();
+  const content = extractOpenAIContent(data.choices?.[0]?.message?.content).trim();
+  if (!content) {
+    throw new Error('OpenAI 返回为空');
   }
 
   return content;
@@ -413,7 +518,7 @@ export async function generateTextWithFallback(
 ): Promise<LlmGenerateOutput> {
   const timeoutMs = Number(process.env.LLM_TIMEOUT_MS || DEFAULT_TIMEOUT_MS);
   const retries = Number(process.env.LLM_RETRIES || DEFAULT_RETRIES);
-  const providers = resolveProviderOrder(input.preferredProvider);
+  const providers = resolveProviderOrder(input.preferredProvider, input.runtimeConfig);
 
   if (providers.length === 0) {
     throw new Error('未配置可用 LLM Provider');
@@ -430,7 +535,7 @@ export async function generateTextWithFallback(
             ? callGemini(input)
             : provider === 'minimax'
               ? callMiniMax(input)
-              : Promise.reject(new Error('OpenAI provider 尚未启用')),
+              : callOpenAI(input),
           timeoutMs
         );
 

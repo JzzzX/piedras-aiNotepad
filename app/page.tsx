@@ -11,6 +11,7 @@ import SpeakerManager from '@/components/SpeakerManager';
 import MeetingHistory from '@/components/MeetingHistory';
 import PromptSettings from '@/components/PromptSettings';
 import { useMeetingStore } from '@/lib/store';
+import { generateMeetingTitle } from '@/lib/llm';
 
 const PANEL_MIN_WIDTH = {
   transcript: 280,
@@ -123,13 +124,38 @@ export default function Home() {
     }
   }, []);
 
-  // 录音结束时自动保存
+  const maybeGenerateAutoTitle = useCallback(async () => {
+    const state = useMeetingStore.getState();
+    if (state.meetingTitle.trim() || state.segments.length === 0) {
+      return;
+    }
+
+    try {
+      const title = await generateMeetingTitle(
+        state.segments,
+        state.speakers,
+        state.promptOptions,
+        state.llmSettings
+      );
+      if (title.trim()) {
+        state.setMeetingTitle(title.trim());
+      }
+    } catch (error) {
+      console.error('自动标题生成失败:', error);
+    }
+  }, []);
+
+  // 录音结束时自动生成标题并保存
   useEffect(() => {
     if (prevStatusRef.current === 'recording' && status === 'ended') {
-      saveMeeting().then(() => loadMeetingList());
+      void (async () => {
+        await maybeGenerateAutoTitle();
+        await saveMeeting();
+        await loadMeetingList();
+      })();
     }
     prevStatusRef.current = status;
-  }, [status, saveMeeting, loadMeetingList]);
+  }, [status, saveMeeting, loadMeetingList, maybeGenerateAutoTitle]);
 
   // 录音中每 30 秒自动保存
   useEffect(() => {

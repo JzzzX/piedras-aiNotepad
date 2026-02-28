@@ -29,6 +29,7 @@ export default function EnhancedNotes() {
     speakers,
     status,
     promptOptions,
+    llmSettings,
     setEnhancedNotes,
     setIsEnhancing,
   } = useMeetingStore();
@@ -82,7 +83,8 @@ export default function EnhancedNotes() {
         meetingTitle,
         speakers,
         undefined,
-        promptOptions
+        promptOptions,
+        llmSettings
       );
       setEnhancedNotes(result);
     } catch (error) {
