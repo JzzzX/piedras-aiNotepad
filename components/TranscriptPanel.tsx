@@ -1,41 +1,109 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  MessageSquare,
+  Mic,
+  Search,
+  Trash2,
+  User,
+  Volume2,
+  X,
+} from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
-import { MessageSquare, Mic, Volume2, User } from 'lucide-react';
 
-// 通过说话人 ID 决定样式
 function getSpeakerStyle(speaker: string) {
   if (speaker.includes('麦克风') || speaker === '我（麦克风）') {
     return {
-      bg: 'bg-white',
-      dot: 'bg-indigo-400',
+      dot: 'bg-sky-400',
       icon: Mic,
       label: 'ME',
     };
   }
   if (speaker.includes('系统音频') || speaker.includes('对方')) {
     return {
-      bg: 'bg-white',
       dot: 'bg-teal-400',
       icon: Volume2,
       label: 'OTHER',
     };
   }
-  // 兼容旧的 Speaker A/B/C
-  const colors: Record<string, { bg: string; dot: string }> = {
-    'Speaker A': { bg: 'bg-white', dot: 'bg-indigo-400' },
-    'Speaker B': { bg: 'bg-white', dot: 'bg-teal-400' },
-    'Speaker C': { bg: 'bg-white', dot: 'bg-purple-400' },
+  const colors: Record<string, { dot: string }> = {
+    'Speaker A': { dot: 'bg-indigo-400' },
+    'Speaker B': { dot: 'bg-teal-400' },
+    'Speaker C': { dot: 'bg-purple-400' },
   };
-  const c = colors[speaker] || { bg: 'bg-white', dot: 'bg-gray-400' };
+  const c = colors[speaker] || { dot: 'bg-stone-400' };
   return { ...c, icon: User, label: speaker.toUpperCase() };
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function formatRelativeTime(offsetMs: number) {
+  const totalSeconds = Math.max(0, Math.floor(offsetMs / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(
+      seconds
+    ).padStart(2, '0')}`;
+  }
+
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function highlightText(text: string, query: string) {
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery) return text;
+
+  const regex = new RegExp(`(${escapeRegExp(trimmedQuery)})`, 'gi');
+  const parts = text.split(regex);
+  const normalizedQuery = trimmedQuery.toLocaleLowerCase();
+
+  return parts.map((part, index) => {
+    if (part.toLocaleLowerCase() === normalizedQuery) {
+      return (
+        <mark
+          key={`${part}-${index}`}
+          className="rounded bg-amber-100 px-0.5 text-amber-900"
+        >
+          {part}
+        </mark>
+      );
+    }
+    return <span key={`${part}-${index}`}>{part}</span>;
+  });
+}
+
 export default function TranscriptPanel() {
-  const { segments, currentPartial, status, speakers, systemAudioActive, micActive } =
-    useMeetingStore();
+  const {
+    segments,
+    currentPartial,
+    status,
+    speakers,
+    meetingDate,
+    meetingId,
+    systemAudioActive,
+    micActive,
+    meetingList,
+    isPersistedMeeting,
+    removeSegment,
+    saveMeeting,
+  } = useMeetingStore();
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const segmentRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeMatchIndex, setActiveMatchIndex] = useState(0);
+  const [copiedSegmentId, setCopiedSegmentId] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState('');
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -43,18 +111,94 @@ export default function TranscriptPanel() {
     }
   }, [segments, currentPartial]);
 
-  const getSpeakerDisplayName = (speaker: string) => {
-    return speakers[speaker] || speaker;
+  useEffect(() => {
+    if (!actionMessage) return;
+    const timer = window.setTimeout(() => setActionMessage(''), 1800);
+    return () => window.clearTimeout(timer);
+  }, [actionMessage]);
+
+  useEffect(() => {
+    if (!copiedSegmentId) return;
+    const timer = window.setTimeout(() => setCopiedSegmentId(null), 1500);
+    return () => window.clearTimeout(timer);
+  }, [copiedSegmentId]);
+
+  const getSpeakerDisplayName = (speaker: string) => speakers[speaker] || speaker;
+
+  const baseTime = useMemo(() => {
+    if (segments.length > 0) {
+      return Math.min(meetingDate || segments[0].startTime, segments[0].startTime);
+    }
+    return meetingDate || 0;
+  }, [meetingDate, segments]);
+
+  const matchedSegmentIds = useMemo(() => {
+    const trimmedQuery = searchQuery.trim().toLocaleLowerCase();
+    if (!trimmedQuery) return [];
+
+    return segments
+      .filter((segment) => segment.text.toLocaleLowerCase().includes(trimmedQuery))
+      .map((segment) => segment.id);
+  }, [searchQuery, segments]);
+
+  const safeActiveMatchIndex =
+    matchedSegmentIds.length > 0
+      ? Math.min(activeMatchIndex, matchedSegmentIds.length - 1)
+      : 0;
+
+  const activeMatchedSegmentId =
+    matchedSegmentIds.length > 0 ? matchedSegmentIds[safeActiveMatchIndex] : null;
+
+  useEffect(() => {
+    if (!activeMatchedSegmentId) return;
+    segmentRefs.current[activeMatchedSegmentId]?.scrollIntoView({
+      block: 'center',
+      behavior: 'smooth',
+    });
+  }, [activeMatchedSegmentId]);
+
+  const jumpToMatch = (direction: 'prev' | 'next') => {
+    if (matchedSegmentIds.length === 0) return;
+    setActiveMatchIndex((prev) => {
+      if (direction === 'prev') {
+        return prev === 0 ? matchedSegmentIds.length - 1 : prev - 1;
+      }
+      return prev === matchedSegmentIds.length - 1 ? 0 : prev + 1;
+    });
+  };
+
+  const handleCopySegment = async (speaker: string, text: string, segmentId: string) => {
+    try {
+      await navigator.clipboard.writeText(`[${getSpeakerDisplayName(speaker)}] ${text}`);
+      setCopiedSegmentId(segmentId);
+      setActionMessage('已复制该段转写');
+    } catch {
+      setActionMessage('复制失败，请检查浏览器剪贴板权限');
+    }
+  };
+
+  const handleDeleteSegment = async (segmentId: string) => {
+    if (!window.confirm('确定删除这一段转写吗？该操作会同步更新当前会议记录。')) {
+      return;
+    }
+
+    removeSegment(segmentId);
+    setActionMessage('已删除该段转写');
+
+    const meetingExistsInList = meetingList.some((meeting) => meeting.id === meetingId);
+    if (isPersistedMeeting || meetingExistsInList) {
+      await saveMeeting({ allowEmpty: true });
+    }
   };
 
   if (status === 'idle') {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-6 bg-transparent text-stone-400">
-        <div className="w-full max-w-[280px] rounded-2xl border border-dashed border-stone-200 bg-white/50 p-8 flex flex-col items-center justify-center">
-          <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center mb-4 shadow-sm border border-sky-100/50">
+      <div className="flex h-full flex-col items-center justify-center bg-transparent p-6 text-stone-400">
+        <div className="flex w-full max-w-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-stone-200 bg-white/50 p-8">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-100/50 bg-sky-50 shadow-sm">
             <MessageSquare size={20} className="text-sky-400" strokeWidth={2} />
           </div>
-          <p className="text-[15px] font-serif font-semibold text-stone-700 mb-1">准备聆听...</p>
+          <p className="mb-1 text-[15px] font-semibold text-stone-700">准备聆听...</p>
           <p className="text-center text-[13px] leading-relaxed text-stone-400">
             保持安静，或点击顶部按钮开始记录
           </p>
@@ -65,71 +209,166 @@ export default function TranscriptPanel() {
 
   return (
     <div className="flex h-full flex-col bg-transparent">
-      <div className="flex items-center justify-between border-b border-black/[0.04] px-6 py-5">
-        <h3 className="text-[15px] font-serif font-semibold text-stone-800">实时转写</h3>
-        <div className="flex items-center gap-3">
-          {/* 实时通道状态 */}
-          {status === 'recording' && (
-            <div className="flex items-center gap-2">
-              <div
-                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase ${
-                  micActive ? 'bg-sky-50 text-sky-600 border border-sky-100' : 'bg-[#F9F8F6] text-stone-400 border border-black/[0.02]'
-                }`}
-              >
-                <Mic size={10} />
-                <span>ME</span>
+      <div className="border-b border-black/[0.04] px-6 py-5">
+        <div className="flex items-center justify-between gap-4">
+          <h3 className="text-[15px] font-semibold text-stone-800">实时转写</h3>
+          <div className="flex items-center gap-3">
+            {status === 'recording' && (
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                    micActive
+                      ? 'border border-sky-100 bg-sky-50 text-sky-600'
+                      : 'border border-black/[0.02] bg-[#F9F8F6] text-stone-400'
+                  }`}
+                >
+                  <Mic size={10} />
+                  <span>ME</span>
+                </div>
+                <div
+                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                    systemAudioActive
+                      ? 'border border-teal-100 bg-teal-50 text-teal-600'
+                      : 'border border-black/[0.02] bg-[#F9F8F6] text-stone-400'
+                  }`}
+                >
+                  <Volume2 size={10} />
+                  <span>OTHER</span>
+                </div>
               </div>
-              <div
-                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase ${
-                  systemAudioActive ? 'bg-teal-50 text-teal-600 border border-teal-100' : 'bg-[#F9F8F6] text-stone-400 border border-black/[0.02]'
-                }`}
+            )}
+            <span className="rounded-full border border-black/[0.04] bg-[#F9F8F6] px-2.5 py-1 text-[11px] font-medium text-stone-500">
+              {segments.length} 条
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <div className="flex items-center gap-2 rounded-2xl border border-black/[0.05] bg-white px-3 py-2 shadow-sm">
+            <Search size={14} className="text-stone-400" />
+            <input
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setActiveMatchIndex(0);
+              }}
+              placeholder="搜索转写内容..."
+              className="flex-1 bg-transparent text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setActiveMatchIndex(0);
+                }}
+                className="rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-50 hover:text-stone-600"
+                title="清空搜索"
               >
-                <Volume2 size={10} />
-                <span>OTHER</span>
-              </div>
-            </div>
-          )}
-          <span className="rounded-full bg-[#F9F8F6] border border-black/[0.04] px-2.5 py-1 text-[11px] font-medium text-stone-500">
-            {segments.length} 条
-          </span>
+                <X size={14} />
+              </button>
+            )}
+            <div className="h-4 w-px bg-stone-100" />
+            <button
+              onClick={() => jumpToMatch('prev')}
+              disabled={matchedSegmentIds.length === 0}
+              className="rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-50 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
+              title="上一个匹配"
+            >
+              <ChevronUp size={14} />
+            </button>
+            <button
+              onClick={() => jumpToMatch('next')}
+              disabled={matchedSegmentIds.length === 0}
+              className="rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-50 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
+              title="下一个匹配"
+            >
+              <ChevronDown size={14} />
+            </button>
+          </div>
+
+          {searchQuery.trim() ? (
+            <p className="text-xs text-stone-400">
+              {matchedSegmentIds.length > 0
+                  ? `找到 ${safeActiveMatchIndex + 1} / ${matchedSegmentIds.length} 条匹配`
+                : `未找到“${searchQuery.trim()}”`}
+            </p>
+          ) : actionMessage ? (
+            <p className="text-xs text-stone-400">{actionMessage}</p>
+          ) : null}
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-        {segments.map((seg) => {
-          const style = getSpeakerStyle(seg.speaker);
-          const isSystemPlaceholder = seg.text.startsWith('[对方正在发言');
+      <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+        {segments.map((segment) => {
+          const style = getSpeakerStyle(segment.speaker);
+          const Icon = style.icon;
+          const isSystemPlaceholder = segment.text.startsWith('[对方正在发言');
+          const isMatched = matchedSegmentIds.includes(segment.id);
+          const isActiveMatch = activeMatchedSegmentId === segment.id;
 
           return (
             <div
-              key={seg.id}
-              className={`rounded-2xl px-5 py-4 transition-all bg-white border border-black/[0.04] shadow-sm ${
+              key={segment.id}
+              ref={(node) => {
+                segmentRefs.current[segment.id] = node;
+              }}
+              className={`group relative rounded-2xl border bg-white px-5 py-4 shadow-sm transition-all ${
                 isSystemPlaceholder ? 'opacity-60' : ''
+              } ${
+                isActiveMatch
+                  ? 'border-sky-200 ring-2 ring-sky-100'
+                  : isMatched
+                    ? 'border-amber-200 bg-amber-50/30'
+                    : 'border-black/[0.04]'
               }`}
             >
-              <div className="mb-2.5 flex items-center gap-2">
-                <span className="text-[10px] font-bold text-stone-400 tracking-widest uppercase bg-[#F9F8F6] px-2 py-0.5 rounded-md">
-                  {style.label || getSpeakerDisplayName(seg.speaker)}
+              <div className="absolute right-3 top-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  onClick={() =>
+                    handleCopySegment(segment.speaker, segment.text, segment.id)
+                  }
+                  className="rounded-lg border border-black/[0.05] bg-white p-2 text-stone-400 transition-colors hover:bg-stone-50 hover:text-stone-700"
+                  title="复制该段"
+                >
+                  {copiedSegmentId === segment.id ? (
+                    <Check size={14} className="text-emerald-500" />
+                  ) : (
+                    <Copy size={14} />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleDeleteSegment(segment.id)}
+                  className="rounded-lg border border-black/[0.05] bg-white p-2 text-stone-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                  title="删除该段"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+
+              <div className="mb-2.5 flex items-center gap-2 pr-20">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#F9F8F6] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                  <span className={`h-2 w-2 rounded-full ${style.dot}`} />
+                  <Icon size={10} />
+                  {style.label || getSpeakerDisplayName(segment.speaker)}
                 </span>
-                <span className="text-[11px] text-stone-300 font-medium">
-                  {new Date(seg.startTime).toLocaleTimeString('zh-CN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                <span
+                  title={new Date(segment.startTime).toLocaleString('zh-CN')}
+                  className="cursor-default text-[11px] font-medium text-stone-400"
+                >
+                  {formatRelativeTime(segment.startTime - baseTime)}
                 </span>
               </div>
               <p
-                className={`text-[15px] text-stone-800 leading-relaxed font-sans ${
-                  isSystemPlaceholder ? 'italic opacity-70 text-stone-500' : ''
+                className={`text-[15px] leading-relaxed text-stone-800 ${
+                  isSystemPlaceholder ? 'italic text-stone-500' : ''
                 }`}
               >
-                {seg.text}
+                {highlightText(segment.text, searchQuery)}
               </p>
             </div>
           );
         })}
 
-        {/* 正在说的临时文字 */}
         {currentPartial && status === 'recording' && (
           <div className="rounded-lg border border-dashed border-blue-200 bg-blue-50/50 p-3">
             <div className="mb-1 flex items-center gap-2">
@@ -137,43 +376,53 @@ export default function TranscriptPanel() {
               <Mic size={11} className="text-blue-400" />
               <span className="text-xs font-medium text-blue-500">识别中...</span>
             </div>
-            <p className="text-sm italic text-blue-500/80">{currentPartial}</p>
+            <p className="text-sm italic text-blue-500/80">{highlightText(currentPartial, searchQuery)}</p>
           </div>
         )}
 
-        {/* 系统音频正在说话的实时提示 */}
         {systemAudioActive && status === 'recording' && (
           <div className="rounded-lg border border-dashed border-green-200 bg-green-50/50 p-3">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
               <Volume2 size={11} className="text-green-400" />
-              <span className="text-xs font-medium text-green-500">
-                对方正在发言...
-              </span>
+              <span className="text-xs font-medium text-green-500">对方正在发言...</span>
             </div>
           </div>
         )}
 
-        {/* 录音中但无内容时的提示 */}
         {segments.length === 0 && !currentPartial && status === 'recording' && (
           <div className="flex flex-col items-center justify-center py-8 text-zinc-400">
             <div className="mb-3 flex gap-1">
-              <div className="h-3 w-1 animate-pulse rounded bg-red-300" style={{ animationDelay: '0ms' }} />
-              <div className="h-4 w-1 animate-pulse rounded bg-red-400" style={{ animationDelay: '150ms' }} />
-              <div className="h-5 w-1 animate-pulse rounded bg-red-500" style={{ animationDelay: '300ms' }} />
-              <div className="h-4 w-1 animate-pulse rounded bg-red-400" style={{ animationDelay: '150ms' }} />
-              <div className="h-3 w-1 animate-pulse rounded bg-red-300" style={{ animationDelay: '0ms' }} />
+              <div
+                className="h-3 w-1 animate-pulse rounded bg-red-300"
+                style={{ animationDelay: '0ms' }}
+              />
+              <div
+                className="h-4 w-1 animate-pulse rounded bg-red-400"
+                style={{ animationDelay: '150ms' }}
+              />
+              <div
+                className="h-5 w-1 animate-pulse rounded bg-red-500"
+                style={{ animationDelay: '300ms' }}
+              />
+              <div
+                className="h-4 w-1 animate-pulse rounded bg-red-400"
+                style={{ animationDelay: '150ms' }}
+              />
+              <div
+                className="h-3 w-1 animate-pulse rounded bg-red-300"
+                style={{ animationDelay: '0ms' }}
+              />
             </div>
             <p className="text-xs">正在聆听...</p>
           </div>
         )}
       </div>
 
-      {/* 底部图例 */}
       {segments.length > 0 && (
         <div className="border-t border-zinc-100 px-4 py-2">
           <div className="flex flex-wrap gap-3">
-            {Array.from(new Set(segments.map((s) => s.speaker))).map((speaker) => {
+            {Array.from(new Set(segments.map((segment) => segment.speaker))).map((speaker) => {
               const style = getSpeakerStyle(speaker);
               const Icon = style.icon;
               return (

@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { TranscriptSegment, ChatMessage, Meeting, PromptOptions } from './types';
+import {
+  TranscriptSegment,
+  ChatMessage,
+  Meeting,
+  PromptOptions,
+  RecordingOptions,
+} from './types';
 
 // 会议列表项（从 API 返回的精简结构）
 export interface MeetingListItem {
@@ -37,6 +43,7 @@ interface MeetingStore {
   chatMessages: ChatMessage[];
   isChatLoading: boolean;
   promptOptions: PromptOptions;
+  recordingOptions: RecordingOptions;
 
   // 录音计时器
   recordingStartTime: number | null;
@@ -51,6 +58,7 @@ interface MeetingStore {
   meetingList: MeetingListItem[];
   isLoadingList: boolean;
   isSaving: boolean;
+  isPersistedMeeting: boolean;
 
   // Actions
   startMeeting: () => void;
@@ -67,12 +75,14 @@ interface MeetingStore {
   addChatMessage: (message: ChatMessage) => void;
   setIsChatLoading: (v: boolean) => void;
   setPromptOptions: (patch: Partial<PromptOptions>) => void;
+  setRecordingOptions: (patch: Partial<RecordingOptions>) => void;
   updateDuration: () => void;
   setAudioLevels: (mic: number, system: number) => void;
+  removeSegment: (segmentId: string) => void;
   reset: () => void;
 
   // 持久化 Actions
-  saveMeeting: () => Promise<void>;
+  saveMeeting: (options?: { allowEmpty?: boolean }) => Promise<void>;
   loadMeeting: (id: string) => Promise<void>;
   loadMeetingList: () => Promise<void>;
   deleteMeeting: (id: string) => Promise<void>;
@@ -97,6 +107,10 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     outputStyle: '平衡',
     includeActionItems: true,
   },
+  recordingOptions: {
+    autoStopEnabled: true,
+    autoStopMinutes: 10,
+  },
   recordingStartTime: null,
   micLevel: 0,
   systemLevel: 0,
@@ -105,6 +119,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   meetingList: [],
   isLoadingList: false,
   isSaving: false,
+  isPersistedMeeting: false,
 
   startMeeting: () =>
     set({
@@ -166,6 +181,10 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     set((state) => ({
       promptOptions: { ...state.promptOptions, ...patch },
     })),
+  setRecordingOptions: (patch) =>
+    set((state) => ({
+      recordingOptions: { ...state.recordingOptions, ...patch },
+    })),
 
   updateDuration: () => {
     const { recordingStartTime } = get();
@@ -181,6 +200,11 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       micActive: mic > 0.05,
       systemAudioActive: system > 0.05,
     }),
+
+  removeSegment: (segmentId) =>
+    set((state) => ({
+      segments: state.segments.filter((segment) => segment.id !== segmentId),
+    })),
 
   reset: () =>
     set({
@@ -202,18 +226,25 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
         outputStyle: '平衡',
         includeActionItems: true,
       },
+      recordingOptions: get().recordingOptions,
       recordingStartTime: null,
       micLevel: 0,
       systemLevel: 0,
       systemAudioActive: false,
       micActive: false,
+      isPersistedMeeting: false,
     }),
 
   // ---- 持久化 ----
 
-  saveMeeting: async () => {
+  saveMeeting: async (options) => {
     const state = get();
-    if (state.segments.length === 0 && !state.userNotes && !state.enhancedNotes) {
+    if (
+      !options?.allowEmpty &&
+      state.segments.length === 0 &&
+      !state.userNotes &&
+      !state.enhancedNotes
+    ) {
       return; // 没有内容不保存
     }
     set({ isSaving: true });
@@ -234,6 +265,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           chatMessages: state.chatMessages,
         }),
       });
+      set({ isPersistedMeeting: true });
     } catch (e) {
       console.error('保存会议失败:', e);
     } finally {
@@ -276,6 +308,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
         systemLevel: 0,
         systemAudioActive: false,
         micActive: false,
+        isPersistedMeeting: true,
       });
     } catch (e) {
       console.error('加载会议失败:', e);

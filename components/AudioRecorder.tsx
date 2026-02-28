@@ -1,7 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { Mic, Square, Monitor, Volume2, Sparkles } from 'lucide-react';
+import {
+  AlertTriangle,
+  Mic,
+  Monitor,
+  Settings2,
+  Sparkles,
+  Square,
+  Volume2,
+  X,
+} from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
 import { v4 as uuidv4 } from 'uuid';
 import type { AsrStatus } from '@/lib/asr';
@@ -12,6 +21,7 @@ const VOICE_THRESHOLD = 0.05;
 const SYSTEM_SILENCE_TIMEOUT = 1500;
 const PCM_SAMPLE_RATE = 16000;
 const SCRIPT_BUFFER_SIZE = 4096;
+const AUTO_STOP_MINUTE_OPTIONS = [5, 10, 15, 30];
 
 type AudioSourceType = 'mic' | 'system';
 
@@ -115,21 +125,30 @@ export default function AudioRecorder() {
   const {
     status,
     duration,
+    segments,
     micLevel,
     systemLevel,
     systemAudioActive,
     micActive,
+    recordingOptions,
     startMeeting,
     endMeeting,
     addSegment,
     setCurrentPartial,
+    setRecordingOptions,
     updateDuration,
     setAudioLevels,
   } = useMeetingStore();
 
   const [hasSystemAudio, setHasSystemAudio] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [showRecorderSettings, setShowRecorderSettings] = useState(false);
   const [asrStatus, setAsrStatus] = useState<AsrStatus | null>(null);
+  const [autoStopPrompt, setAutoStopPrompt] = useState<{
+    reason: 'silence' | 'system-audio-ended';
+    title: string;
+    description: string;
+  } | null>(null);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -141,6 +160,10 @@ export default function AudioRecorder() {
   const systemAnalyserRef = useRef<AnalyserNode | null>(null);
   const aliyunChannelsRef = useRef<AliyunChannelRuntime[]>([]);
   const aliyunEnabledRef = useRef(false);
+  const autoStopCheckTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastTranscriptAtRef = useRef(Date.now());
+  const autoStopPromptedRef = useRef(false);
+  const systemAudioTrackRef = useRef<MediaStreamTrack | null>(null);
 
   // 系统音频说话人追踪
   const systemSpeakingRef = useRef(false);
@@ -156,10 +179,45 @@ export default function AudioRecorder() {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
+  const cleanupSystemAudioTrackListener = useCallback(() => {
+    if (systemAudioTrackRef.current) {
+      systemAudioTrackRef.current.onended = null;
+      systemAudioTrackRef.current = null;
+    }
+  }, []);
+
+  const requestAutoStopPrompt = useCallback(
+    (reason: 'silence' | 'system-audio-ended') => {
+      if (useMeetingStore.getState().status !== 'recording') return;
+      if (autoStopPromptedRef.current) return;
+
+      autoStopPromptedRef.current = true;
+
+      if (reason === 'silence') {
+        setAutoStopPrompt({
+          reason,
+          title: '检测到会议可能已结束',
+          description: `已经连续 ${recordingOptions.autoStopMinutes} 分钟没有新的转写内容，是否停止录音？`,
+        });
+        return;
+      }
+
+      setAutoStopPrompt({
+        reason,
+        title: '系统音频已断开',
+        description: '会议标签页音频流已结束。通常意味着共享停止或通话软件已退出，是否结束本次录音？',
+      });
+    },
+    [recordingOptions.autoStopMinutes]
+  );
+
   const resetRecorderState = useCallback(() => {
     setCurrentPartial('');
     setAudioLevels(0, 0);
     setHasSystemAudio(false);
+    setAutoStopPrompt(null);
+    autoStopPromptedRef.current = false;
+    lastTranscriptAtRef.current = Date.now();
   }, [setCurrentPartial, setAudioLevels]);
 
   const loadAsrStatus = useCallback(async (): Promise<AsrStatus> => {
@@ -180,6 +238,12 @@ export default function AudioRecorder() {
       setAsrStatus(fallback);
       return fallback;
     }
+  }, []);
+
+  const handleContinueRecording = useCallback(() => {
+    lastTranscriptAtRef.current = Date.now();
+    autoStopPromptedRef.current = false;
+    setAutoStopPrompt(null);
   }, []);
 
   // 从 AnalyserNode 获取音量（0~1）
@@ -539,6 +603,11 @@ export default function AudioRecorder() {
   }, []);
 
   const handleStart = useCallback(async () => {
+    cleanupSystemAudioTrackListener();
+    setAutoStopPrompt(null);
+    autoStopPromptedRef.current = false;
+    lastTranscriptAtRef.current = Date.now();
+
     // 1. 获取麦克风
     let micStream: MediaStream;
     try {
@@ -561,6 +630,10 @@ export default function AudioRecorder() {
       if (audioTracks.length > 0) {
         systemStream = new MediaStream(audioTracks);
         systemStreamRef.current = systemStream;
+        systemAudioTrackRef.current = audioTracks[0];
+        systemAudioTrackRef.current.onended = () => {
+          requestAutoStopPrompt('system-audio-ended');
+        };
         setHasSystemAudio(true);
       }
       // 停止不需要的视频轨道
@@ -612,8 +685,13 @@ export default function AudioRecorder() {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      if (autoStopCheckTimerRef.current) {
+        clearInterval(autoStopCheckTimerRef.current);
+        autoStopCheckTimerRef.current = null;
+      }
       cancelAnimationFrame(animFrameRef.current);
 
+      cleanupSystemAudioTrackListener();
       audioCtxRef.current?.close();
       audioCtxRef.current = null;
       micAnalyserRef.current = null;
@@ -631,9 +709,11 @@ export default function AudioRecorder() {
       resetRecorderState();
     }
   }, [
+    cleanupSystemAudioTrackListener,
     cleanupLocalTracks,
     endMeeting,
     loadAsrStatus,
+    requestAutoStopPrompt,
     resetRecorderState,
     setupAudioAnalysis,
     startAliyunRecognition,
@@ -645,6 +725,7 @@ export default function AudioRecorder() {
   ]);
 
   const handleStop = useCallback(() => {
+    cleanupSystemAudioTrackListener();
     endMeeting();
 
     stopWebSpeechRecognition();
@@ -654,6 +735,11 @@ export default function AudioRecorder() {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+
+    if (autoStopCheckTimerRef.current) {
+      clearInterval(autoStopCheckTimerRef.current);
+      autoStopCheckTimerRef.current = null;
     }
 
     // 停止音量监测
@@ -676,11 +762,55 @@ export default function AudioRecorder() {
 
     resetRecorderState();
   }, [
+    cleanupSystemAudioTrackListener,
     cleanupLocalTracks,
     endMeeting,
     resetRecorderState,
     stopAliyunRecognition,
     stopWebSpeechRecognition,
+  ]);
+
+  useEffect(() => {
+    if (status !== 'recording') return;
+    lastTranscriptAtRef.current = Date.now();
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== 'recording' || segments.length === 0) return;
+    lastTranscriptAtRef.current = Date.now();
+    if (autoStopPrompt?.reason === 'silence') {
+      setAutoStopPrompt(null);
+      autoStopPromptedRef.current = false;
+    }
+  }, [autoStopPrompt?.reason, segments.length, status]);
+
+  useEffect(() => {
+    if (status !== 'recording' || !recordingOptions.autoStopEnabled) {
+      if (autoStopCheckTimerRef.current) {
+        clearInterval(autoStopCheckTimerRef.current);
+        autoStopCheckTimerRef.current = null;
+      }
+      return;
+    }
+
+    autoStopCheckTimerRef.current = setInterval(() => {
+      const timeoutMs = recordingOptions.autoStopMinutes * 60 * 1000;
+      if (Date.now() - lastTranscriptAtRef.current >= timeoutMs) {
+        requestAutoStopPrompt('silence');
+      }
+    }, 10000);
+
+    return () => {
+      if (autoStopCheckTimerRef.current) {
+        clearInterval(autoStopCheckTimerRef.current);
+        autoStopCheckTimerRef.current = null;
+      }
+    };
+  }, [
+    recordingOptions.autoStopEnabled,
+    recordingOptions.autoStopMinutes,
+    requestAutoStopPrompt,
+    status,
   ]);
 
   // 清理
@@ -689,19 +819,26 @@ export default function AudioRecorder() {
       stopWebSpeechRecognition();
       stopAliyunRecognition();
       if (timerRef.current) clearInterval(timerRef.current);
+      if (autoStopCheckTimerRef.current) clearInterval(autoStopCheckTimerRef.current);
       cancelAnimationFrame(animFrameRef.current);
+      cleanupSystemAudioTrackListener();
       cleanupLocalTracks();
       audioCtxRef.current?.close();
       if (systemSilenceTimerRef.current) clearTimeout(systemSilenceTimerRef.current);
     };
-  }, [cleanupLocalTracks, stopAliyunRecognition, stopWebSpeechRecognition]);
+  }, [
+    cleanupLocalTracks,
+    cleanupSystemAudioTrackListener,
+    stopAliyunRecognition,
+    stopWebSpeechRecognition,
+  ]);
 
   useEffect(() => {
     void loadAsrStatus();
   }, [loadAsrStatus]);
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="relative flex items-center gap-3">
       {status === 'idle' || status === 'ended' ? (
         <div className="flex items-center gap-3">
           <button
@@ -721,6 +858,14 @@ export default function AudioRecorder() {
             title="录音说明"
           >
             <Monitor size={16} />
+          </button>
+
+          <button
+            onClick={() => setShowRecorderSettings((value) => !value)}
+            className="rounded-full bg-white border border-stone-200/60 p-2.5 text-stone-400 transition-all hover:bg-stone-50 hover:text-stone-600 hover:shadow-sm"
+            title="录音设置"
+          >
+            <Settings2 size={16} />
           </button>
 
           {asrStatus && (
@@ -770,7 +915,76 @@ export default function AudioRecorder() {
           >
             <Square size={14} fill="currentColor" />
           </button>
+
+          <button
+            onClick={() => setShowRecorderSettings((value) => !value)}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-stone-200/60 text-stone-500 transition-all hover:bg-stone-50 hover:text-stone-700 active:scale-90 shadow-sm"
+            title="录音设置"
+          >
+            <Settings2 size={15} />
+          </button>
         </>
+      )}
+
+      {showRecorderSettings && (
+        <div className="absolute right-0 top-16 z-50 w-80 rounded-3xl border border-stone-200/80 bg-white p-5 shadow-2xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Settings2 size={16} className="text-stone-400" />
+              <h4 className="text-sm font-semibold text-stone-800">录音设置</h4>
+            </div>
+            <button
+              onClick={() => setShowRecorderSettings(false)}
+              className="rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-50 hover:text-stone-600"
+              title="关闭"
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          <div className="mt-4 space-y-4">
+            <label className="flex items-start gap-3 rounded-2xl border border-stone-100 bg-stone-50/60 p-4">
+              <input
+                type="checkbox"
+                checked={recordingOptions.autoStopEnabled}
+                onChange={(event) =>
+                  setRecordingOptions({ autoStopEnabled: event.target.checked })
+                }
+                className="mt-0.5 h-4 w-4 rounded border-stone-300"
+              />
+              <div>
+                <p className="text-sm font-medium text-stone-700">自动结束检测</p>
+                <p className="mt-1 text-xs leading-relaxed text-stone-400">
+                  连续一段时间没有新的转写内容时，提示你是否停止录音。
+                </p>
+              </div>
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-xs text-stone-500">静默超时时长</span>
+              <select
+                value={recordingOptions.autoStopMinutes}
+                disabled={!recordingOptions.autoStopEnabled}
+                onChange={(event) =>
+                  setRecordingOptions({
+                    autoStopMinutes: Number(event.target.value),
+                  })
+                }
+                className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700 focus:border-stone-400 focus:outline-none disabled:cursor-not-allowed disabled:bg-stone-50 disabled:text-stone-400"
+              >
+                {AUTO_STOP_MINUTE_OPTIONS.map((minutes) => (
+                  <option key={minutes} value={minutes}>
+                    {minutes} 分钟
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <p className="text-xs leading-relaxed text-stone-400">
+              系统音频中断提示始终生效；关闭的仅是“长时间无新转写”检测。
+            </p>
+          </div>
+        </div>
       )}
 
       {/* 引导弹窗：更像一张精致的卡片 */}
@@ -810,6 +1024,41 @@ export default function AudioRecorder() {
           >
             准备好了
           </button>
+        </div>
+      )}
+
+      {autoStopPrompt && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/20 p-4">
+          <div className="w-full max-w-md rounded-3xl border border-stone-200 bg-white p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500">
+                <AlertTriangle size={18} />
+              </div>
+              <div>
+                <h4 className="text-base font-semibold text-stone-900">
+                  {autoStopPrompt.title}
+                </h4>
+                <p className="mt-2 text-sm leading-relaxed text-stone-500">
+                  {autoStopPrompt.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={handleContinueRecording}
+                className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50"
+              >
+                继续录音
+              </button>
+              <button
+                onClick={handleStop}
+                className="rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-black"
+              >
+                停止录音
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

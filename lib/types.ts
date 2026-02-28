@@ -30,6 +30,11 @@ export interface PromptOptions {
   includeActionItems: boolean;
 }
 
+export interface RecordingOptions {
+  autoStopEnabled: boolean;
+  autoStopMinutes: number;
+}
+
 export interface Template {
   id: string;
   name: string;
