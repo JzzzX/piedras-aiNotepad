@@ -509,9 +509,9 @@ export default function ChatPanel() {
             type="button"
             aria-label="关闭筛选条件"
             onClick={() => setShowGlobalFilters(false)}
-            className="fixed inset-0 z-10 bg-black/10 lg:hidden"
+            className="fixed inset-0 z-10 bg-black/20 backdrop-blur-sm transition-all lg:hidden animate-in fade-in duration-200"
           />
-          <div className="fixed inset-x-3 bottom-4 z-20 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl border border-black/[0.05] bg-[#FCFBF8] px-4 py-4 shadow-xl lg:absolute lg:bottom-24 lg:left-0 lg:right-0 lg:max-h-none lg:overflow-visible lg:rounded-none lg:border-0 lg:border-t lg:bg-white/50 lg:px-6 lg:py-4 lg:shadow-none">
+          <div className="fixed inset-x-4 bottom-4 z-20 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl border border-white/40 bg-white/80 px-5 py-5 shadow-2xl backdrop-blur-2xl ring-1 ring-black/5 animate-in slide-in-from-bottom-8 fade-in duration-300 lg:absolute lg:bottom-24 lg:left-4 lg:right-4 lg:max-h-none lg:overflow-visible lg:rounded-2xl lg:border lg:bg-white/80 lg:px-6 lg:py-5 lg:shadow-xl lg:ring-1 lg:slide-in-from-bottom-4 lg:zoom-in-95">
             <div className="mb-3 flex items-center justify-between lg:hidden">
               <div>
                 <p className="text-sm font-semibold text-stone-800">筛选条件</p>
@@ -531,7 +531,7 @@ export default function ChatPanel() {
               value={globalTitleFilter}
               onChange={(e) => setGlobalTitleFilter(e.target.value)}
               placeholder="标题关键词（可选）"
-              className="w-full rounded-xl border-transparent bg-white px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:ring-2 focus:ring-sky-500/20 focus:outline-none shadow-sm border border-black/[0.04]"
+              className="w-full rounded-xl border border-black/5 bg-white/60 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
             />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="text-xs font-medium text-stone-500">
@@ -540,7 +540,7 @@ export default function ChatPanel() {
                   type="date"
                   value={globalDateFrom}
                   onChange={(e) => setGlobalDateFrom(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border-transparent bg-white px-4 py-2.5 text-sm text-stone-700 focus:ring-2 focus:ring-sky-500/20 focus:outline-none shadow-sm border border-black/[0.04]"
+                  className="mt-1.5 w-full rounded-xl border border-black/5 bg-white/60 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
                 />
               </label>
               <label className="text-xs font-medium text-stone-500">
@@ -549,7 +549,7 @@ export default function ChatPanel() {
                   type="date"
                   value={globalDateTo}
                   onChange={(e) => setGlobalDateTo(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border-transparent bg-white px-4 py-2.5 text-sm text-stone-700 focus:ring-2 focus:ring-sky-500/20 focus:outline-none shadow-sm border border-black/[0.04]"
+                  className="mt-1.5 w-full rounded-xl border border-black/5 bg-white/60 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
                 />
               </label>
             </div>
@@ -558,7 +558,7 @@ export default function ChatPanel() {
               <select
                 value={globalFolderFilter}
                 onChange={(e) => setGlobalFolderFilter(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-black/[0.04] bg-white px-4 py-2.5 text-sm text-stone-700 shadow-sm focus:ring-2 focus:ring-sky-500/20 focus:outline-none"
+                className="mt-1.5 w-full rounded-xl border border-black/5 bg-white/60 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
               >
                 <option value="">全部文件夹</option>
                 <option value="__ungrouped">仅未分组</option>
@@ -584,7 +584,7 @@ export default function ChatPanel() {
       )}
 
       {chatMode === 'meeting' && showTemplates && (
-        <div className="absolute bottom-[88px] left-4 right-4 z-20 overflow-hidden rounded-2xl border border-black/[0.04] bg-white/90 shadow-xl backdrop-blur-xl sm:bottom-[84px] sm:left-6 sm:right-6">
+        <div className="absolute bottom-[88px] left-4 right-4 z-20 overflow-hidden rounded-2xl border border-white/40 bg-white/80 shadow-2xl backdrop-blur-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-bottom-2 duration-200 sm:bottom-[84px] sm:left-6 sm:right-6">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-black/[0.04] bg-[#F9F8F6]/50">
             <Sparkles size={14} className="text-sky-400" />
             <span className="text-[11px] font-medium text-stone-500 tracking-widest uppercase">选择助手技能</span>

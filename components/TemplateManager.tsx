@@ -183,8 +183,8 @@ export default function TemplateManager({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/25 sm:items-center sm:p-4">
-      <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[min(84vh,760px)] sm:w-[min(980px,100%)] sm:rounded-xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/20 backdrop-blur-sm transition-all sm:items-center sm:p-4">
+      <div className="flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white/90 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 sm:h-[min(84vh,760px)] sm:max-h-none sm:w-[min(980px,100%)] sm:rounded-2xl animate-in fade-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
         <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
           <div>
             <h3 className="font-song text-sm font-semibold text-zinc-800">模板管理</h3>
@@ -274,7 +274,7 @@ export default function TemplateManager({
                     value={form.name}
                     onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                     disabled={isReadOnly || isBusy}
-                    className="mt-1 w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-700 focus:border-zinc-400 focus:outline-none disabled:bg-zinc-50"
+                    className="mt-1 w-full rounded-xl border border-zinc-200/60 bg-white/50 px-3 py-2 text-sm text-zinc-700 transition-all focus:border-zinc-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-zinc-100 disabled:bg-zinc-50/50"
                   />
                 </label>
                 <label className="text-xs text-zinc-500">
@@ -284,7 +284,7 @@ export default function TemplateManager({
                     onChange={(e) => setForm((prev) => ({ ...prev, command: e.target.value }))}
                     placeholder="/custom"
                     disabled={isReadOnly || isBusy}
-                    className="mt-1 w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-700 focus:border-zinc-400 focus:outline-none disabled:bg-zinc-50"
+                    className="mt-1 w-full rounded-xl border border-zinc-200/60 bg-white/50 px-3 py-2 text-sm text-zinc-700 transition-all focus:border-zinc-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-zinc-100 disabled:bg-zinc-50/50"
                   />
                 </label>
                 <label className="text-xs text-zinc-500">
@@ -293,7 +293,7 @@ export default function TemplateManager({
                     value={form.icon}
                     onChange={(e) => setForm((prev) => ({ ...prev, icon: e.target.value }))}
                     disabled={isReadOnly || isBusy}
-                    className="mt-1 w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-700 focus:border-zinc-400 focus:outline-none disabled:bg-zinc-50"
+                    className="mt-1 w-full rounded-xl border border-zinc-200/60 bg-white/50 px-3 py-2 text-sm text-zinc-700 transition-all focus:border-zinc-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-zinc-100 disabled:bg-zinc-50/50"
                   />
                 </label>
                 <label className="text-xs text-zinc-500">
@@ -302,7 +302,7 @@ export default function TemplateManager({
                     value={form.category}
                     onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
                     disabled={isReadOnly || isBusy}
-                    className="mt-1 w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-700 focus:border-zinc-400 focus:outline-none disabled:bg-zinc-50"
+                    className="mt-1 w-full rounded-xl border border-zinc-200/60 bg-white/50 px-3 py-2 text-sm text-zinc-700 transition-all focus:border-zinc-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-zinc-100 disabled:bg-zinc-50/50"
                   >
                     {TEMPLATE_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -319,7 +319,7 @@ export default function TemplateManager({
                   value={form.description}
                   onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                   disabled={isReadOnly || isBusy}
-                  className="mt-1 w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-700 focus:border-zinc-400 focus:outline-none disabled:bg-zinc-50"
+                  className="mt-1 w-full rounded-xl border border-zinc-200/60 bg-white/50 px-3 py-2 text-sm text-zinc-700 transition-all focus:border-zinc-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-zinc-100 disabled:bg-zinc-50/50"
                 />
               </label>
 
@@ -329,7 +329,7 @@ export default function TemplateManager({
                   value={form.prompt}
                   onChange={(e) => setForm((prev) => ({ ...prev, prompt: e.target.value }))}
                   disabled={isReadOnly || isBusy}
-                  className="mt-1 min-h-[220px] w-full resize-y rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-700 focus:border-zinc-400 focus:outline-none disabled:bg-zinc-50 sm:min-h-[320px]"
+                  className="mt-1 min-h-[220px] w-full resize-y rounded-xl border border-zinc-200/60 bg-white/50 px-3 py-2 text-sm text-zinc-700 transition-all focus:border-zinc-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-zinc-100 disabled:bg-zinc-50/50 sm:min-h-[320px]"
                 />
               </label>
 
