@@ -183,8 +183,8 @@ export default function TemplateManager({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
-      <div className="flex h-[min(84vh,760px)] w-[min(980px,100%)] flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/25 sm:items-center sm:p-4">
+      <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[min(84vh,760px)] sm:w-[min(980px,100%)] sm:rounded-xl">
         <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
           <div>
             <h3 className="font-song text-sm font-semibold text-zinc-800">模板管理</h3>
@@ -198,8 +198,8 @@ export default function TemplateManager({
           </button>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)]">
-          <div className="flex min-h-0 flex-col border-r border-zinc-200 p-3">
+        <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
+          <div className="flex min-h-0 max-h-[34vh] flex-col border-b border-zinc-200 p-3 lg:max-h-none lg:border-b-0 lg:border-r">
             <button
               onClick={handleCreateNew}
               className="mb-3 flex w-full shrink-0 items-center justify-center gap-1 rounded-md border border-zinc-200 px-3 py-2 text-xs text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-800"
@@ -259,7 +259,7 @@ export default function TemplateManager({
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {isCreating && (
                 <div className="mb-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
@@ -267,7 +267,7 @@ export default function TemplateManager({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="text-xs text-zinc-500">
                   名称
                   <input
@@ -329,7 +329,7 @@ export default function TemplateManager({
                   value={form.prompt}
                   onChange={(e) => setForm((prev) => ({ ...prev, prompt: e.target.value }))}
                   disabled={isReadOnly || isBusy}
-                  className="mt-1 min-h-[320px] w-full resize-y rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-700 focus:border-zinc-400 focus:outline-none disabled:bg-zinc-50"
+                  className="mt-1 min-h-[220px] w-full resize-y rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-700 focus:border-zinc-400 focus:outline-none disabled:bg-zinc-50 sm:min-h-[320px]"
                 />
               </label>
 
@@ -339,7 +339,7 @@ export default function TemplateManager({
               )}
             </div>
 
-            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-zinc-200 px-4 py-3">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-zinc-200 px-4 py-3">
               {selectedTemplate && !selectedTemplate.isSystem && (
                 <button
                   onClick={handleDelete}

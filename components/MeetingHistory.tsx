@@ -352,7 +352,7 @@ export default function MeetingHistory({ onSelectMeeting }: MeetingHistoryProps)
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <label className="rounded-xl border border-black/5 bg-white px-3 py-2 text-[11px] text-stone-500 shadow-sm">
             <div className="mb-1 flex items-center gap-1">
               <CalendarRange size={12} className="text-stone-400" />
@@ -379,7 +379,7 @@ export default function MeetingHistory({ onSelectMeeting }: MeetingHistoryProps)
           </label>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <select
             value={folderFilter}
             onChange={(event) => setFolderFilter(event.target.value)}
@@ -395,7 +395,7 @@ export default function MeetingHistory({ onSelectMeeting }: MeetingHistoryProps)
           </select>
           <button
             onClick={() => setShowNewFolderForm((prev) => !prev)}
-            className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-black/5 bg-white px-3 py-2 text-xs font-medium text-stone-600 shadow-sm transition-colors hover:bg-stone-50"
+            className="inline-flex w-full shrink-0 items-center justify-center gap-1 rounded-xl border border-black/5 bg-white px-3 py-2 text-xs font-medium text-stone-600 shadow-sm transition-colors hover:bg-stone-50 sm:w-auto"
           >
             <FolderPlus size={13} />
             新建文件夹
@@ -410,7 +410,7 @@ export default function MeetingHistory({ onSelectMeeting }: MeetingHistoryProps)
               placeholder="文件夹名称"
               className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
             />
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               {FOLDER_COLORS.map((color) => (
                 <button
                   key={color}

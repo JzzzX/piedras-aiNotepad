@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
   LayoutTemplate,
   Mic,
+  X,
 } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
 import { chatAcrossMeetings, chatWithMeeting } from '@/lib/llm';
@@ -503,7 +504,28 @@ export default function ChatPanel() {
       </div>
 
       {chatMode === 'global' && showGlobalFilters && (
-        <div className="absolute bottom-24 left-0 right-0 z-10 border-t border-black/5 bg-white/50 px-4 py-4 backdrop-blur sm:px-6">
+        <>
+          <button
+            type="button"
+            aria-label="关闭筛选条件"
+            onClick={() => setShowGlobalFilters(false)}
+            className="fixed inset-0 z-10 bg-black/10 lg:hidden"
+          />
+          <div className="fixed inset-x-3 bottom-4 z-20 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl border border-black/[0.05] bg-[#FCFBF8] px-4 py-4 shadow-xl lg:absolute lg:bottom-24 lg:left-0 lg:right-0 lg:max-h-none lg:overflow-visible lg:rounded-none lg:border-0 lg:border-t lg:bg-white/50 lg:px-6 lg:py-4 lg:shadow-none">
+            <div className="mb-3 flex items-center justify-between lg:hidden">
+              <div>
+                <p className="text-sm font-semibold text-stone-800">筛选条件</p>
+                <p className="text-xs text-stone-400">限定跨会议检索范围</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGlobalFilters(false)}
+                className="rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
           <div className="space-y-3">
             <input
               value={globalTitleFilter}
@@ -548,7 +570,17 @@ export default function ChatPanel() {
               </select>
             </label>
           </div>
-        </div>
+            <div className="mt-4 flex justify-end lg:hidden">
+              <button
+                type="button"
+                onClick={() => setShowGlobalFilters(false)}
+                className="rounded-xl bg-stone-900 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-black"
+              >
+                完成
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       {chatMode === 'meeting' && showTemplates && (
