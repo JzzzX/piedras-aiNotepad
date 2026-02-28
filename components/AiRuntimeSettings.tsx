@@ -35,8 +35,9 @@ export default function AiRuntimeSettings() {
   const handleReset = () => {
     const next = {
       provider: 'auto' as const,
-      geminiApiKey: '',
-      geminiModel: 'gemini-flash-latest',
+      minimaxApiKey: '',
+      minimaxGroupId: '',
+      minimaxModel: 'MiniMax-Text-01',
       openaiApiKey: '',
       openaiModel: 'gpt-4.1-mini',
       openaiBaseUrl: 'https://api.openai.com/v1',
@@ -47,9 +48,9 @@ export default function AiRuntimeSettings() {
 
   const providerLabel =
     llmSettings.provider === 'auto'
-      ? 'Auto（使用服务端环境变量）'
-      : llmSettings.provider === 'gemini'
-        ? 'Gemini（本地 API Key）'
+      ? '默认 Gemini（服务端配置）'
+      : llmSettings.provider === 'minimax'
+        ? 'MiniMax（本地 API Key）'
         : 'OpenAI 兼容（本地 API Key）';
 
   return (
@@ -78,8 +79,8 @@ export default function AiRuntimeSettings() {
           }
           className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3 py-2 text-sm text-[#4A3C31] focus:border-[#BFAE9E] focus:outline-none"
         >
-          <option value="auto">Auto（服务端已配置模型）</option>
-          <option value="gemini">Gemini（自己填写 API Key）</option>
+          <option value="auto">默认 Gemini（当前）</option>
+          <option value="minimax">MiniMax（自己填写 API Key）</option>
           <option value="openai">OpenAI 兼容（自己填写 API Key）</option>
         </select>
       </label>
@@ -87,30 +88,39 @@ export default function AiRuntimeSettings() {
       <div className="rounded-xl bg-[#F7F3EE] px-3 py-2 text-[11px] leading-relaxed text-[#8C7A6B]">
         当前模式：{providerLabel}
         <br />
-        本地输入的密钥只保存在当前浏览器，不会写入数据库。
+        默认直接使用项目当前配置的 Gemini；只有在你想临时切换模型供应商时，再填写下面的 MiniMax 或 OpenAI 兼容凭据。
       </div>
 
-      {llmSettings.provider === 'gemini' && (
+      {llmSettings.provider === 'minimax' && (
         <div className="grid gap-3 md:grid-cols-2">
           <label className="space-y-1 md:col-span-2">
             <span className="inline-flex items-center gap-1 text-xs text-[#8C7A6B]">
               <KeyRound size={12} />
-              Gemini API Key
+              MiniMax API Key
             </span>
             <input
               type="password"
-              value={llmSettings.geminiApiKey}
-              onChange={(event) => setLlmSettings({ geminiApiKey: event.target.value })}
-              placeholder="AIza..."
+              value={llmSettings.minimaxApiKey}
+              onChange={(event) => setLlmSettings({ minimaxApiKey: event.target.value })}
+              placeholder="填写 MiniMax API Key"
               className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3 py-2 text-sm text-[#4A3C31] placeholder:text-[#C4B6A9] focus:border-[#BFAE9E] focus:outline-none"
             />
           </label>
-          <label className="space-y-1 md:col-span-2">
-            <span className="text-xs text-[#8C7A6B]">Gemini 模型</span>
+          <label className="space-y-1">
+            <span className="text-xs text-[#8C7A6B]">Group ID</span>
             <input
-              value={llmSettings.geminiModel}
-              onChange={(event) => setLlmSettings({ geminiModel: event.target.value })}
-              placeholder="gemini-flash-latest"
+              value={llmSettings.minimaxGroupId}
+              onChange={(event) => setLlmSettings({ minimaxGroupId: event.target.value })}
+              placeholder="填写 Group ID"
+              className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3 py-2 text-sm text-[#4A3C31] placeholder:text-[#C4B6A9] focus:border-[#BFAE9E] focus:outline-none"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs text-[#8C7A6B]">模型名称</span>
+            <input
+              value={llmSettings.minimaxModel}
+              onChange={(event) => setLlmSettings({ minimaxModel: event.target.value })}
+              placeholder="MiniMax-Text-01"
               className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3 py-2 text-sm text-[#4A3C31] placeholder:text-[#C4B6A9] focus:border-[#BFAE9E] focus:outline-none"
             />
           </label>

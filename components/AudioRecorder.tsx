@@ -53,7 +53,6 @@ interface AsrSessionResponse {
     token: string;
     appKey: string;
     tokenExpireTime: number | null;
-    vocabularyId?: string;
   };
   error?: string;
 }
@@ -168,7 +167,6 @@ export default function AudioRecorder() {
     systemAudioActive,
     micActive,
     recordingOptions,
-    asrSettings,
     startMeeting,
     endMeeting,
     addSegment,
@@ -511,7 +509,6 @@ export default function AudioRecorder() {
               enable_intermediate_result: true,
               enable_punctuation_prediction: true,
               enable_inverse_text_normalization: true,
-              ...(session.vocabularyId ? { vocabulary_id: session.vocabularyId } : {}),
             },
           })
         );
@@ -630,7 +627,6 @@ export default function AudioRecorder() {
           sampleRate: PCM_SAMPLE_RATE,
           channels: 1,
           includeSystemAudio,
-          vocabularyId: asrSettings.vocabularyId.trim() || undefined,
         }),
       });
 
@@ -645,7 +641,7 @@ export default function AudioRecorder() {
 
       return data.session;
     },
-    [asrSettings.vocabularyId]
+    []
   );
 
   const transcribeAudioFile = useCallback(
@@ -788,7 +784,6 @@ export default function AudioRecorder() {
                 enable_intermediate_result: true,
                 enable_punctuation_prediction: true,
                 enable_inverse_text_normalization: true,
-                ...(session.vocabularyId ? { vocabulary_id: session.vocabularyId } : {}),
               },
             })
           );

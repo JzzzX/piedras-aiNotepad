@@ -4,7 +4,6 @@ import { SlidersHorizontal } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
 import type { MeetingType, OutputStyle } from '@/lib/types';
 import AiRuntimeSettings from './AiRuntimeSettings';
-import GlossaryManager from './GlossaryManager';
 
 const MEETING_TYPES: MeetingType[] = ['通用', '项目周会', '需求评审', '销售沟通', '面试复盘'];
 const OUTPUT_STYLES: OutputStyle[] = ['简洁', '平衡', '详细', '行动导向'];
@@ -66,7 +65,6 @@ export default function PromptSettings() {
       </label>
 
       <AiRuntimeSettings />
-      <GlossaryManager />
     </div>
   );
 }

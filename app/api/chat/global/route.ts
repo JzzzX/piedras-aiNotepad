@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { generateTextWithFallback, hasAvailableLlm } from '@/lib/llm-provider';
 import { retrieveGlobalMeetingContext, type GlobalChatFilters } from '@/lib/global-chat';
-import { buildGlossaryPromptBlock } from '@/lib/glossary';
 import type { PromptOptions } from '@/lib/types';
 
 type PromptOptionsInput = Partial<PromptOptions> | undefined;
@@ -33,10 +32,7 @@ function normalizePromptOptions(input: PromptOptionsInput): PromptOptions {
   };
 }
 
-function buildGlobalChatSystemPrompt(
-  options: PromptOptions,
-  glossaryBlock?: string
-): string {
+function buildGlobalChatSystemPrompt(options: PromptOptions): string {
   const styleMap: Record<PromptOptions['outputStyle'], string> = {
     简洁: '回答尽量精炼，优先给出结论。',
     平衡: '在完整性与简洁性之间保持平衡。',
@@ -57,7 +53,7 @@ function buildGlobalChatSystemPrompt(
 4. 回答中尽量在关键结论后标注来源编号（例如：[M1]、[M2]）。
 5. 使用中文回答。`;
 
-  return glossaryBlock ? `${basePrompt}\n\n${glossaryBlock}` : basePrompt;
+  return basePrompt;
 }
 
 function formatSources(sources: Array<{ ref: string; title: string; date: string }>): string {
@@ -105,15 +101,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (!hasAvailableLlm(llmRuntimeConfig)) {
-      const demo = `当前为 Demo 模式，已检索到 ${retrieval.sources.length} 场相关会议。\n\n你可以配置 Gemini 或 OpenAI 兼容 API Key 后获得真实模型回答。\n\n${formatSources(retrieval.sources)}`;
+      const demo = `当前为 Demo 模式，已检索到 ${retrieval.sources.length} 场相关会议。\n\n你可以配置默认 Gemini、MiniMax 或 OpenAI 兼容 API Key 后获得真实模型回答。\n\n${formatSources(retrieval.sources)}`;
       return new Response(createTextStream(demo), {
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       });
     }
 
     const options = normalizePromptOptions(promptOptions);
-    const glossaryBlock = await buildGlossaryPromptBlock();
-    const systemPrompt = buildGlobalChatSystemPrompt(options, glossaryBlock);
+    const systemPrompt = buildGlobalChatSystemPrompt(options);
 
     const messages = [
       { role: 'system', content: systemPrompt },

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateTextWithFallback, hasAvailableLlm } from '@/lib/llm-provider';
-import { buildGlossaryPromptBlock } from '@/lib/glossary';
 import type { PromptOptions } from '@/lib/types';
 
 type PromptOptionsInput = Partial<PromptOptions> | undefined;
@@ -15,8 +14,7 @@ function normalizePromptOptions(input: PromptOptionsInput): PromptOptions {
 
 function buildEnhanceSystemPrompt(
   options: PromptOptions,
-  templatePrompt?: string,
-  glossaryBlock?: string
+  templatePrompt?: string
 ): string {
   const styleMap: Record<PromptOptions['outputStyle'], string> = {
     简洁: '表达尽量精炼，优先输出结论和关键点。',
@@ -61,9 +59,6 @@ function buildEnhanceSystemPrompt(
   } else {
     sections.push(basePrompt);
   }
-  if (glossaryBlock) {
-    sections.push(glossaryBlock);
-  }
 
   return sections.join('\n\n');
 }
@@ -89,8 +84,7 @@ export async function POST(req: NextRequest) {
     }
 
     const options = normalizePromptOptions(promptOptions);
-    const glossaryBlock = await buildGlossaryPromptBlock();
-    const systemPrompt = buildEnhanceSystemPrompt(options, templatePrompt, glossaryBlock);
+    const systemPrompt = buildEnhanceSystemPrompt(options, templatePrompt);
 
     const { content, provider } = await generateTextWithFallback({
       messages: [
@@ -140,10 +134,10 @@ ${userNotes ? '- 基于用户笔记的重点' : ''}
 
 ## 决策事项
 - 此为 Demo 模式生成的示例内容
-- 配置 Gemini 或 OpenAI 兼容 API Key 后将使用真实 AI 生成
+- 配置默认 Gemini、MiniMax 或 OpenAI 兼容 API Key 后将使用真实 AI 生成
 
 ## 行动项
-- [ ] 配置 Gemini 或 OpenAI 兼容 API Key
+- [ ] 配置默认 Gemini、MiniMax 或 OpenAI 兼容 API Key
 - [ ] 配置阿里云 ASR 相关密钥以启用实时转写
 
 ## 待确认事项

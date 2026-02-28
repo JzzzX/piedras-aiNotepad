@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buildGlossaryPromptBlock } from '@/lib/glossary';
 import { generateTextWithFallback, hasAvailableLlm } from '@/lib/llm-provider';
 import type { PromptOptions } from '@/lib/types';
 
@@ -48,7 +47,6 @@ export async function POST(req: NextRequest) {
     }
 
     const options = normalizePromptOptions(promptOptions);
-    const glossaryBlock = await buildGlossaryPromptBlock();
 
     const { content, provider } = await generateTextWithFallback({
       messages: [
@@ -61,8 +59,7 @@ export async function POST(req: NextRequest) {
 2. 长度尽量控制在 8-18 个汉字。
 3. 不要使用书名号、引号、句号等多余标点。
 4. 标题应准确体现会议主题或主要议题。
-5. 当前会议类型：${options.meetingType}。
-${glossaryBlock ? `\n${glossaryBlock}` : ''}`,
+5. 当前会议类型：${options.meetingType}。`,
         },
         {
           role: 'user',

@@ -36,15 +36,6 @@ model Folder {
   meetings Meeting[]
 }
 
-model Glossary {
-  id            String   @id @default(uuid())
-  term          String   @unique
-  pronunciation String?
-  category      String   @default("通用")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
 model TranscriptSegment {
   id        String  @id @default(uuid())
   speaker   String

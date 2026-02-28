@@ -27,16 +27,21 @@ function buildRuntimeConfig(settings?: LlmSettings): LlmRuntimeConfig | undefine
     return { provider: 'auto' };
   }
 
-  if (settings.provider === 'gemini') {
-    const apiKey = settings.geminiApiKey.trim();
+  if (settings.provider === 'minimax') {
+    const apiKey = settings.minimaxApiKey.trim();
+    const groupId = settings.minimaxGroupId.trim();
     if (!apiKey) {
-      throw new Error('请先在 AI 设置中填写 Gemini API Key');
+      throw new Error('请先在 AI 设置中填写 MiniMax API Key');
+    }
+    if (!groupId) {
+      throw new Error('请先在 AI 设置中填写 MiniMax Group ID');
     }
 
     return {
-      provider: 'gemini',
+      provider: 'minimax',
       apiKey,
-      model: settings.geminiModel.trim() || 'gemini-flash-latest',
+      groupId,
+      model: settings.minimaxModel.trim() || 'MiniMax-Text-01',
     };
   }
 

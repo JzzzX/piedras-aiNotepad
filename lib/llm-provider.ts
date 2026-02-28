@@ -64,8 +64,11 @@ function isProviderConfigured(provider: LlmProvider): boolean {
 
 function isRuntimeConfigReady(runtimeConfig?: LlmRuntimeConfig): boolean {
   if (!runtimeConfig || runtimeConfig.provider === 'auto') return false;
-  if (runtimeConfig.provider === 'gemini') {
-    return Boolean(runtimeConfig.apiKey || process.env.GEMINI_API_KEY);
+  if (runtimeConfig.provider === 'minimax') {
+    return Boolean(
+      (runtimeConfig.apiKey || process.env.MINIMAX_API_KEY) &&
+        (runtimeConfig.groupId || process.env.MINIMAX_GROUP_ID)
+    );
   }
   if (runtimeConfig.provider === 'openai') {
     return Boolean(
@@ -76,13 +79,21 @@ function isRuntimeConfigReady(runtimeConfig?: LlmRuntimeConfig): boolean {
   return false;
 }
 
-function getGeminiConfig(input: LlmGenerateInput) {
+function getGeminiConfig() {
+  return {
+    apiKey: process.env.GEMINI_API_KEY || '',
+    model: process.env.GEMINI_MODEL || 'gemini-flash-latest',
+  };
+}
+
+function getMiniMaxConfig(input: LlmGenerateInput) {
   const runtime =
-    input.runtimeConfig?.provider === 'gemini' ? input.runtimeConfig : undefined;
+    input.runtimeConfig?.provider === 'minimax' ? input.runtimeConfig : undefined;
 
   return {
-    apiKey: runtime?.apiKey || process.env.GEMINI_API_KEY || '',
-    model: runtime?.model || process.env.GEMINI_MODEL || 'gemini-flash-latest',
+    apiKey: runtime?.apiKey || process.env.MINIMAX_API_KEY || '',
+    groupId: runtime?.groupId || process.env.MINIMAX_GROUP_ID || '',
+    model: runtime?.model || process.env.MINIMAX_MODEL || 'MiniMax-Text-01',
   };
 }
 
@@ -171,7 +182,7 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
 }
 
 async function callGemini(input: LlmGenerateInput): Promise<string> {
-  const { apiKey, model } = getGeminiConfig(input);
+  const { apiKey, model } = getGeminiConfig();
   if (!apiKey) throw new Error('GEMINI_API_KEY 未配置');
   const system = input.messages.find((m) => m.role === 'system')?.content;
   const conversation = input.messages.filter((m) => m.role !== 'system');
@@ -321,13 +332,11 @@ function extractMiniMaxText(payload: MiniMaxPayload): string {
 }
 
 async function callMiniMaxNonStream(input: LlmGenerateInput): Promise<string> {
-  const apiKey = process.env.MINIMAX_API_KEY;
-  const groupId = process.env.MINIMAX_GROUP_ID;
+  const { apiKey, groupId, model } = getMiniMaxConfig(input);
   if (!apiKey || !groupId) {
     throw new Error('MiniMax 凭证未配置');
   }
 
-  const model = process.env.MINIMAX_MODEL || 'MiniMax-Text-01';
   const res = await fetch(
     `https://api.minimax.chat/v1/text/chatcompletion_v2?GroupId=${groupId}`,
     {
@@ -365,13 +374,11 @@ async function callMiniMaxNonStream(input: LlmGenerateInput): Promise<string> {
 }
 
 async function callMiniMaxStream(input: LlmGenerateInput): Promise<string> {
-  const apiKey = process.env.MINIMAX_API_KEY;
-  const groupId = process.env.MINIMAX_GROUP_ID;
+  const { apiKey, groupId, model } = getMiniMaxConfig(input);
   if (!apiKey || !groupId) {
     throw new Error('MiniMax 凭证未配置');
   }
 
-  const model = process.env.MINIMAX_MODEL || 'MiniMax-Text-01';
   const res = await fetch(
     `https://api.minimax.chat/v1/text/chatcompletion_v2?GroupId=${groupId}`,
     {

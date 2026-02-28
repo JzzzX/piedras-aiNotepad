@@ -15,24 +15,21 @@ export interface ChatMessage {
   templateId?: string;
 }
 
-export type LlmSelection = 'auto' | 'gemini' | 'openai';
+export type LlmSelection = 'auto' | 'minimax' | 'openai';
 
 export interface LlmSettings {
   provider: LlmSelection;
-  geminiApiKey: string;
-  geminiModel: string;
+  minimaxApiKey: string;
+  minimaxGroupId: string;
+  minimaxModel: string;
   openaiApiKey: string;
   openaiModel: string;
   openaiBaseUrl: string;
 }
 
-export interface AsrSettings {
-  vocabularyId: string;
-}
-
 export type LlmRuntimeConfig =
   | { provider: 'auto' }
-  | { provider: 'gemini'; apiKey: string; model?: string }
+  | { provider: 'minimax'; apiKey: string; groupId: string; model?: string }
   | { provider: 'openai'; apiKey: string; model: string; baseUrl?: string };
 
 export type MeetingType =
@@ -60,15 +57,6 @@ export interface Folder {
   name: string;
   color: string;
   sortOrder: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface GlossaryTerm {
-  id: string;
-  term: string;
-  pronunciation?: string | null;
-  category: string;
   createdAt?: string;
   updatedAt?: string;
 }
