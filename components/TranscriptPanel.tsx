@@ -193,13 +193,13 @@ export default function TranscriptPanel() {
 
   if (status === 'idle') {
     return (
-      <div className="flex h-full flex-col items-center justify-center bg-transparent p-6 text-stone-400">
-        <div className="flex w-full max-w-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-stone-200 bg-white/50 p-8">
+      <div className="flex h-full flex-col items-center justify-center bg-transparent p-6 text-[#A69B8F]">
+        <div className="flex w-full max-w-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-[#D8CEC4] bg-[#F7F3EE]/50 p-8">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-100/50 bg-sky-50 shadow-sm">
             <MessageSquare size={20} className="text-sky-400" strokeWidth={2} />
           </div>
-          <p className="mb-1 text-[15px] font-serif font-semibold text-stone-700">准备聆听...</p>
-          <p className="text-center text-[13px] leading-relaxed text-stone-400">
+          <p className="mb-1 text-[15px] font-serif font-semibold text-[#5C4D42]">准备聆听...</p>
+          <p className="text-center text-[13px] leading-relaxed text-[#A69B8F]">
             保持安静，或点击顶部按钮开始记录
           </p>
         </div>
@@ -209,9 +209,9 @@ export default function TranscriptPanel() {
 
   return (
     <div className="flex h-full flex-col bg-transparent">
-      <div className="border-b border-black/[0.04] px-6 py-5">
+      <div className="border-b border-[#E3D9CE] px-6 py-5">
         <div className="flex items-center justify-between gap-4">
-          <h3 className="text-[15px] font-serif font-semibold text-stone-800">实时转写</h3>
+          <h3 className="text-[15px] font-serif font-semibold text-[#4A3C31]">实时转写</h3>
           <div className="flex items-center gap-3">
             {status === 'recording' && (
               <div className="flex items-center gap-2">
@@ -219,7 +219,7 @@ export default function TranscriptPanel() {
                   className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
                     micActive
                       ? 'border border-sky-100 bg-sky-50 text-sky-600'
-                      : 'border border-black/[0.02] bg-[#F9F8F6] text-stone-400'
+                      : 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
                   }`}
                 >
                   <Mic size={10} />
@@ -229,7 +229,7 @@ export default function TranscriptPanel() {
                   className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
                     systemAudioActive
                       ? 'border border-teal-100 bg-teal-50 text-teal-600'
-                      : 'border border-black/[0.02] bg-[#F9F8F6] text-stone-400'
+                      : 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
                   }`}
                 >
                   <Volume2 size={10} />
@@ -237,15 +237,15 @@ export default function TranscriptPanel() {
                 </div>
               </div>
             )}
-            <span className="rounded-full border border-black/[0.04] bg-[#F9F8F6] px-2.5 py-1 text-[11px] font-medium text-stone-500">
+            <span className="rounded-full border border-[#D8CEC4]/50 bg-[#F7F3EE] px-2.5 py-1 text-[11px] font-medium text-[#8C7A6B]">
               {segments.length} 条
             </span>
           </div>
         </div>
 
         <div className="mt-4 space-y-2">
-          <div className="flex items-center gap-2 rounded-2xl border border-black/[0.05] bg-white px-3 py-2 shadow-sm">
-            <Search size={14} className="text-stone-400" />
+          <div className="flex items-center gap-2 rounded-2xl border border-[#D8CEC4] bg-white px-3 py-2 shadow-sm">
+            <Search size={14} className="text-[#A69B8F]" />
             <input
               value={searchQuery}
               onChange={(event) => {
@@ -253,7 +253,7 @@ export default function TranscriptPanel() {
                 setActiveMatchIndex(0);
               }}
               placeholder="搜索转写内容..."
-              className="flex-1 bg-transparent text-sm text-stone-700 placeholder:text-stone-300 focus:outline-none"
+              className="flex-1 bg-transparent text-sm text-[#4A3C31] placeholder:text-[#C4B6A9] focus:outline-none"
             />
             {searchQuery && (
               <button
@@ -261,17 +261,17 @@ export default function TranscriptPanel() {
                   setSearchQuery('');
                   setActiveMatchIndex(0);
                 }}
-                className="rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-50 hover:text-stone-600"
+                className="rounded-md p-1 text-[#A69B8F] transition-colors hover:bg-[#F7F3EE] hover:text-[#5C4D42]"
                 title="清空搜索"
               >
                 <X size={14} />
               </button>
             )}
-            <div className="h-4 w-px bg-stone-100" />
+            <div className="h-4 w-px bg-[#E3D9CE]" />
             <button
               onClick={() => jumpToMatch('prev')}
               disabled={matchedSegmentIds.length === 0}
-              className="rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-50 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-md p-1 text-[#A69B8F] transition-colors hover:bg-[#F7F3EE] hover:text-[#5C4D42] disabled:cursor-not-allowed disabled:opacity-30"
               title="上一个匹配"
             >
               <ChevronUp size={14} />
@@ -279,7 +279,7 @@ export default function TranscriptPanel() {
             <button
               onClick={() => jumpToMatch('next')}
               disabled={matchedSegmentIds.length === 0}
-              className="rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-50 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-md p-1 text-[#A69B8F] transition-colors hover:bg-[#F7F3EE] hover:text-[#5C4D42] disabled:cursor-not-allowed disabled:opacity-30"
               title="下一个匹配"
             >
               <ChevronDown size={14} />
@@ -287,13 +287,13 @@ export default function TranscriptPanel() {
           </div>
 
           {searchQuery.trim() ? (
-            <p className="text-xs text-stone-400">
+            <p className="text-xs text-[#8C7A6B]">
               {matchedSegmentIds.length > 0
                   ? `找到 ${safeActiveMatchIndex + 1} / ${matchedSegmentIds.length} 条匹配`
                 : `未找到“${searchQuery.trim()}”`}
             </p>
           ) : actionMessage ? (
-            <p className="text-xs text-stone-400">{actionMessage}</p>
+            <p className="text-xs text-[#8C7A6B]">{actionMessage}</p>
           ) : null}
         </div>
       </div>
@@ -319,7 +319,7 @@ export default function TranscriptPanel() {
                   ? 'border-sky-300 bg-sky-50/30 ring-4 ring-sky-500/5'
                   : isMatched
                     ? 'border-amber-200 bg-amber-50/50'
-                    : 'border-stone-200/60 bg-white hover:border-stone-300 hover:shadow-md'
+                    : 'border-[#E3D9CE] bg-white hover:border-[#D8CEC4] hover:shadow-md'
               } px-5 py-4`}
             >
               <div className="absolute right-3 top-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -327,18 +327,18 @@ export default function TranscriptPanel() {
                   onClick={() =>
                     handleCopySegment(segment.speaker, segment.text, segment.id)
                   }
-                  className="rounded-lg border border-stone-200 bg-white p-2 text-stone-400 transition-all hover:bg-stone-50 hover:text-stone-800"
+                  className="rounded-lg border border-[#E3D9CE] bg-white p-2 text-[#A69B8F] transition-all hover:bg-[#F7F3EE] hover:text-[#4A3C31]"
                   title="复制该段"
                 >
                   {copiedSegmentId === segment.id ? (
-                    <Check size={14} className="text-emerald-500" />
+                    <Check size={14} className="text-[#6D8A67]" />
                   ) : (
                     <Copy size={14} />
                   )}
                 </button>
                 <button
                   onClick={() => handleDeleteSegment(segment.id)}
-                  className="rounded-lg border border-stone-200 bg-white p-2 text-stone-400 transition-all hover:bg-red-50 hover:text-red-500"
+                  className="rounded-lg border border-[#E3D9CE] bg-white p-2 text-[#A69B8F] transition-all hover:bg-red-50 hover:text-red-500"
                   title="删除该段"
                 >
                   <Trash2 size={14} />
@@ -346,20 +346,20 @@ export default function TranscriptPanel() {
               </div>
 
               <div className="mb-3 flex items-center gap-3 pr-20">
-                <span className="inline-flex items-center gap-2 rounded-lg bg-stone-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-stone-500 border border-stone-200/50">
+                <span className="inline-flex items-center gap-2 rounded-lg bg-[#F7F3EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#8C7A6B] border border-[#E3D9CE]">
                   <span className={`h-1.5 w-1.5 rounded-full ${style.dot} shadow-sm`} />
                   {getSpeakerDisplayName(segment.speaker)}
                 </span>
                 <span
                   title={new Date(segment.startTime).toLocaleString('zh-CN')}
-                  className="cursor-default font-mono text-[10px] font-bold tracking-tighter text-stone-300"
+                  className="cursor-default font-mono text-[10px] font-bold tracking-tighter text-[#A69B8F]"
                 >
                   {formatRelativeTime(segment.startTime - baseTime)}
                 </span>
               </div>
               <p
-                className={`text-[15px] leading-relaxed text-[#2D2C2A] selection:bg-sky-100 ${
-                  isSystemPlaceholder ? 'italic text-stone-400' : ''
+                className={`text-[15px] leading-relaxed text-[#3A2E25] selection:bg-sky-100 ${
+                  isSystemPlaceholder ? 'italic text-[#A69B8F]' : ''
                 }`}
               >
                 {highlightText(segment.text, searchQuery)}
@@ -390,26 +390,26 @@ export default function TranscriptPanel() {
         )}
 
         {segments.length === 0 && !currentPartial && status === 'recording' && (
-          <div className="flex flex-col items-center justify-center py-8 text-zinc-400">
+          <div className="flex flex-col items-center justify-center py-8 text-[#A69B8F]">
             <div className="mb-3 flex gap-1">
               <div
-                className="h-3 w-1 animate-pulse rounded bg-red-300"
+                className="h-3 w-1 animate-pulse rounded bg-sky-300"
                 style={{ animationDelay: '0ms' }}
               />
               <div
-                className="h-4 w-1 animate-pulse rounded bg-red-400"
+                className="h-4 w-1 animate-pulse rounded bg-sky-400"
                 style={{ animationDelay: '150ms' }}
               />
               <div
-                className="h-5 w-1 animate-pulse rounded bg-red-500"
+                className="h-5 w-1 animate-pulse rounded bg-sky-500"
                 style={{ animationDelay: '300ms' }}
               />
               <div
-                className="h-4 w-1 animate-pulse rounded bg-red-400"
+                className="h-4 w-1 animate-pulse rounded bg-sky-400"
                 style={{ animationDelay: '150ms' }}
               />
               <div
-                className="h-3 w-1 animate-pulse rounded bg-red-300"
+                className="h-3 w-1 animate-pulse rounded bg-sky-300"
                 style={{ animationDelay: '0ms' }}
               />
             </div>
@@ -419,13 +419,13 @@ export default function TranscriptPanel() {
       </div>
 
       {segments.length > 0 && (
-        <div className="border-t border-zinc-100 px-4 py-2">
+        <div className="border-t border-[#E3D9CE] px-4 py-2">
           <div className="flex flex-wrap gap-3">
             {Array.from(new Set(segments.map((segment) => segment.speaker))).map((speaker) => {
               const style = getSpeakerStyle(speaker);
               const Icon = style.icon;
               return (
-                <div key={speaker} className="flex items-center gap-1.5 text-xs text-zinc-500">
+                <div key={speaker} className="flex items-center gap-1.5 text-xs text-[#8C7A6B]">
                   <div className={`h-2 w-2 rounded-full ${style.dot}`} />
                   <Icon size={10} />
                   <span>{getSpeakerDisplayName(speaker)}</span>

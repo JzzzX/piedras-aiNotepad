@@ -255,20 +255,20 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-[#FBF9F6]">
+    <div className="flex h-screen flex-col bg-[#EFE9E2]">
       {/* 顶栏 */}
-      <header className="sticky top-0 z-30 flex items-center justify-between bg-[#FBF9F6]/80 backdrop-blur-md px-4 py-5 md:px-8">
+      <header className="sticky top-0 z-30 flex items-center justify-between bg-[#EFE9E2]/80 backdrop-blur-md px-4 py-5 md:px-8 border-b border-[#D8CEC4]/50">
         <div className="flex items-center gap-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500 text-white shadow-lg shadow-sky-500/20">
             <Mic size={18} strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-lg font-serif font-bold text-[#1A1917] tracking-tight">AI Notepad</h1>
-            <p className="text-[11px] text-[#A8A29E] font-bold uppercase tracking-widest">Intelligent Assistant</p>
+            <h1 className="text-lg font-serif font-bold text-[#4A3C31] tracking-tight">AI Notepad</h1>
+            <p className="text-[11px] text-[#8C7A6B] font-bold uppercase tracking-widest">Intelligent Assistant</p>
           </div>
           <button
             onClick={() => setShowHistoryDrawer(true)}
-            className="ml-4 flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 py-1.5 text-[13px] font-medium text-stone-600 transition-all hover:bg-stone-50 hover:border-stone-300 hover:shadow-sm"
+            className="ml-4 flex items-center gap-1.5 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-3.5 py-1.5 text-[13px] font-medium text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm"
             title="打开会议记录"
           >
             <History size={14} />
@@ -281,7 +281,7 @@ export default function Home() {
             value={meetingTitle}
             onChange={(e) => setMeetingTitle(e.target.value)}
             placeholder="无标题文档"
-            className="w-36 rounded-xl border-transparent bg-transparent px-3 py-1.5 text-lg font-serif font-semibold text-stone-900 placeholder:text-stone-300 transition-all hover:bg-stone-100/50 focus:bg-white focus:shadow-sm focus:outline-none focus:ring-2 focus:ring-stone-200 sm:w-52 md:w-64 text-center"
+            className="w-36 rounded-xl border-transparent bg-transparent px-3 py-1.5 text-lg font-serif font-semibold text-[#3A2E25] placeholder:text-[#A69B8F] transition-all hover:bg-[#F7F3EE] focus:bg-[#F7F3EE] focus:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D8CEC4] sm:w-52 md:w-64 text-center"
           />
 
           <AudioRecorder />
@@ -291,12 +291,12 @@ export default function Home() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 text-[13px] font-medium text-stone-600 transition-all hover:bg-stone-50 hover:border-stone-300 hover:shadow-sm disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-4 py-2 text-[13px] font-medium text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm disabled:opacity-50"
             >
               {isSaving ? (
                 <Save size={14} className="animate-pulse text-sky-500" />
               ) : (
-                <Check size={14} className="text-emerald-500" />
+                <Check size={14} className="text-[#6D8A67]" />
               )}
               {isSaving ? '保存中' : '保存'}
             </button>
@@ -305,7 +305,7 @@ export default function Home() {
           {status === 'ended' && (
             <button
               onClick={handleNewMeeting}
-              className="flex items-center gap-2 rounded-xl bg-[#1A1917] px-4 py-2 text-[13px] font-semibold text-white transition-all hover:bg-black hover:shadow-lg hover:shadow-black/10"
+              className="flex items-center gap-2 rounded-xl bg-[#4A3C31] px-4 py-2 text-[13px] font-semibold text-[#F7F3EE] transition-all hover:bg-[#3A2E25] hover:shadow-lg hover:shadow-[#4A3C31]/20"
             >
               <RotateCcw size={14} />
               新会议
@@ -321,23 +321,23 @@ export default function Home() {
         }`}
       >
         <button
-          className="absolute inset-0 bg-black/20"
+          className="absolute inset-0 bg-[#3A2E25]/20 backdrop-blur-sm"
           onClick={() => setShowHistoryDrawer(false)}
           aria-label="关闭会议记录抽屉"
         />
         <aside
-          className={`absolute left-0 top-0 h-full w-80 border-r border-black/10 bg-white shadow-2xl transition-transform ${
+          className={`absolute left-0 top-0 h-full w-80 border-r border-[#D8CEC4] bg-[#F7F3EE] shadow-2xl transition-transform ${
             showHistoryDrawer ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <div className="flex items-center justify-between border-b border-black/5 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-[#D8CEC4]/50 px-4 py-3">
             <div className="flex items-center gap-2">
-              <History size={14} className="text-gray-400" />
-              <h3 className="text-sm font-serif font-semibold text-gray-600">会议记录</h3>
+              <History size={14} className="text-[#8C7A6B]" />
+              <h3 className="text-sm font-serif font-semibold text-[#5C4D42]">会议记录</h3>
             </div>
             <button
               onClick={() => setShowHistoryDrawer(false)}
-              className="rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              className="rounded-md p-1 text-[#8C7A6B] transition-colors hover:bg-[#EFE9E2] hover:text-[#4A3C31]"
               title="关闭"
             >
               <X size={14} />
@@ -352,12 +352,12 @@ export default function Home() {
       {/* 主体 */}
       <main
         ref={mainRef}
-        className="flex flex-1 gap-6 overflow-hidden bg-transparent px-8 pb-8"
+        className="flex flex-1 gap-6 overflow-hidden bg-transparent px-8 pb-8 pt-6"
       >
         {/* 左栏 - 实时转写 */}
         <div
           style={{ width: effectivePanelWidths.transcript }}
-          className="flex shrink-0 flex-col bg-white rounded-3xl border border-stone-200/60 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.12)]"
+          className="flex shrink-0 flex-col bg-[#FCFAF8] rounded-3xl border border-[#E3D9CE] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(74,60,49,0.12)]"
         >
           <TranscriptPanel />
         </div>
@@ -367,20 +367,20 @@ export default function Home() {
           className="group relative w-1 shrink-0 cursor-col-resize bg-transparent"
           title="拖动调整实时转写宽度"
         >
-          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-stone-200 opacity-0 transition-opacity group-hover:opacity-100" />
+          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-[#D8CEC4] opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
 
         {/* 中栏 - 笔记编辑器 + AI 笔记 */}
         <div
           style={{ width: effectivePanelWidths.notes }}
-          className="flex shrink-0 flex-col bg-white rounded-3xl border border-stone-200/60 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.12)] overflow-hidden"
+          className="flex shrink-0 flex-col bg-[#FCFAF8] rounded-3xl border border-[#E3D9CE] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(74,60,49,0.12)] overflow-hidden"
         >
           <div className="flex-1 overflow-y-auto">
             <NoteEditor />
           </div>
 
           {(status === 'ended' || segments.length > 0) && (
-            <div className="border-t border-stone-100 bg-[#F9F8F6]/50 p-6 space-y-4 max-h-[50%] overflow-y-auto">
+            <div className="border-t border-[#E3D9CE] bg-[#F7F3EE]/50 p-6 space-y-4 max-h-[50%] overflow-y-auto">
               <PromptSettings />
               <SpeakerManager />
               <EnhancedNotes />
@@ -393,26 +393,26 @@ export default function Home() {
           className="group relative w-1 shrink-0 cursor-col-resize bg-transparent"
           title="拖动调整笔记区宽度"
         >
-          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-stone-200 opacity-0 transition-opacity group-hover:opacity-100" />
+          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-[#D8CEC4] opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
 
         {/* 右栏 - Chat */}
-        <div className="flex min-w-0 flex-1 flex-col bg-white rounded-3xl border border-stone-200/60 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.12)] relative overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col bg-[#FCFAF8] rounded-3xl border border-[#E3D9CE] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(74,60,49,0.12)] relative overflow-hidden">
           <ChatPanel />
         </div>
       </main>
 
       {/* 底栏状态 */}
       <footer className="flex items-center justify-between bg-transparent px-8 py-4">
-        <div className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-widest text-[#A8A29E]">
+        <div className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-widest text-[#A69B8F]">
           <span className="flex items-center gap-2">
-            <span className={`h-1.5 w-1.5 rounded-full ${status === 'recording' ? 'bg-sky-500 animate-pulse' : 'bg-stone-300'}`} />
+            <span className={`h-1.5 w-1.5 rounded-full ${status === 'recording' ? 'bg-sky-500 animate-pulse' : 'bg-[#C4B6A9]'}`} />
             {status === 'idle' && 'READY — BOTLESS DUAL CHANNEL'}
             {status === 'recording' && 'RECORDING — AUTO SAVING EVERY 30S'}
             {status === 'ended' && 'SESSION ENDED — AUTO SAVED'}
           </span>
           {segments.length > 0 && (
-            <span className="flex items-center gap-1.5 before:block before:w-1 before:h-1 before:rounded-full before:bg-stone-300">{segments.length} TRANSCRIPTS</span>
+            <span className="flex items-center gap-1.5 before:block before:w-1 before:h-1 before:rounded-full before:bg-[#C4B6A9]">{segments.length} TRANSCRIPTS</span>
           )}
           {isSaving && (
             <span className="flex items-center gap-1.5 text-sky-500">
@@ -421,7 +421,7 @@ export default function Home() {
             </span>
           )}
         </div>
-        <div className="text-[10px] font-bold text-stone-300 tracking-[0.2em] uppercase">
+        <div className="text-[10px] font-bold text-[#C4B6A9] tracking-[0.2em] uppercase">
           Botless · SQLite
         </div>
       </footer>
