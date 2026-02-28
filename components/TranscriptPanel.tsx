@@ -301,7 +301,6 @@ export default function TranscriptPanel() {
       <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
         {segments.map((segment) => {
           const style = getSpeakerStyle(segment.speaker);
-          const Icon = style.icon;
           const isSystemPlaceholder = segment.text.startsWith('[对方正在发言');
           const isMatched = matchedSegmentIds.includes(segment.id);
           const isActiveMatch = activeMatchedSegmentId === segment.id;
