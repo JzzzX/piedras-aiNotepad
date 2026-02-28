@@ -145,7 +145,7 @@ export default function McpConnectorPanel({
                 <Workflow size={18} strokeWidth={2.2} />
               </div>
               <div>
-                <h3 className="text-base font-serif font-semibold text-[#4A3C31]">
+                <h3 className="font-song text-base font-semibold text-[#4A3C31]">
                   生态接入
                 </h3>
                 <p className="mt-1 max-w-[280px] text-xs leading-5 text-[#8C7A6B]">

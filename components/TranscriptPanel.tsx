@@ -198,7 +198,7 @@ export default function TranscriptPanel() {
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-100/50 bg-sky-50 shadow-sm">
             <MessageSquare size={20} className="text-sky-400" strokeWidth={2} />
           </div>
-          <p className="mb-1 text-[15px] font-serif font-semibold text-[#5C4D42]">准备聆听...</p>
+          <p className="font-song mb-1 text-[15px] font-semibold text-[#5C4D42]">准备聆听...</p>
           <p className="text-center text-[13px] leading-relaxed text-[#A69B8F]">
             保持安静，或点击顶部按钮开始记录
           </p>
@@ -211,7 +211,7 @@ export default function TranscriptPanel() {
     <div className="flex h-full flex-col bg-transparent">
       <div className="border-b border-[#E3D9CE] px-6 py-5">
         <div className="flex items-center justify-between gap-4">
-          <h3 className="text-[15px] font-serif font-semibold text-[#4A3C31]">实时转写</h3>
+          <h3 className="font-song text-[15px] font-semibold text-[#4A3C31]">实时转写</h3>
           <div className="flex items-center gap-3">
             {status === 'recording' && (
               <div className="flex items-center gap-2">

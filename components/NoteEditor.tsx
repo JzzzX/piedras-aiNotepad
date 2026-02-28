@@ -30,7 +30,7 @@ export default function NoteEditor() {
           <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center mb-4 shadow-sm border border-sky-100/50">
             <FileText size={20} className="text-sky-400" strokeWidth={2} />
           </div>
-          <p className="text-[15px] font-serif font-semibold text-[#5C4D42] mb-1">灵感与笔记</p>
+          <p className="font-song text-[15px] font-semibold text-[#5C4D42] mb-1">灵感与笔记</p>
           <p className="text-center text-[13px] leading-relaxed text-[#A69B8F]">
             一个纯净的书写空间。<br/>开始录音后，你的要点会与转写自动融合。
           </p>

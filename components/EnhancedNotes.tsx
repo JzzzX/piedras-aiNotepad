@@ -226,7 +226,7 @@ export default function EnhancedNotes() {
       ) : (
         <>
           <div className="flex items-center justify-between">
-            <h4 className="flex items-center gap-1.5 text-[15px] font-serif font-semibold text-stone-800">
+            <h4 className="font-song flex items-center gap-1.5 text-[15px] font-semibold text-stone-800">
               <Sparkles size={16} className="text-sky-500" />
               AI 会议纪要
             </h4>

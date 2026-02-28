@@ -8,7 +8,8 @@ import {
   History,
   X,
   PenLine,
-  Workflow,
+  Blocks,
+  ScrollText,
 } from 'lucide-react';
 import AudioRecorder from '@/components/AudioRecorder';
 import TranscriptPanel from '@/components/TranscriptPanel';
@@ -301,7 +302,7 @@ export default function Home() {
             <PiedrasMark className="h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-lg font-serif font-bold lowercase text-[#3F3229] tracking-tight">
+            <h1 className="font-song text-lg font-bold lowercase text-[#3F3229] tracking-tight">
               piedras
             </h1>
             <p className="text-[11px] text-[#8C7A6B] font-bold uppercase tracking-[0.24em]">
@@ -313,10 +314,10 @@ export default function Home() {
               setShowMcpDrawer(false);
               setShowHistoryDrawer(true);
             }}
-            className="ml-4 flex items-center gap-1.5 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-3.5 py-1.5 text-[13px] font-medium text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm"
+            className="font-song ml-4 flex items-center gap-1.5 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-3.5 py-1.5 text-[13px] font-semibold text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm"
             title="打开会议记录"
           >
-            <History size={14} />
+            <ScrollText size={14} />
             会议记录
           </button>
           <button
@@ -325,10 +326,10 @@ export default function Home() {
               setMcpBaseUrl(window.location.origin);
               setShowMcpDrawer(true);
             }}
-            className="flex items-center gap-1.5 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-3.5 py-1.5 text-[13px] font-medium text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm"
+            className="font-song flex items-center gap-1.5 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-3.5 py-1.5 text-[13px] font-semibold text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm"
             title="查看生态接入说明"
           >
-            <Workflow size={14} />
+            <Blocks size={14} />
             生态接入
           </button>
         </div>
@@ -342,7 +343,7 @@ export default function Home() {
               value={meetingTitle}
               onChange={(e) => setMeetingTitle(e.target.value)}
               placeholder="无标题文档"
-              className="w-32 bg-transparent py-1.5 pl-2 pr-3 text-base font-serif font-semibold text-[#3A2E25] placeholder:text-[#A69B8F] focus:outline-none sm:w-48 md:w-56"
+              className="font-song w-32 bg-transparent py-1.5 pl-2 pr-3 text-base font-semibold text-[#3A2E25] placeholder:text-[#A69B8F] focus:outline-none sm:w-48 md:w-56"
               title="编辑文档标题"
             />
           </div>
@@ -396,7 +397,7 @@ export default function Home() {
           <div className="flex items-center justify-between border-b border-[#D8CEC4]/50 px-4 py-3">
             <div className="flex items-center gap-2">
               <History size={14} className="text-[#8C7A6B]" />
-              <h3 className="text-sm font-serif font-semibold text-[#5C4D42]">会议记录</h3>
+              <h3 className="font-song text-sm font-semibold text-[#5C4D42]">会议记录</h3>
             </div>
             <button
               onClick={() => setShowHistoryDrawer(false)}

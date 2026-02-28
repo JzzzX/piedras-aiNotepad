@@ -6,6 +6,8 @@
   --accent-sky: #0EA5E9;
   --panel-bg: #F5EFEB;
   --border-subtle: #D8CEC4;
+  --font-song-stack: "Songti SC", "STSong", "Noto Serif SC",
+    "Source Han Serif SC", "Songti TC", "PMingLiU", serif;
 }
 
 @theme inline {
@@ -20,6 +22,10 @@ body {
     "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial,
     sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.font-song {
+  font-family: var(--font-song-stack);
 }
 
 /* Tiptap 编辑器样式 */
@@ -41,7 +47,7 @@ body {
   color: #1A1917;
   font-weight: 600;
   margin: 1.5em 0 0.5em;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-song-stack);
 }
 
 .tiptap h1 { font-size: 1.8em; }

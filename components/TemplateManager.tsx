@@ -187,7 +187,7 @@ export default function TemplateManager({
       <div className="flex h-[min(84vh,760px)] w-[min(980px,100%)] flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
           <div>
-            <h3 className="text-sm font-serif font-semibold text-zinc-800">模板管理</h3>
+            <h3 className="font-song text-sm font-semibold text-zinc-800">模板管理</h3>
             <p className="text-xs text-zinc-400">支持创建、编辑、删除与排序</p>
           </div>
           <button

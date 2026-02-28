@@ -378,7 +378,7 @@ export default function ChatPanel() {
   return (
     <div className="flex h-full flex-col bg-transparent relative">
       <div className="flex items-center justify-between border-b border-black/[0.04] px-6 py-5">
-        <h3 className="text-[15px] font-serif font-semibold text-stone-800 flex items-center">
+        <h3 className="font-song text-[15px] font-semibold text-stone-800 flex items-center">
           <Sparkles size={16} className="mr-2 text-sky-400" />
           AI 助手
         </h3>
@@ -443,7 +443,7 @@ export default function ChatPanel() {
               <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] bg-sky-50 shadow-sm border border-sky-100/50 mx-auto">
                 <Bot size={20} className="text-sky-400" strokeWidth={2} />
               </div>
-              <p className="mb-2 text-center text-[17px] font-serif font-semibold text-stone-700">
+              <p className="font-song mb-2 text-center text-[17px] font-semibold text-stone-700">
                 {chatMode === 'meeting' ? '会议专属助手' : '全局知识库'}
               </p>
               <p className="mx-auto mb-7 max-w-[240px] text-center text-[13px] leading-6 text-stone-400">

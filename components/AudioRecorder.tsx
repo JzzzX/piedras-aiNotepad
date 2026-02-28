@@ -4,7 +4,8 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import {
   AlertTriangle,
   CircleQuestionMark,
-  HardDriveUpload,
+  CircleDot,
+  FileAudio,
   Loader2,
   Mic,
   Monitor,
@@ -1261,10 +1262,7 @@ export default function AudioRecorder() {
             onClick={handleStart}
             className="group flex items-center gap-2.5 rounded-full bg-sky-500 px-6 py-2.5 text-[15px] font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 hover:scale-[1.02] active:scale-[0.98]"
           >
-            <div className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
-            </div>
+            <CircleDot size={16} strokeWidth={2.5} />
             开始录音
           </button>
 
@@ -1276,7 +1274,7 @@ export default function AudioRecorder() {
             {isUploadingAudio ? (
               <Loader2 size={16} className="animate-spin text-sky-500" />
             ) : (
-              <HardDriveUpload size={16} className="text-stone-500" />
+              <FileAudio size={16} className="text-stone-500" />
             )}
             {isUploadingAudio ? `转写中 ${Math.round(uploadProgress * 100)}%` : '上传音频'}
           </button>
@@ -1368,7 +1366,7 @@ export default function AudioRecorder() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <SlidersHorizontal size={16} className="text-stone-400" />
-              <h4 className="text-sm font-serif font-semibold text-stone-800">录音设置</h4>
+              <h4 className="font-song text-sm font-semibold text-stone-800">录音设置</h4>
             </div>
             <button
               onClick={() => setShowRecorderSettings(false)}
@@ -1427,7 +1425,7 @@ export default function AudioRecorder() {
       {/* 引导弹窗：更像一张精致的卡片 */}
       {showGuide && (status === 'idle' || status === 'ended') && (
         <div className="fixed left-4 right-4 top-24 z-50 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl border border-stone-200/60 bg-white p-6 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-top-2 duration-200 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-4 sm:max-h-none sm:w-[380px] sm:max-w-[calc(100vw-2rem)] sm:overflow-visible">
-          <h4 className="mb-3 flex items-center gap-2 text-base font-serif font-semibold text-stone-900">
+          <h4 className="font-song mb-3 flex items-center gap-2 text-base font-semibold text-stone-900">
             <Sparkles size={18} className="text-indigo-500" />
             隐私录制说明
           </h4>
@@ -1453,7 +1451,7 @@ export default function AudioRecorder() {
             </div>
             <div className="rounded-2xl bg-gray-50 p-4 border border-gray-100">
               <div className="mb-1 flex items-center gap-3 font-semibold text-gray-700">
-                <HardDriveUpload size={14} className="text-sky-500" />
+                <FileAudio size={14} className="text-sky-500" />
                 3. 导入已有录音
               </div>
               <p className="pl-6 text-[11px] text-gray-400">支持上传音频文件并直接转写</p>
