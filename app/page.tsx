@@ -334,7 +334,7 @@ export default function Home() {
           <div className="flex items-center justify-between border-b border-black/5 px-4 py-3">
             <div className="flex items-center gap-2">
               <History size={14} className="text-gray-400" />
-              <h3 className="text-sm font-semibold text-gray-600">会议记录</h3>
+              <h3 className="text-sm font-serif font-semibold text-gray-600">会议记录</h3>
             </div>
             <button
               onClick={() => setShowHistoryDrawer(false)}
