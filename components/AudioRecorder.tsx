@@ -1245,18 +1245,6 @@ export default function AudioRecorder() {
 
   return (
     <div ref={rootRef} className="relative flex items-center gap-3">
-      {(showGuide || showRecorderSettings) && (
-        <button
-          type="button"
-          aria-label="关闭录音弹层"
-          onClick={() => {
-            setShowGuide(false);
-            setShowRecorderSettings(false);
-          }}
-          className="fixed inset-0 z-40 bg-white/20 backdrop-blur-md"
-        />
-      )}
-
       <input
         ref={audioFileInputRef}
         type="file"
