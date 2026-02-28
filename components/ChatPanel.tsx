@@ -376,17 +376,17 @@ export default function ChatPanel() {
       : ['会议的核心决策是什么？', '提取所有行动项', '总结关键讨论点'];
 
   return (
-    <div className="flex h-full flex-col bg-transparent relative">
-      <div className="flex items-center justify-between border-b border-black/[0.04] px-6 py-5">
-        <h3 className="font-song text-[15px] font-semibold text-stone-800 flex items-center">
+    <div className="relative flex h-full flex-col bg-transparent">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
+        <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
           <Sparkles size={16} className="mr-2 text-sky-400" />
           AI 助手
         </h3>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center rounded-xl bg-[#F9F8F6] p-1 border border-black/[0.02]">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
+          <div className="flex flex-1 items-center rounded-xl border border-black/[0.02] bg-[#F9F8F6] p-1 sm:flex-none">
             <button
               onClick={() => switchMode('meeting')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:flex-none ${
                 chatMode === 'meeting'
                   ? 'bg-white text-stone-800 shadow-sm border border-black/[0.04]'
                   : 'text-stone-400 hover:text-stone-600'
@@ -398,7 +398,7 @@ export default function ChatPanel() {
             </button>
             <button
               onClick={() => switchMode('global')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:flex-none ${
                 chatMode === 'global'
                   ? 'bg-white text-stone-800 shadow-sm border border-black/[0.04]'
                   : 'text-stone-400 hover:text-stone-600'
@@ -436,11 +436,11 @@ export default function ChatPanel() {
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto px-7 py-8 pb-32">
+      <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto px-4 py-5 pb-36 sm:px-7 sm:py-8 sm:pb-32">
         {activeMessages.length === 0 && (
           <div className="flex min-h-full flex-col items-center justify-center px-2 text-stone-400">
-            <div className="w-full max-w-[360px] rounded-[28px] border border-dashed border-stone-200/90 bg-[#FCFBF8] px-8 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] bg-sky-50 shadow-sm border border-sky-100/50 mx-auto">
+            <div className="w-full max-w-[360px] rounded-[28px] border border-dashed border-stone-200/90 bg-[#FCFBF8] px-5 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-8 sm:py-10">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-100/50 bg-sky-50 shadow-sm">
                 <Bot size={20} className="text-sky-400" strokeWidth={2} />
               </div>
               <p className="font-song mb-2 text-center text-[17px] font-semibold text-stone-700">
@@ -503,7 +503,7 @@ export default function ChatPanel() {
       </div>
 
       {chatMode === 'global' && showGlobalFilters && (
-        <div className="border-t border-black/5 bg-white/50 backdrop-blur px-6 py-4 absolute bottom-24 w-full z-10">
+        <div className="absolute bottom-24 left-0 right-0 z-10 border-t border-black/5 bg-white/50 px-4 py-4 backdrop-blur sm:px-6">
           <div className="space-y-3">
             <input
               value={globalTitleFilter}
@@ -511,7 +511,7 @@ export default function ChatPanel() {
               placeholder="标题关键词（可选）"
               className="w-full rounded-xl border-transparent bg-white px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:ring-2 focus:ring-sky-500/20 focus:outline-none shadow-sm border border-black/[0.04]"
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="text-xs font-medium text-stone-500">
                 开始日期
                 <input
@@ -552,7 +552,7 @@ export default function ChatPanel() {
       )}
 
       {chatMode === 'meeting' && showTemplates && (
-        <div className="bg-white/90 backdrop-blur-xl absolute bottom-[84px] left-6 right-6 z-20 shadow-xl border border-black/[0.04] rounded-2xl overflow-hidden">
+        <div className="absolute bottom-[88px] left-4 right-4 z-20 overflow-hidden rounded-2xl border border-black/[0.04] bg-white/90 shadow-xl backdrop-blur-xl sm:bottom-[84px] sm:left-6 sm:right-6">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-black/[0.04] bg-[#F9F8F6]/50">
             <Sparkles size={14} className="text-sky-400" />
             <span className="text-[11px] font-medium text-stone-500 tracking-widest uppercase">选择助手技能</span>
@@ -592,8 +592,8 @@ export default function ChatPanel() {
       )}
 
       {/* Floating Command Bar */}
-      <div className="absolute bottom-6 left-6 right-6 z-10 pointer-events-none">
-        <div className={`pointer-events-auto flex items-end gap-2 rounded-[24px] bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-black/[0.04] transition-all focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.12)] focus-within:ring-2 focus-within:ring-sky-500/20 ${isDictating ? 'ring-2 ring-sky-300/70 shadow-[0_12px_36px_rgba(14,165,233,0.18)]' : ''}`}>
+      <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-10 sm:bottom-6 sm:left-6 sm:right-6">
+        <div className={`pointer-events-auto flex items-end gap-2 rounded-[24px] border border-black/[0.04] bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.12)] ${isDictating ? 'ring-2 ring-sky-300/70 shadow-[0_12px_36px_rgba(14,165,233,0.18)]' : ''}`}>
           <textarea
             ref={inputRef}
             value={input}

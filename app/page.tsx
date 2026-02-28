@@ -41,6 +41,8 @@ interface PanelWidths {
   notes: number;
 }
 
+type MobilePanel = 'transcript' | 'notes' | 'chat';
+
 const DEFAULT_PANEL_WIDTHS: PanelWidths = {
   transcript: 420,
   notes: 420,
@@ -111,6 +113,8 @@ export default function Home() {
   const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
   const [showMcpDrawer, setShowMcpDrawer] = useState(false);
   const [mcpBaseUrl, setMcpBaseUrl] = useState('');
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
+  const [activeMobilePanel, setActiveMobilePanel] = useState<MobilePanel>('transcript');
 
   // 首次挂载后再读取 localStorage，避免 SSR 与客户端首帧不一致导致 hydration 警告
   useEffect(() => {
@@ -225,6 +229,15 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 1023px)');
+    const updateLayout = () => setIsMobileLayout(mediaQuery.matches);
+
+    updateLayout();
+    mediaQuery.addEventListener('change', updateLayout);
+    return () => mediaQuery.removeEventListener('change', updateLayout);
+  }, []);
+
   const effectivePanelWidths = useMemo(
     () => normalizePanelWidths(panelWidths, mainWidth),
     [panelWidths, mainWidth]
@@ -296,85 +309,89 @@ export default function Home() {
   return (
     <div className="flex h-screen flex-col bg-[#EFE9E2]">
       {/* 顶栏 */}
-      <header className="sticky top-0 z-30 flex items-center justify-between bg-[#EFE9E2]/80 backdrop-blur-md px-4 py-5 md:px-8 border-b border-[#D8CEC4]/50">
-        <div className="flex items-center gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#2B2420] text-[#F5EEE6] shadow-lg shadow-[#2B2420]/20">
-            <PiedrasMark className="h-7 w-7" />
-          </div>
-          <div>
-            <h1 className="font-song text-lg font-bold text-[#3F3229] tracking-tight">
-              Piedras
-            </h1>
-            <p className="text-[11px] text-[#8C7A6B] font-bold uppercase tracking-[0.24em]">
-              Spoken Notes, Quietly Held
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setShowMcpDrawer(false);
-              setShowHistoryDrawer(true);
-            }}
-            className="font-song ml-4 flex items-center gap-1.5 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-3.5 py-1.5 text-[13px] font-semibold text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm"
-            title="打开会议记录"
-          >
-            <ScrollText size={14} />
-            会议记录
-          </button>
-          <button
-            onClick={() => {
-              setShowHistoryDrawer(false);
-              setMcpBaseUrl(window.location.origin);
-              setShowMcpDrawer(true);
-            }}
-            className="font-song flex items-center gap-1.5 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-3.5 py-1.5 text-[13px] font-semibold text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm"
-            title="查看生态接入说明"
-          >
-            <Blocks size={14} />
-            生态接入
-          </button>
-        </div>
-
-        <div className="flex min-w-0 items-center gap-4">
-          <div className="group relative flex items-center rounded-xl transition-all hover:bg-[#F7F3EE] hover:ring-1 hover:ring-[#D8CEC4] focus-within:bg-[#FCFAF8] focus-within:ring-2 focus-within:ring-[#D8CEC4] focus-within:shadow-sm">
-            <span className="pl-3 text-[#A69B8F] transition-colors group-focus-within:text-[#8C7A6B]">
-              <PenLine size={15} />
-            </span>
-            <input
-              value={meetingTitle}
-              onChange={(e) => setMeetingTitle(e.target.value)}
-              placeholder="无标题文档"
-              className="font-song w-32 bg-transparent py-1.5 pl-2 pr-3 text-base font-semibold text-[#3A2E25] placeholder:text-[#A69B8F] focus:outline-none sm:w-48 md:w-56"
-              title="编辑文档标题"
-            />
+      <header className="sticky top-0 z-30 border-b border-[#D8CEC4]/50 bg-[#EFE9E2]/80 px-3 py-4 backdrop-blur-md sm:px-4 md:px-8 md:py-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#2B2420] text-[#F5EEE6] shadow-lg shadow-[#2B2420]/20">
+              <PiedrasMark className="h-7 w-7" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-song text-lg font-bold text-[#3F3229] tracking-tight">
+                Piedras
+              </h1>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8C7A6B] sm:text-[11px] sm:tracking-[0.24em]">
+                Spoken Notes, Quietly Held
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => {
+                  setShowMcpDrawer(false);
+                  setShowHistoryDrawer(true);
+                }}
+                className="font-song flex items-center gap-1.5 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-3 py-1.5 text-[12px] font-semibold text-[#5C4D42] transition-all hover:border-[#C4B6A9] hover:bg-[#EFE9E2] hover:shadow-sm sm:px-3.5 sm:text-[13px]"
+                title="打开会议记录"
+              >
+                <ScrollText size={14} />
+                会议记录
+              </button>
+              <button
+                onClick={() => {
+                  setShowHistoryDrawer(false);
+                  setMcpBaseUrl(window.location.origin);
+                  setShowMcpDrawer(true);
+                }}
+                className="font-song flex items-center gap-1.5 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-3 py-1.5 text-[12px] font-semibold text-[#5C4D42] transition-all hover:border-[#C4B6A9] hover:bg-[#EFE9E2] hover:shadow-sm sm:px-3.5 sm:text-[13px]"
+                title="查看生态接入说明"
+              >
+                <Blocks size={14} />
+                生态接入
+              </button>
+            </div>
           </div>
 
-          <AudioRecorder />
+          <div className="flex min-w-0 flex-wrap items-center gap-3 sm:gap-4 xl:justify-end">
+            <div className="group relative flex min-w-0 flex-1 items-center rounded-xl transition-all hover:bg-[#F7F3EE] hover:ring-1 hover:ring-[#D8CEC4] focus-within:bg-[#FCFAF8] focus-within:ring-2 focus-within:ring-[#D8CEC4] focus-within:shadow-sm xl:max-w-[320px]">
+              <span className="pl-3 text-[#A69B8F] transition-colors group-focus-within:text-[#8C7A6B]">
+                <PenLine size={15} />
+              </span>
+              <input
+                value={meetingTitle}
+                onChange={(e) => setMeetingTitle(e.target.value)}
+                placeholder="无标题文档"
+                className="font-song w-full min-w-0 bg-transparent py-1.5 pl-2 pr-3 text-base font-semibold text-[#3A2E25] placeholder:text-[#A69B8F] focus:outline-none sm:w-48 md:w-56 xl:w-full"
+                title="编辑文档标题"
+              />
+            </div>
 
-          {/* 保存按钮 */}
-          {hasContent && status !== 'recording' && (
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-4 py-2 text-[13px] font-medium text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm disabled:opacity-50"
-            >
-              {isSaving ? (
-                <Save size={14} className="animate-pulse text-sky-500" />
-              ) : (
-                <Check size={14} className="text-[#6D8A67]" />
-              )}
-              {isSaving ? '保存中' : '保存'}
-            </button>
-          )}
+            <AudioRecorder />
 
-          {status === 'ended' && (
-            <button
-              onClick={handleNewMeeting}
-              className="flex items-center gap-2 rounded-xl bg-[#4A3C31] px-4 py-2 text-[13px] font-semibold text-[#F7F3EE] transition-all hover:bg-[#3A2E25] hover:shadow-lg hover:shadow-[#4A3C31]/20"
-            >
-              <RotateCcw size={14} />
-              新会议
-            </button>
-          )}
+            {/* 保存按钮 */}
+            {hasContent && status !== 'recording' && (
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-[#F7F3EE] px-4 py-2 text-[13px] font-medium text-[#5C4D42] transition-all hover:bg-[#EFE9E2] hover:border-[#C4B6A9] hover:shadow-sm disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <Save size={14} className="animate-pulse text-sky-500" />
+                ) : (
+                  <Check size={14} className="text-[#6D8A67]" />
+                )}
+                {isSaving ? '保存中' : '保存'}
+              </button>
+            )}
+
+            {status === 'ended' && (
+              <button
+                onClick={handleNewMeeting}
+                className="flex items-center gap-2 rounded-xl bg-[#4A3C31] px-4 py-2 text-[13px] font-semibold text-[#F7F3EE] transition-all hover:bg-[#3A2E25] hover:shadow-lg hover:shadow-[#4A3C31]/20"
+              >
+                <RotateCcw size={14} />
+                新会议
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -390,7 +407,7 @@ export default function Home() {
           aria-label="关闭会议记录抽屉"
         />
         <aside
-          className={`absolute left-0 top-0 h-full w-80 border-r border-[#D8CEC4] bg-[#F7F3EE] shadow-2xl transition-transform ${
+          className={`absolute left-0 top-0 h-full w-full max-w-[88vw] border-r border-[#D8CEC4] bg-[#F7F3EE] shadow-2xl transition-transform sm:w-80 ${
             showHistoryDrawer ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -420,60 +437,115 @@ export default function Home() {
       />
 
       {/* 主体 */}
-      <main
-        ref={mainRef}
-        className="flex flex-1 gap-6 overflow-hidden bg-transparent px-8 pb-8 pt-6"
-      >
-        {/* 左栏 - 实时转写 */}
-        <div
-          style={{ width: effectivePanelWidths.transcript }}
-          className="flex shrink-0 flex-col bg-[#FCFAF8] rounded-3xl border border-[#E3D9CE] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(74,60,49,0.12)]"
-        >
-          <TranscriptPanel />
-        </div>
-
-        <div
-          onMouseDown={(e) => handleDividerMouseDown('transcript', e)}
-          className="group relative w-1 shrink-0 cursor-col-resize bg-transparent"
-          title="拖动调整实时转写宽度"
-        >
-          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-[#D8CEC4] opacity-0 transition-opacity group-hover:opacity-100" />
-        </div>
-
-        {/* 中栏 - 笔记编辑器 + AI 笔记 */}
-        <div
-          style={{ width: effectivePanelWidths.notes }}
-          className="flex shrink-0 flex-col bg-[#FCFAF8] rounded-3xl border border-[#E3D9CE] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(74,60,49,0.12)] overflow-hidden"
-        >
-          <div className="flex-1 overflow-y-auto">
-            <NoteEditor />
+      {isMobileLayout ? (
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-transparent px-3 pb-3 pt-3 sm:px-4">
+          <div className="mb-3 grid grid-cols-3 gap-2 rounded-2xl border border-[#D8CEC4] bg-[#F7F3EE] p-1">
+            {([
+              ['transcript', '转写'],
+              ['notes', '笔记'],
+              ['chat', 'AI'],
+            ] as Array<[MobilePanel, string]>).map(([panel, label]) => (
+              <button
+                key={panel}
+                type="button"
+                onClick={() => setActiveMobilePanel(panel)}
+                className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                  activeMobilePanel === panel
+                    ? 'bg-white text-[#4A3C31] shadow-sm'
+                    : 'text-[#8C7A6B]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
-          {(status === 'ended' || segments.length > 0) && (
-            <div className="border-t border-[#E3D9CE] bg-[#F7F3EE]/50 p-6 space-y-4 max-h-[50%] overflow-y-auto">
-              <PromptSettings />
-              <SpeakerManager />
-              <EnhancedNotes />
-            </div>
-          )}
-        </div>
+          <div className="min-h-0 flex-1">
+            {activeMobilePanel === 'transcript' && (
+              <div className="flex h-full min-h-0 flex-col rounded-3xl border border-[#E3D9CE] bg-[#FCFAF8] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)]">
+                <TranscriptPanel />
+              </div>
+            )}
 
-        <div
-          onMouseDown={(e) => handleDividerMouseDown('notes', e)}
-          className="group relative w-1 shrink-0 cursor-col-resize bg-transparent"
-          title="拖动调整笔记区宽度"
+            {activeMobilePanel === 'notes' && (
+              <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border border-[#E3D9CE] bg-[#FCFAF8] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)]">
+                <div className="flex-1 overflow-y-auto">
+                  <NoteEditor />
+                </div>
+
+                {(status === 'ended' || segments.length > 0) && (
+                  <div className="max-h-[45%] space-y-4 overflow-y-auto border-t border-[#E3D9CE] bg-[#F7F3EE]/50 p-4">
+                    <PromptSettings />
+                    <SpeakerManager />
+                    <EnhancedNotes />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeMobilePanel === 'chat' && (
+              <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border border-[#E3D9CE] bg-[#FCFAF8] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)]">
+                <ChatPanel />
+              </div>
+            )}
+          </div>
+        </main>
+      ) : (
+        <main
+          ref={mainRef}
+          className="flex flex-1 gap-6 overflow-hidden bg-transparent px-4 pb-6 pt-5 md:px-6 xl:px-8 xl:pb-8 xl:pt-6"
         >
-          <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-[#D8CEC4] opacity-0 transition-opacity group-hover:opacity-100" />
-        </div>
+          {/* 左栏 - 实时转写 */}
+          <div
+            style={{ width: effectivePanelWidths.transcript }}
+            className="flex shrink-0 flex-col rounded-3xl border border-[#E3D9CE] bg-[#FCFAF8] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(74,60,49,0.12)]"
+          >
+            <TranscriptPanel />
+          </div>
 
-        {/* 右栏 - Chat */}
-        <div className="flex min-w-0 flex-1 flex-col bg-[#FCFAF8] rounded-3xl border border-[#E3D9CE] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(74,60,49,0.12)] relative overflow-hidden">
-          <ChatPanel />
-        </div>
-      </main>
+          <div
+            onMouseDown={(e) => handleDividerMouseDown('transcript', e)}
+            className="group relative w-1 shrink-0 cursor-col-resize bg-transparent"
+            title="拖动调整实时转写宽度"
+          >
+            <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-[#D8CEC4] opacity-0 transition-opacity group-hover:opacity-100" />
+          </div>
+
+          {/* 中栏 - 笔记编辑器 + AI 笔记 */}
+          <div
+            style={{ width: effectivePanelWidths.notes }}
+            className="flex shrink-0 flex-col overflow-hidden rounded-3xl border border-[#E3D9CE] bg-[#FCFAF8] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(74,60,49,0.12)]"
+          >
+            <div className="flex-1 overflow-y-auto">
+              <NoteEditor />
+            </div>
+
+            {(status === 'ended' || segments.length > 0) && (
+              <div className="max-h-[50%] space-y-4 overflow-y-auto border-t border-[#E3D9CE] bg-[#F7F3EE]/50 p-6">
+                <PromptSettings />
+                <SpeakerManager />
+                <EnhancedNotes />
+              </div>
+            )}
+          </div>
+
+          <div
+            onMouseDown={(e) => handleDividerMouseDown('notes', e)}
+            className="group relative w-1 shrink-0 cursor-col-resize bg-transparent"
+            title="拖动调整笔记区宽度"
+          >
+            <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-[#D8CEC4] opacity-0 transition-opacity group-hover:opacity-100" />
+          </div>
+
+          {/* 右栏 - Chat */}
+          <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-3xl border border-[#E3D9CE] bg-[#FCFAF8] shadow-[0_8px_24px_-12px_rgba(74,60,49,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(74,60,49,0.12)]">
+            <ChatPanel />
+          </div>
+        </main>
+      )}
 
       {/* 底栏状态 */}
-      <footer className="flex items-center justify-between bg-transparent px-8 py-4">
+      <footer className="hidden items-center justify-between bg-transparent px-8 py-4 lg:flex">
         <div className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-widest text-[#A69B8F]">
           <span className="flex items-center gap-2">
             <span className={`h-1.5 w-1.5 rounded-full ${status === 'recording' ? 'bg-sky-500 animate-pulse' : 'bg-[#C4B6A9]'}`} />

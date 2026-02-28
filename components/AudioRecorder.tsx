@@ -1245,7 +1245,7 @@ export default function AudioRecorder() {
   }, []);
 
   return (
-    <div ref={rootRef} className="relative flex items-center gap-3">
+    <div ref={rootRef} className="relative flex w-full flex-wrap items-center gap-3 sm:w-auto">
       <input
         ref={audioFileInputRef}
         type="file"
@@ -1257,10 +1257,10 @@ export default function AudioRecorder() {
       />
 
       {status === 'idle' || status === 'ended' ? (
-        <div className="flex items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
           <button
             onClick={handleStart}
-            className="font-song group flex items-center gap-2.5 rounded-full bg-sky-500 px-6 py-2.5 text-[15px] font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 hover:scale-[1.02] active:scale-[0.98]"
+            className="font-song group flex min-w-[140px] flex-1 items-center justify-center gap-2.5 rounded-full bg-sky-500 px-6 py-2.5 text-[15px] font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:scale-[1.02] hover:bg-sky-400 active:scale-[0.98] sm:min-w-0 sm:flex-none"
           >
             <CircleDot size={16} strokeWidth={2.5} />
             开始录音
@@ -1269,7 +1269,7 @@ export default function AudioRecorder() {
           <button
             onClick={() => void handleUploadAudioClick()}
             disabled={isUploadingAudio}
-            className="font-song flex items-center gap-2 rounded-full border border-stone-200/60 bg-white px-4 py-2.5 text-[14px] font-medium text-stone-600 shadow-sm transition-all hover:bg-stone-50 hover:text-stone-800 disabled:cursor-not-allowed disabled:opacity-70"
+            className="font-song flex min-w-[140px] flex-1 items-center justify-center gap-2 rounded-full border border-stone-200/60 bg-white px-4 py-2.5 text-[14px] font-medium text-stone-600 shadow-sm transition-all hover:bg-stone-50 hover:text-stone-800 disabled:cursor-not-allowed disabled:opacity-70 sm:min-w-0 sm:flex-none"
           >
             {isUploadingAudio ? (
               <Loader2 size={16} className="animate-spin text-sky-500" />
@@ -1298,7 +1298,7 @@ export default function AudioRecorder() {
           </TooltipIconButton>
 
           {isUploadingAudio && uploadFileName ? (
-            <span className="hidden max-w-[220px] truncate rounded-full border border-stone-200/60 bg-white px-3 py-1 text-[11px] font-medium text-stone-500 shadow-sm md:inline-block">
+            <span className="w-full truncate rounded-full border border-stone-200/60 bg-white px-3 py-1 text-[11px] font-medium text-stone-500 shadow-sm sm:max-w-[220px] sm:w-auto">
               {uploadFileName}
             </span>
           ) : null}
@@ -1306,7 +1306,7 @@ export default function AudioRecorder() {
       ) : (
         <>
           {/* 正在录音：高级感呼吸药囊 */}
-          <div className="flex items-center gap-4 rounded-full bg-white px-5 py-2 border border-sky-100 shadow-sm shadow-sky-500/5">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-4 rounded-[28px] border border-sky-100 bg-white px-4 py-2 shadow-sm shadow-sky-500/5 sm:flex-none sm:rounded-full sm:px-5">
             <div className="flex items-center gap-2.5">
               <div className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"></span>
@@ -1323,7 +1323,7 @@ export default function AudioRecorder() {
             </div>
 
             {/* 双通道音量指示：更紧凑 */}
-            <div className="flex items-center gap-4 border-l border-stone-100 pl-4">
+            <div className="flex min-w-0 flex-wrap items-center gap-4 border-l border-stone-100 pl-4">
               <div className="flex items-center gap-2" title="我">
                 <Mic size={14} className={micActive ? 'text-sky-500' : 'text-stone-300'} />
                 <LevelBar level={micLevel} color="bg-sky-400" />
