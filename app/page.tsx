@@ -268,7 +268,7 @@ export default function Home() {
           </div>
           <button
             onClick={() => setShowHistoryDrawer(true)}
-            className="ml-4 flex items-center gap-1.5 rounded-xl border border-stone-200/60 px-3 py-2 text-[13px] font-medium text-stone-500 transition-all hover:bg-white hover:border-stone-300 hover:text-stone-700 hover:shadow-sm"
+            className="ml-4 flex items-center gap-1.5 rounded-xl border border-stone-200/60 px-3 py-2 text-[13px] font-serif font-medium text-stone-500 transition-all hover:bg-white hover:border-stone-300 hover:text-stone-700 hover:shadow-sm"
             title="打开会议记录"
           >
             <History size={14} />
