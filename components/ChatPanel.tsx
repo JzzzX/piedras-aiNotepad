@@ -511,57 +511,65 @@ export default function ChatPanel() {
             onClick={() => setShowGlobalFilters(false)}
             className="fixed inset-0 z-10 bg-black/20 backdrop-blur-sm transition-all lg:hidden animate-in fade-in duration-200"
           />
-          <div className="fixed inset-x-4 bottom-4 z-20 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl border border-white/40 bg-white/80 px-5 py-5 shadow-2xl backdrop-blur-2xl ring-1 ring-black/5 animate-in slide-in-from-bottom-8 fade-in duration-300 lg:absolute lg:bottom-24 lg:left-4 lg:right-4 lg:max-h-none lg:overflow-visible lg:rounded-2xl lg:border lg:bg-white/80 lg:px-6 lg:py-5 lg:shadow-xl lg:ring-1 lg:slide-in-from-bottom-4 lg:zoom-in-95">
-            <div className="mb-3 flex items-center justify-between lg:hidden">
-              <div>
-                <p className="text-sm font-semibold text-stone-800">筛选条件</p>
-                <p className="text-xs text-stone-400">限定跨会议检索范围</p>
+          <div className="fixed inset-x-2 bottom-2 z-20 max-h-[85vh] overflow-y-auto rounded-[24px] border border-white/40 bg-white/85 p-5 shadow-2xl backdrop-blur-2xl ring-1 ring-black/5 animate-in slide-in-from-bottom-8 fade-in duration-300 lg:absolute lg:bottom-24 lg:left-4 lg:right-4 lg:max-h-none lg:overflow-visible lg:rounded-2xl lg:border lg:bg-white/80 lg:px-6 lg:py-5 lg:shadow-xl lg:ring-1 lg:slide-in-from-bottom-4 lg:zoom-in-95">
+            <div className="mb-4 flex items-center justify-between lg:hidden">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-500">
+                  <SlidersHorizontal size={16} />
+                </div>
+                <div>
+                  <p className="text-[15px] font-semibold text-stone-800">全局检索筛选</p>
+                  <p className="text-[11px] text-stone-500">限定 AI 跨会议搜索范围</p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowGlobalFilters(false)}
-                className="rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+                className="rounded-full bg-black/5 p-2 text-stone-500 transition-colors hover:bg-black/10 hover:text-stone-700"
               >
-                <X size={14} />
+                <X size={16} />
               </button>
             </div>
 
-          <div className="space-y-3">
-            <input
-              value={globalTitleFilter}
-              onChange={(e) => setGlobalTitleFilter(e.target.value)}
-              placeholder="标题关键词（可选）"
-              className="w-full rounded-xl border border-black/5 bg-white/60 px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
-            />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="text-xs font-medium text-stone-500">
-                开始日期
+          <div className="space-y-4">
+            <label className="block">
+              <span className="mb-1.5 block text-[13px] font-medium text-stone-600">标题关键词</span>
+              <input
+                value={globalTitleFilter}
+                onChange={(e) => setGlobalTitleFilter(e.target.value)}
+                placeholder="例如：周会、复盘..."
+                className="w-full rounded-xl border border-black/5 bg-white/60 px-4 py-3 text-[14px] text-stone-700 placeholder:text-stone-400 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+              />
+            </label>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-medium text-stone-600">开始日期</span>
                 <input
                   type="date"
                   value={globalDateFrom}
                   onChange={(e) => setGlobalDateFrom(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-black/5 bg-white/60 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+                  className="w-full rounded-xl border border-black/5 bg-white/60 px-4 py-3 text-[14px] text-stone-700 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
                 />
               </label>
-              <label className="text-xs font-medium text-stone-500">
-                结束日期
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-medium text-stone-600">结束日期</span>
                 <input
                   type="date"
                   value={globalDateTo}
                   onChange={(e) => setGlobalDateTo(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-black/5 bg-white/60 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+                  className="w-full rounded-xl border border-black/5 bg-white/60 px-4 py-3 text-[14px] text-stone-700 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
                 />
               </label>
             </div>
-            <label className="block text-xs font-medium text-stone-500">
-              文件夹范围
+            <label className="block">
+              <span className="mb-1.5 block text-[13px] font-medium text-stone-600">文件夹范围</span>
               <select
                 value={globalFolderFilter}
                 onChange={(e) => setGlobalFolderFilter(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-black/5 bg-white/60 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+                className="w-full rounded-xl border border-black/5 bg-white/60 px-4 py-3 text-[14px] text-stone-700 shadow-sm transition-all focus:border-stone-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
               >
-                <option value="">全部文件夹</option>
-                <option value="__ungrouped">仅未分组</option>
+                <option value="">全部会议</option>
+                <option value="__ungrouped">未分组的会议</option>
                 {folders.map((folder) => (
                   <option key={folder.id} value={folder.id}>
                     {folder.name}
@@ -570,13 +578,13 @@ export default function ChatPanel() {
               </select>
             </label>
           </div>
-            <div className="mt-4 flex justify-end lg:hidden">
+            <div className="mt-6 flex justify-end lg:hidden">
               <button
                 type="button"
                 onClick={() => setShowGlobalFilters(false)}
-                className="rounded-xl bg-stone-900 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-black"
+                className="w-full rounded-xl bg-stone-900 px-4 py-3.5 text-[15px] font-medium text-white shadow-md transition-all hover:bg-black active:scale-[0.98]"
               >
-                完成
+                应用筛选
               </button>
             </div>
           </div>

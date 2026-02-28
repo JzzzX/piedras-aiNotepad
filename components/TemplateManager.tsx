@@ -185,37 +185,37 @@ export default function TemplateManager({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/20 backdrop-blur-sm transition-all sm:items-center sm:p-4">
       <div className="flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white/90 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 sm:h-[min(84vh,760px)] sm:max-h-none sm:w-[min(980px,100%)] sm:rounded-2xl animate-in fade-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
-        <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-zinc-200/60 px-4 py-3 bg-white/50">
           <div>
-            <h3 className="font-song text-sm font-semibold text-zinc-800">模板管理</h3>
-            <p className="text-xs text-zinc-400">支持创建、编辑、删除与排序</p>
+            <h3 className="font-song text-[15px] font-semibold text-zinc-800">模板管理</h3>
+            <p className="text-xs text-zinc-500">支持创建、编辑、删除与排序</p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
+            className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 active:bg-zinc-200"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
-          <div className="flex min-h-0 max-h-[34vh] flex-col border-b border-zinc-200 p-3 lg:max-h-none lg:border-b-0 lg:border-r">
+          <div className="flex min-h-0 max-h-[35vh] flex-col border-b border-zinc-200/60 bg-zinc-50/30 p-3 lg:max-h-none lg:border-b-0 lg:border-r">
             <button
               onClick={handleCreateNew}
-              className="mb-3 flex w-full shrink-0 items-center justify-center gap-1 rounded-md border border-zinc-200 px-3 py-2 text-xs text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-800"
+              className="mb-3 flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 bg-white/50 px-3 py-2.5 text-[13px] font-medium text-zinc-600 shadow-sm transition-colors hover:border-zinc-400 hover:text-zinc-800 active:bg-zinc-100"
             >
-              <Plus size={14} />
+              <Plus size={15} />
               新建用户模板
             </button>
 
-            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1 pb-1">
               {templates.map((template, idx) => (
                 <div
                   key={template.id}
-                  className={`rounded-md border px-2 py-2 transition-colors ${
+                  className={`rounded-xl border px-3 py-2.5 transition-all ${
                     !isCreating && template.id === selectedId
-                      ? 'border-zinc-400 bg-zinc-50'
-                      : 'border-zinc-100'
+                      ? 'border-zinc-300 bg-white shadow-sm ring-1 ring-black/5'
+                      : 'border-transparent bg-transparent hover:bg-zinc-100/50'
                   }`}
                 >
                   <button
@@ -226,32 +226,33 @@ export default function TemplateManager({
                     }}
                     className="w-full text-left"
                   >
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="truncate text-sm text-zinc-800">
-                        {template.icon} {template.name}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-[14px] font-medium text-zinc-800 flex items-center gap-1.5">
+                        <span className="text-base">{template.icon}</span>
+                        {template.name}
                       </span>
                       {template.isSystem && (
-                        <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500">
+                        <span className="shrink-0 rounded-full bg-zinc-100 border border-zinc-200/60 px-2 py-0.5 text-[10px] text-zinc-500 font-medium">
                           系统
                         </span>
                       )}
                     </div>
-                    <p className="truncate text-xs text-zinc-400">{template.command}</p>
+                    <p className="mt-1 truncate text-xs text-zinc-400 font-mono bg-zinc-100/50 inline-block px-1.5 py-0.5 rounded">{template.command}</p>
                   </button>
-                  <div className="mt-1 flex justify-end gap-1">
+                  <div className="mt-2 flex justify-end gap-1.5">
                     <button
                       onClick={() => reorderTemplate(template.id, 'up')}
                       disabled={idx === 0 || isBusy}
-                      className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-30"
+                      className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-30 disabled:hover:bg-transparent"
                     >
-                      <ArrowUp size={12} />
+                      <ArrowUp size={14} />
                     </button>
                     <button
                       onClick={() => reorderTemplate(template.id, 'down')}
                       disabled={idx === templates.length - 1 || isBusy}
-                      className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-30"
+                      className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-30 disabled:hover:bg-transparent"
                     >
-                      <ArrowDown size={12} />
+                      <ArrowDown size={14} />
                     </button>
                   </div>
                 </div>
@@ -259,15 +260,19 @@ export default function TemplateManager({
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <div className="flex min-h-0 flex-1 flex-col bg-white/40">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
               {isCreating && (
-                <div className="mb-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                  正在创建用户模板，可直接编辑右侧表单内容。
+                <div className="mb-4 rounded-xl border border-emerald-200/60 bg-emerald-50/80 px-4 py-3 text-[13px] text-emerald-700 shadow-sm flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  正在创建用户模板，请在下方填写信息
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label className="text-xs text-zinc-500">
                   名称
                   <input
@@ -339,21 +344,21 @@ export default function TemplateManager({
               )}
             </div>
 
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-zinc-200 px-4 py-3">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-zinc-200/60 bg-white/50 px-4 py-4 sm:px-5 pb-safe">
               {selectedTemplate && !selectedTemplate.isSystem && (
                 <button
                   onClick={handleDelete}
                   disabled={isBusy}
-                  className="flex items-center gap-1 rounded-md border border-red-200 px-3 py-1.5 text-xs text-red-500 transition-colors hover:bg-red-50 disabled:opacity-40"
+                  className="flex items-center gap-1.5 rounded-xl border border-red-200/60 bg-white px-4 py-2 text-[13px] font-medium text-red-500 shadow-sm transition-all hover:bg-red-50 hover:border-red-300 disabled:opacity-40 active:scale-95"
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={14} />
                   删除
                 </button>
               )}
               <button
                 onClick={handleSave}
                 disabled={isBusy || isReadOnly}
-                className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs text-white transition-colors hover:bg-zinc-700 disabled:opacity-40"
+                className="rounded-xl bg-zinc-900 px-5 py-2 text-[13px] font-medium text-white shadow-md transition-all hover:bg-zinc-800 disabled:opacity-40 active:scale-95"
               >
                 {isCreating ? '创建模板' : selectedTemplate && !selectedTemplate.isSystem ? '保存修改' : '创建模板'}
               </button>
