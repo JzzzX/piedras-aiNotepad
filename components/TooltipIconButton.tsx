@@ -20,8 +20,11 @@ export default function TooltipIconButton({
 }: TooltipIconButtonProps) {
   const tooltipPosition =
     tooltipSide === 'bottom'
-      ? 'top-full left-1/2 mt-2 -translate-x-1/2'
-      : 'bottom-full left-1/2 mb-2 -translate-x-1/2';
+      ? 'top-full left-1/2 pt-2 -translate-x-1/2'
+      : 'bottom-full left-1/2 pb-2 -translate-x-1/2';
+
+  const transformInitial =
+    tooltipSide === 'bottom' ? '-translate-y-1' : 'translate-y-1';
 
   return (
     <div className={`group relative inline-flex ${wrapperClassName}`}>
@@ -33,11 +36,13 @@ export default function TooltipIconButton({
       >
         {children}
       </button>
-      <span
-        className={`pointer-events-none absolute ${tooltipPosition} z-[60] whitespace-nowrap rounded-lg bg-stone-900/95 px-2.5 py-1 text-[10px] font-medium tracking-wide text-white opacity-0 shadow-[0_8px_24px_rgba(0,0,0,0.16)] transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100`}
+      <div
+        className={`pointer-events-none absolute ${tooltipPosition} z-[60] flex flex-col items-center opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 group-active:opacity-0 ${transformInitial}`}
       >
-        {label}
-      </span>
+        <span className="whitespace-nowrap rounded-md bg-stone-800 px-2 py-1 text-[11px] font-medium tracking-wide text-stone-100 shadow-lg border border-stone-700">
+          {label}
+        </span>
+      </div>
     </div>
   );
 }

@@ -1364,7 +1364,7 @@ export default function AudioRecorder() {
       )}
 
       {showRecorderSettings && (
-        <div className="fixed left-4 right-4 top-24 z-50 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-[28px] border border-stone-200/80 bg-white/95 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.16)] backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-4 sm:max-h-none sm:w-[360px] sm:max-w-[calc(100vw-2rem)] sm:overflow-visible">
+        <div className="fixed left-4 right-4 top-24 z-50 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl border border-stone-200/60 bg-white p-5 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-top-2 duration-200 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-4 sm:max-h-none sm:w-[360px] sm:max-w-[calc(100vw-2rem)] sm:overflow-visible">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <SlidersHorizontal size={16} className="text-stone-400" />
@@ -1426,7 +1426,7 @@ export default function AudioRecorder() {
 
       {/* 引导弹窗：更像一张精致的卡片 */}
       {showGuide && (status === 'idle' || status === 'ended') && (
-        <div className="fixed left-4 right-4 top-24 z-50 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-[28px] border border-stone-200/80 bg-white/96 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.16)] backdrop-blur-xl animate-in fade-in zoom-in duration-200 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-4 sm:max-h-none sm:w-[380px] sm:max-w-[calc(100vw-2rem)] sm:overflow-visible">
+        <div className="fixed left-4 right-4 top-24 z-50 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl border border-stone-200/60 bg-white p-6 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-top-2 duration-200 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-4 sm:max-h-none sm:w-[380px] sm:max-w-[calc(100vw-2rem)] sm:overflow-visible">
           <h4 className="mb-3 flex items-center gap-2 text-base font-serif font-semibold text-stone-900">
             <Sparkles size={18} className="text-indigo-500" />
             隐私录制说明

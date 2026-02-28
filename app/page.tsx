@@ -257,7 +257,7 @@ export default function Home() {
   return (
     <div className="flex h-screen flex-col bg-[#F9F8F6]">
       {/* 顶栏 */}
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-transparent px-4 py-6 md:px-8">
+      <header className="sticky top-0 z-30 flex items-center justify-between bg-[#F9F8F6]/80 backdrop-blur-md px-4 py-6 md:px-8">
         <div className="flex items-center gap-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 shadow-sm border border-sky-100/50">
             <Mic size={20} className="text-sky-500" strokeWidth={2.5} />
@@ -358,7 +358,7 @@ export default function Home() {
         {/* 左栏 - 实时转写 */}
         <div
           style={{ width: effectivePanelWidths.transcript }}
-          className="flex shrink-0 flex-col bg-white rounded-2xl border border-black/[0.04] shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
+          className="flex shrink-0 flex-col bg-white rounded-3xl border border-stone-200/60 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.12)]"
         >
           <TranscriptPanel />
         </div>
@@ -374,7 +374,7 @@ export default function Home() {
         {/* 中栏 - 笔记编辑器 + AI 笔记 */}
         <div
           style={{ width: effectivePanelWidths.notes }}
-          className="flex shrink-0 flex-col bg-white rounded-2xl border border-black/[0.04] shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden"
+          className="flex shrink-0 flex-col bg-white rounded-3xl border border-stone-200/60 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.12)] overflow-hidden"
         >
           <div className="flex-1 overflow-y-auto">
             <NoteEditor />
@@ -398,7 +398,7 @@ export default function Home() {
         </div>
 
         {/* 右栏 - Chat */}
-        <div className="flex min-w-0 flex-1 flex-col bg-white rounded-2xl border border-black/[0.04] shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col bg-white rounded-3xl border border-stone-200/60 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] transition-shadow duration-500 hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.12)] relative overflow-hidden">
           <ChatPanel />
         </div>
       </main>
