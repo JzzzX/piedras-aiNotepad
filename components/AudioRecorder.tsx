@@ -3,10 +3,13 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import {
   AlertTriangle,
+  CircleQuestionMark,
+  HardDriveUpload,
+  Loader2,
   Mic,
   Monitor,
-  Settings2,
   Sparkles,
+  SlidersHorizontal,
   Square,
   Volume2,
   X,
@@ -14,6 +17,7 @@ import {
 import { useMeetingStore } from '@/lib/store';
 import { v4 as uuidv4 } from 'uuid';
 import type { AsrStatus } from '@/lib/asr';
+import TooltipIconButton from './TooltipIconButton';
 
 // 音量阈值：用于判定"正在说话"
 const VOICE_THRESHOLD = 0.05;
@@ -22,6 +26,9 @@ const SYSTEM_SILENCE_TIMEOUT = 1500;
 const PCM_SAMPLE_RATE = 16000;
 const SCRIPT_BUFFER_SIZE = 4096;
 const AUTO_STOP_MINUTE_OPTIONS = [5, 10, 15, 30];
+const UPLOAD_CHUNK_DURATION_MS = 200;
+const UPLOAD_SEND_INTERVAL_MS = 30;
+const AUDIO_FILE_ACCEPT = 'audio/*,.mp3,.wav,.m4a,.aac,.mp4,.webm,.ogg,.flac';
 
 type AudioSourceType = 'mic' | 'system';
 
@@ -63,6 +70,10 @@ interface AliyunChannelRuntime {
   sourceNode: MediaStreamAudioSourceNode;
   processorNode: ScriptProcessorNode;
   sinkNode: GainNode;
+}
+
+interface CancellableTask {
+  cancel: () => void;
 }
 
 function LevelBar({ level, color }: { level: number; color: string }) {
@@ -117,6 +128,31 @@ function toInt16PcmBuffer(float32Data: Float32Array): ArrayBuffer {
   return pcm.buffer;
 }
 
+function mixToMono(buffer: AudioBuffer): Float32Array {
+  if (buffer.numberOfChannels <= 1) {
+    return buffer.getChannelData(0);
+  }
+
+  const output = new Float32Array(buffer.length);
+
+  for (let channelIndex = 0; channelIndex < buffer.numberOfChannels; channelIndex++) {
+    const channelData = buffer.getChannelData(channelIndex);
+    for (let sampleIndex = 0; sampleIndex < buffer.length; sampleIndex++) {
+      output[sampleIndex] += channelData[sampleIndex];
+    }
+  }
+
+  for (let sampleIndex = 0; sampleIndex < buffer.length; sampleIndex++) {
+    output[sampleIndex] /= buffer.numberOfChannels;
+  }
+
+  return output;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function createAliyunMessageId(): string {
   return uuidv4().replace(/-/g, '');
 }
@@ -136,6 +172,10 @@ export default function AudioRecorder() {
     addSegment,
     setCurrentPartial,
     setRecordingOptions,
+    reset,
+    saveMeeting,
+    loadMeetingList,
+    setMeetingTitle,
     updateDuration,
     setAudioLevels,
   } = useMeetingStore();
@@ -144,6 +184,9 @@ export default function AudioRecorder() {
   const [showGuide, setShowGuide] = useState(false);
   const [showRecorderSettings, setShowRecorderSettings] = useState(false);
   const [asrStatus, setAsrStatus] = useState<AsrStatus | null>(null);
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadFileName, setUploadFileName] = useState('');
   const [autoStopPrompt, setAutoStopPrompt] = useState<{
     reason: 'silence' | 'system-audio-ended';
     title: string;
@@ -160,6 +203,8 @@ export default function AudioRecorder() {
   const systemAnalyserRef = useRef<AnalyserNode | null>(null);
   const aliyunChannelsRef = useRef<AliyunChannelRuntime[]>([]);
   const aliyunEnabledRef = useRef(false);
+  const uploadTaskRef = useRef<CancellableTask | null>(null);
+  const audioFileInputRef = useRef<HTMLInputElement | null>(null);
   const autoStopCheckTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastTranscriptAtRef = useRef(Date.now());
   const autoStopPromptedRef = useRef(false);
@@ -562,17 +607,15 @@ export default function AudioRecorder() {
     [addSegment, setCurrentPartial]
   );
 
-  const startAliyunRecognition = useCallback(
-    async (micStream: MediaStream, systemStream?: MediaStream) => {
-      stopAliyunRecognition();
-
+  const createAliyunSession = useCallback(
+    async (includeSystemAudio = false) => {
       const res = await fetch('/api/asr/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sampleRate: PCM_SAMPLE_RATE,
           channels: 1,
-          includeSystemAudio: Boolean(systemStream),
+          includeSystemAudio,
         }),
       });
 
@@ -585,14 +628,345 @@ export default function AudioRecorder() {
         throw new Error('阿里云 ASR 会话返回不完整');
       }
 
-      createAliyunChannel(data.session, micStream, 'mic');
+      return data.session;
+    },
+    []
+  );
+
+  const transcribeAudioFile = useCallback(
+    async (session: NonNullable<AsrSessionResponse['session']>, file: File) => {
+      const rawBuffer = await file.arrayBuffer();
+      const decodeContext = new AudioContext();
+
+      let decodedBuffer: AudioBuffer;
+      try {
+        decodedBuffer = await decodeContext.decodeAudioData(rawBuffer.slice(0));
+      } finally {
+        decodeContext.close().catch(() => undefined);
+      }
+
+      const monoData = mixToMono(decodedBuffer);
+      const downsampled = downsampleTo16k(monoData, decodedBuffer.sampleRate);
+      const pcmSamples = new Int16Array(toInt16PcmBuffer(downsampled));
+
+      if (pcmSamples.length === 0) {
+        throw new Error('音频内容为空，无法转写');
+      }
+
+      const taskId = createAliyunMessageId();
+      const sessionStartTime = Date.now();
+      const totalSamples = pcmSamples.length;
+      const chunkSamples = Math.max(
+        1,
+        Math.round((PCM_SAMPLE_RATE * UPLOAD_CHUNK_DURATION_MS) / 1000)
+      );
+      const ws = new WebSocket(`${session.wsUrl}?token=${encodeURIComponent(session.token)}`);
+
+      useMeetingStore.setState({ duration: 0 });
+
+      await new Promise<void>((resolve, reject) => {
+        let isSettled = false;
+        let isCancelled = false;
+        let sendLoopStarted = false;
+
+        const cleanup = () => {
+          uploadTaskRef.current = null;
+          setCurrentPartial('');
+          setUploadProgress(0);
+        };
+
+        const finalize = (callback: () => void) => {
+          if (isSettled) return;
+          isSettled = true;
+          cleanup();
+          callback();
+        };
+
+        const rejectWith = (message: string) => {
+          finalize(() => {
+            try {
+              ws.close();
+            } catch {
+              // ignore
+            }
+            reject(new Error(message));
+          });
+        };
+
+        const resolveWith = () => {
+          finalize(() => {
+            try {
+              ws.close();
+            } catch {
+              // ignore
+            }
+            resolve();
+          });
+        };
+
+        uploadTaskRef.current = {
+          cancel: () => {
+            isCancelled = true;
+            try {
+              ws.close();
+            } catch {
+              // ignore
+            }
+          },
+        };
+
+        const sendChunks = async () => {
+          for (let offset = 0; offset < totalSamples; offset += chunkSamples) {
+            if (isCancelled) {
+              rejectWith('已取消上传转写');
+              return;
+            }
+
+            if (ws.readyState !== WebSocket.OPEN) {
+              rejectWith('上传音频转写连接已关闭');
+              return;
+            }
+
+            const chunk = pcmSamples.slice(offset, Math.min(offset + chunkSamples, totalSamples));
+            ws.send(chunk.buffer);
+
+            const processedSamples = Math.min(offset + chunk.length, totalSamples);
+            setUploadProgress(processedSamples / totalSamples);
+            useMeetingStore.setState({
+              duration: Math.floor(processedSamples / PCM_SAMPLE_RATE),
+            });
+
+            await sleep(UPLOAD_SEND_INTERVAL_MS);
+          }
+
+          if (isCancelled) {
+            rejectWith('已取消上传转写');
+            return;
+          }
+
+          ws.send(
+            JSON.stringify({
+              header: {
+                appkey: session.appKey,
+                message_id: createAliyunMessageId(),
+                task_id: taskId,
+                namespace: 'SpeechTranscriber',
+                name: 'StopTranscription',
+              },
+            })
+          );
+        };
+
+        ws.onopen = () => {
+          ws.send(
+            JSON.stringify({
+              header: {
+                appkey: session.appKey,
+                message_id: createAliyunMessageId(),
+                task_id: taskId,
+                namespace: 'SpeechTranscriber',
+                name: 'StartTranscription',
+              },
+              payload: {
+                format: 'pcm',
+                sample_rate: PCM_SAMPLE_RATE,
+                enable_intermediate_result: true,
+                enable_punctuation_prediction: true,
+                enable_inverse_text_normalization: true,
+              },
+            })
+          );
+        };
+
+        ws.onmessage = (event) => {
+          if (typeof event.data !== 'string') return;
+
+          try {
+            const message = JSON.parse(event.data) as AliyunWsMessage;
+            const eventName = message.header?.name;
+            const result = message.payload?.result?.trim() || '';
+
+            if (eventName === 'TranscriptionStarted' && !sendLoopStarted) {
+              sendLoopStarted = true;
+              void sendChunks();
+              return;
+            }
+
+            if (eventName === 'TranscriptionResultChanged') {
+              setCurrentPartial(result);
+              return;
+            }
+
+            if (eventName === 'SentenceEnd' && result) {
+              const beginTime = message.payload?.begin_time;
+              const endTime = message.payload?.end_time;
+              const startTime =
+                typeof beginTime === 'number' ? sessionStartTime + beginTime : Date.now() - 1500;
+              const finalTime =
+                typeof endTime === 'number' ? sessionStartTime + endTime : Date.now();
+
+              addSegment({
+                id: uuidv4(),
+                speaker: '录音文件',
+                text: result,
+                startTime,
+                endTime: finalTime,
+                isFinal: true,
+              });
+              return;
+            }
+
+            if (eventName === 'TranscriptionCompleted') {
+              useMeetingStore.setState({
+                duration: Math.round(decodedBuffer.duration),
+              });
+              resolveWith();
+              return;
+            }
+
+            if (eventName === 'TaskFailed') {
+              rejectWith(message.header?.status_text || '上传音频转写失败');
+            }
+          } catch {
+            // ignore
+          }
+        };
+
+        ws.onerror = () => {
+          rejectWith('上传音频转写连接失败');
+        };
+
+        ws.onclose = () => {
+          if (isSettled) return;
+          if (isCancelled) {
+            rejectWith('已取消上传转写');
+            return;
+          }
+          rejectWith('上传音频转写连接已关闭');
+        };
+      });
+    },
+    [addSegment, setCurrentPartial]
+  );
+
+  const handleUploadAudioClick = useCallback(async () => {
+    if (status === 'recording') {
+      alert('请先停止当前录音，再上传音频文件');
+      return;
+    }
+
+    const currentAsrStatus = asrStatus ?? (await loadAsrStatus());
+    const canUseAliyun = currentAsrStatus.mode === 'aliyun' && currentAsrStatus.ready;
+
+    if (!canUseAliyun) {
+      alert('上传音频转写仅支持已配置好的阿里云 ASR');
+      return;
+    }
+
+    audioFileInputRef.current?.click();
+  }, [asrStatus, loadAsrStatus, status]);
+
+  const handleAudioFileSelected = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+
+      if (!file) return;
+
+      if (status === 'recording') {
+        alert('请先停止当前录音，再上传音频文件');
+        return;
+      }
+
+      const currentAsrStatus = await loadAsrStatus();
+      const canUseAliyun = currentAsrStatus.mode === 'aliyun' && currentAsrStatus.ready;
+
+      if (!canUseAliyun) {
+        alert('上传音频转写仅支持已配置好的阿里云 ASR');
+        return;
+      }
+
+      setShowGuide(false);
+      setShowRecorderSettings(false);
+      setAutoStopPrompt(null);
+      setUploadFileName(file.name);
+      setIsUploadingAudio(true);
+      setUploadProgress(0);
+      setHasSystemAudio(false);
+
+      try {
+        const currentState = useMeetingStore.getState();
+        if (
+          currentState.segments.length > 0 ||
+          currentState.userNotes ||
+          currentState.enhancedNotes ||
+          currentState.chatMessages.length > 0
+        ) {
+          await saveMeeting();
+          await loadMeetingList();
+        }
+
+        reset();
+        startMeeting();
+        setMeetingTitle(file.name.replace(/\.[^.]+$/, ''));
+        setCurrentPartial('正在解析音频文件...');
+
+        const session = await createAliyunSession(false);
+        setCurrentPartial('正在上传并转写音频...');
+        await transcribeAudioFile(session, file);
+
+        endMeeting();
+        await saveMeeting();
+        await loadMeetingList();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '上传音频转写失败';
+        if (message !== '已取消上传转写') {
+          console.error('上传音频转写失败:', error);
+          alert(message);
+        }
+
+        if (useMeetingStore.getState().segments.length === 0) {
+          reset();
+        } else {
+          endMeeting();
+        }
+      } finally {
+        uploadTaskRef.current = null;
+        setCurrentPartial('');
+        setIsUploadingAudio(false);
+        setUploadProgress(0);
+        setUploadFileName('');
+      }
+    },
+    [
+      createAliyunSession,
+      endMeeting,
+      loadAsrStatus,
+      loadMeetingList,
+      reset,
+      saveMeeting,
+      setCurrentPartial,
+      setMeetingTitle,
+      startMeeting,
+      status,
+      transcribeAudioFile,
+    ]
+  );
+
+  const startAliyunRecognition = useCallback(
+    async (micStream: MediaStream, systemStream?: MediaStream) => {
+      stopAliyunRecognition();
+
+      const session = await createAliyunSession(Boolean(systemStream));
+
+      createAliyunChannel(session, micStream, 'mic');
       if (systemStream) {
-        createAliyunChannel(data.session, systemStream, 'system');
+        createAliyunChannel(session, systemStream, 'system');
       }
 
       aliyunEnabledRef.current = true;
     },
-    [createAliyunChannel, stopAliyunRecognition]
+    [createAliyunChannel, createAliyunSession, stopAliyunRecognition]
   );
 
   const cleanupLocalTracks = useCallback(() => {
@@ -725,6 +1099,12 @@ export default function AudioRecorder() {
   ]);
 
   const handleStop = useCallback(() => {
+    if (uploadTaskRef.current) {
+      uploadTaskRef.current.cancel();
+      setIsUploadingAudio(false);
+      setUploadProgress(0);
+    }
+
     cleanupSystemAudioTrackListener();
     endMeeting();
 
@@ -816,6 +1196,7 @@ export default function AudioRecorder() {
   // 清理
   useEffect(() => {
     return () => {
+      uploadTaskRef.current?.cancel();
       stopWebSpeechRecognition();
       stopAliyunRecognition();
       if (timerRef.current) clearInterval(timerRef.current);
@@ -839,6 +1220,16 @@ export default function AudioRecorder() {
 
   return (
     <div className="relative flex items-center gap-3">
+      <input
+        ref={audioFileInputRef}
+        type="file"
+        accept={AUDIO_FILE_ACCEPT}
+        className="hidden"
+        onChange={(event) => {
+          void handleAudioFileSelected(event);
+        }}
+      />
+
       {status === 'idle' || status === 'ended' ? (
         <div className="flex items-center gap-3">
           <button
@@ -851,28 +1242,41 @@ export default function AudioRecorder() {
             </div>
             开始录音
           </button>
-          
+
           <button
+            onClick={() => void handleUploadAudioClick()}
+            disabled={isUploadingAudio}
+            className="flex items-center gap-2 rounded-full border border-stone-200/60 bg-white px-4 py-2.5 text-[14px] font-medium text-stone-600 shadow-sm transition-all hover:bg-stone-50 hover:text-stone-800 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isUploadingAudio ? (
+              <Loader2 size={16} className="animate-spin text-sky-500" />
+            ) : (
+              <HardDriveUpload size={16} className="text-stone-500" />
+            )}
+            {isUploadingAudio ? `转写中 ${Math.round(uploadProgress * 100)}%` : '上传音频'}
+          </button>
+
+          <TooltipIconButton
             onClick={() => setShowGuide(!showGuide)}
+            label="录音说明"
             className="rounded-full bg-white border border-stone-200/60 p-2.5 text-stone-400 transition-all hover:bg-stone-50 hover:text-stone-600 hover:shadow-sm"
-            title="录音说明"
           >
-            <Monitor size={16} />
-          </button>
+            <CircleQuestionMark size={16} />
+          </TooltipIconButton>
 
-          <button
+          <TooltipIconButton
             onClick={() => setShowRecorderSettings((value) => !value)}
+            label="录音设置"
             className="rounded-full bg-white border border-stone-200/60 p-2.5 text-stone-400 transition-all hover:bg-stone-50 hover:text-stone-600 hover:shadow-sm"
-            title="录音设置"
           >
-            <Settings2 size={16} />
-          </button>
+            <SlidersHorizontal size={16} />
+          </TooltipIconButton>
 
-          {asrStatus && (
-            <span className="hidden md:inline-block rounded-full bg-white border border-stone-200/60 px-3 py-1 text-[11px] font-medium text-stone-500 tracking-tight shadow-sm">
-              {asrStatus.mode === 'aliyun' ? 'AI 增强转写' : '标准转写 (Demo)'}
+          {isUploadingAudio && uploadFileName ? (
+            <span className="hidden max-w-[220px] truncate rounded-full border border-stone-200/60 bg-white px-3 py-1 text-[11px] font-medium text-stone-500 shadow-sm md:inline-block">
+              {uploadFileName}
             </span>
-          )}
+          ) : null}
         </div>
       ) : (
         <>
@@ -886,6 +1290,11 @@ export default function AudioRecorder() {
               <span className="font-mono text-sm font-semibold text-stone-700 tracking-wide">
                 {formatDuration(duration)}
               </span>
+              {isUploadingAudio ? (
+                <span className="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-600">
+                  文件转写中
+                </span>
+              ) : null}
             </div>
 
             {/* 双通道音量指示：更紧凑 */}
@@ -908,21 +1317,21 @@ export default function AudioRecorder() {
             </div>
           </div>
 
-          <button
+          <TooltipIconButton
             onClick={handleStop}
+            label={isUploadingAudio ? '取消转写' : '停止录音'}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-stone-200/60 text-stone-500 transition-all hover:bg-red-50 hover:text-red-500 hover:border-red-100 active:scale-90 shadow-sm"
-            title="停止录音"
           >
             <Square size={14} fill="currentColor" />
-          </button>
+          </TooltipIconButton>
 
-          <button
+          <TooltipIconButton
             onClick={() => setShowRecorderSettings((value) => !value)}
+            label="录音设置"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-stone-200/60 text-stone-500 transition-all hover:bg-stone-50 hover:text-stone-700 active:scale-90 shadow-sm"
-            title="录音设置"
           >
-            <Settings2 size={15} />
-          </button>
+            <SlidersHorizontal size={15} />
+          </TooltipIconButton>
         </>
       )}
 
@@ -930,7 +1339,7 @@ export default function AudioRecorder() {
         <div className="absolute right-0 top-16 z-50 w-80 rounded-3xl border border-stone-200/80 bg-white p-5 shadow-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Settings2 size={16} className="text-stone-400" />
+              <SlidersHorizontal size={16} className="text-stone-400" />
               <h4 className="text-sm font-semibold text-stone-800">录音设置</h4>
             </div>
             <button
@@ -1013,6 +1422,13 @@ export default function AudioRecorder() {
                 2. 采集对方的声音
               </div>
               <p className="pl-6 text-[11px] text-gray-400">选择会议标签页并勾选「共享音频」</p>
+            </div>
+            <div className="rounded-2xl bg-gray-50 p-4 border border-gray-100">
+              <div className="flex items-center gap-3 font-semibold text-gray-700 mb-1">
+                <HardDriveUpload size={14} className="text-sky-500" />
+                3. 导入已有录音
+              </div>
+              <p className="pl-6 text-[11px] text-gray-400">支持上传音频文件并直接转写</p>
             </div>
             <p className="text-center italic text-gray-400 py-1">
               像使用笔记本一样简单，没有任何 Bot 会干扰会议

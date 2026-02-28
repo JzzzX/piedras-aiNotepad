@@ -7,10 +7,10 @@ import {
   User,
   Loader2,
   Sparkles,
-  Settings2,
   Globe2,
   MessageSquare,
   SlidersHorizontal,
+  LayoutTemplate,
 } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
 import { chatAcrossMeetings, chatWithMeeting } from '@/lib/llm';
@@ -18,6 +18,7 @@ import { filterTemplates } from '@/lib/templates';
 import { v4 as uuidv4 } from 'uuid';
 import type { ChatMessage, Template } from '@/lib/types';
 import TemplateManager from './TemplateManager';
+import TooltipIconButton from './TooltipIconButton';
 
 type ChatMode = 'meeting' | 'global';
 
@@ -327,25 +328,25 @@ export default function ChatPanel() {
           </div>
 
           {chatMode === 'meeting' ? (
-            <button
+            <TooltipIconButton
               onClick={() => setShowTemplateManager(true)}
+              label="模板管理"
               className="rounded-xl p-2 text-stone-400 transition-colors hover:bg-[#F9F8F6] hover:text-stone-600"
-              title="模板管理"
             >
-              <Settings2 size={16} />
-            </button>
+              <LayoutTemplate size={16} />
+            </TooltipIconButton>
           ) : (
-            <button
+            <TooltipIconButton
               onClick={() => setShowGlobalFilters((v) => !v)}
+              label="筛选条件"
               className={`rounded-xl p-2 transition-colors ${
                 showGlobalFilters
                   ? 'bg-[#F9F8F6] text-stone-700'
                   : 'text-stone-400 hover:bg-[#F9F8F6] hover:text-stone-600'
               }`}
-              title="筛选条件"
             >
               <SlidersHorizontal size={16} />
-            </button>
+            </TooltipIconButton>
           )}
         </div>
       </div>
