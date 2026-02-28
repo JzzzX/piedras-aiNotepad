@@ -6,7 +6,7 @@ Piedras 是一个类 Granola 的 AI 会议记录 Demo，定位为“本地优先
 
 - 个人或小团队做会议记录 Demo / 原型验证
 - 以中文会议为主，同时夹杂英文术语
-- 希望数据主要保存在本地 SQLite，而不是完整 SaaS 云端
+- 希望以托管数据库快速上线一个可演示、可持续保存会议结果的版本
 - 后续继续扩展 ASR、LLM、导出、Webhook、MCP 等能力
 
 ## 核心能力
@@ -91,7 +91,7 @@ Piedras 是一个类 Granola 的 AI 会议记录 Demo，定位为“本地优先
 | 样式 | Tailwind CSS 4 |
 | 编辑器 | Tiptap / ProseMirror |
 | 状态管理 | Zustand |
-| 数据库 | SQLite + Prisma |
+| 数据库 | PostgreSQL + Prisma |
 | 实时转写 | Browser Web Speech / 阿里云 ASR |
 | LLM | Gemini（默认）+ MiniMax / OpenAI-compatible（可切换） |
 | 导出 | `docx` |
@@ -113,7 +113,7 @@ app/
     templates/     模板管理
 components/        录音、转写、笔记、Chat、模板、MCP 面板等 UI
 lib/               ASR、LLM、MCP、导出、模板、检索、状态管理
-prisma/            SQLite schema 与迁移
+prisma/            Prisma schema 与迁移
 ```
 
 ## 快速开始
@@ -124,24 +124,30 @@ prisma/            SQLite schema 与迁移
 - npm
 - 推荐浏览器：最新版 Chrome / Edge
 
-### 2. 安装依赖
-
-```bash
-npm install
-```
-
-### 3. 配置环境变量
+### 2. 配置环境变量
 
 ```bash
 cp .env.example .env.local
 ```
 
-根据你的使用场景填写 `.env.local`。
+至少先填写：
 
-### 4. 初始化本地数据库
+- `DATABASE_URL`
+- `GEMINI_API_KEY`
+- `MCP_SERVER_TOKEN`
+
+如果要启用阿里云实时转写，再补齐阿里云相关配置。
+
+### 3. 安装依赖
 
 ```bash
-npx prisma migrate dev
+npm install
+```
+
+### 4. 初始化数据库
+
+```bash
+npx prisma migrate deploy
 ```
 
 ### 5. 启动开发环境
@@ -197,6 +203,12 @@ npm run dev
 | `FEISHU_WEBHOOK_URL` | 飞书 Webhook 默认地址，可为空 |
 | `WECOM_WEBHOOK_URL` | 企业微信 Webhook 默认地址，可为空 |
 | `MCP_SERVER_TOKEN` | MCP Bearer Token |
+
+### 数据库
+
+| 变量 | 说明 |
+| --- | --- |
+| `DATABASE_URL` | 托管 PostgreSQL 连接串，推荐用于 Vercel + Prisma Postgres / Neon |
 
 ## 典型使用流程
 
@@ -266,7 +278,57 @@ npm run dev
 | `Folder` | 会议分组 |
 | `PromptTemplate` | 系统模板与用户模板 |
 
-数据库使用本地 SQLite：`prisma/dev.db`
+当前默认数据库为托管 PostgreSQL，通过 `DATABASE_URL` 连接。
+
+## 部署到 Vercel
+
+推荐组合：
+
+- Hosting: Vercel
+- Database: Prisma Postgres 或 Neon Postgres
+
+原因：
+
+- 当前项目使用 Next.js App Router + Prisma，和 Vercel 的 Node Runtime 配合最直接
+- 相比继续保留本地 SQLite，上线后会议、模板、文件夹数据能真正持久化
+- 相比 Turso，这个仓库当前更适合直接走标准 Prisma Postgres 工作流，迁移和排错都更直观
+
+### 1. 准备数据库
+
+在 Vercel 或外部数据库平台创建一个 PostgreSQL 实例，然后拿到 `DATABASE_URL`。
+
+### 2. 配置 Vercel 环境变量
+
+至少配置：
+
+- `DATABASE_URL`
+- `GEMINI_API_KEY`
+- `MCP_SERVER_TOKEN`
+- 如需阿里云转写，再补 `ALICLOUD_*`
+
+### 3. 首次执行数据库迁移
+
+本地执行：
+
+```bash
+npx prisma migrate deploy
+```
+
+### 4. 部署
+
+```bash
+npx vercel --prod
+```
+
+仓库已包含 [vercel.json](/Users/jguinsoo/Desktop/ai_notepad/vercel.json)，会在 Vercel 构建时先执行 `prisma generate` 再执行 `next build`。
+
+### 5. 部署后手动回归
+
+- 新建会议并保存
+- 上传音频并转写
+- 生成 AI 纪要
+- 历史会议列表与文件夹 CRUD
+- MCP 面板与 `/api/mcp`
 
 ## MCP 连接器
 
