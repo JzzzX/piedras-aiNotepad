@@ -32,13 +32,15 @@ export default function NoteEditor() {
             灵感与笔记
           </h3>
         </div>
-        <div className="flex flex-1 items-center justify-center p-6 text-[#A69B8F]">
-          <div className="flex w-full max-w-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-[#D8CEC4] bg-[#F7F3EE]/50 p-8">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-100/50 bg-sky-50 shadow-sm">
+        <div className="flex flex-1 items-center justify-center px-4 py-5 text-stone-400 sm:px-7 sm:py-8">
+          <div className="flex w-full max-w-[360px] flex-col items-center justify-center rounded-[28px] border border-dashed border-stone-200/90 bg-[#FCFBF8] px-5 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-8 sm:py-10">
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-100/50 bg-sky-50 shadow-sm">
               <FileText size={20} className="text-sky-400" strokeWidth={2} />
             </div>
-            <p className="font-song mb-1 text-[15px] font-semibold text-[#5C4D42]">灵感与笔记</p>
-            <p className="text-center text-[13px] leading-relaxed text-[#A69B8F]">
+            <p className="font-song mb-2 text-center text-[17px] font-semibold text-stone-700">
+              灵感与笔记
+            </p>
+            <p className="mx-auto max-w-[240px] text-center text-[13px] leading-6 text-stone-400">
               记录判断、补充背景，让思路与转写自然汇合。
             </p>
           </div>
