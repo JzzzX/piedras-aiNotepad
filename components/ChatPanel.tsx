@@ -526,79 +526,90 @@ export default function ChatPanel() {
       </div>
 
       {chatMode === 'global' && showGlobalFilters && (
-        <div className="relative z-20 border-t border-stone-200/80 bg-[#F7F4EF]/70 px-4 py-3 backdrop-blur-xl sm:px-6">
-          <div className="space-y-3 rounded-2xl border border-stone-200/80 bg-white/80 p-3 shadow-[0_18px_40px_-20px_rgba(15,23,42,0.35)] backdrop-blur-md">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-medium tracking-wide text-stone-500">全局检索筛选</p>
-              <div className="flex items-center gap-2">
-                {hasActiveGlobalFilters && (
+        <>
+          <button
+            type="button"
+            aria-label="关闭全局检索筛选"
+            onClick={() => setShowGlobalFilters(false)}
+            className="absolute inset-0 z-20 bg-white/50 backdrop-blur-[10px] transition-all"
+          />
+          <div
+            className="absolute inset-x-4 z-30 max-h-[min(52vh,420px)] overflow-y-auto rounded-[26px] border border-stone-200/90 bg-[#FCFAF7]/92 p-4 shadow-[0_28px_60px_-24px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:inset-x-6 sm:p-5"
+            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-medium tracking-wide text-stone-500">全局检索筛选</p>
+                <div className="flex items-center gap-2">
+                  {hasActiveGlobalFilters && (
+                    <button
+                      type="button"
+                      onClick={handleResetGlobalFilters}
+                      className="inline-flex items-center gap-1 rounded-full border border-stone-200/90 bg-white/85 px-2.5 py-1 text-[11px] text-stone-500 transition-colors hover:text-stone-700"
+                    >
+                      <RotateCcw size={12} />
+                      清空
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={handleResetGlobalFilters}
-                    className="inline-flex items-center gap-1 rounded-full border border-stone-200/90 bg-white/85 px-2.5 py-1 text-[11px] text-stone-500 transition-colors hover:text-stone-700"
+                    onClick={() => setShowGlobalFilters(false)}
+                    className="rounded-full border border-stone-200/90 bg-white/85 px-2.5 py-1 text-[11px] text-stone-500 transition-colors hover:text-stone-700"
                   >
-                    <RotateCcw size={12} />
-                    清空
+                    收起
                   </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setShowGlobalFilters(false)}
-                  className="rounded-full border border-stone-200/90 bg-white/85 px-2.5 py-1 text-[11px] text-stone-500 transition-colors hover:text-stone-700"
-                >
-                  收起
-                </button>
+                </div>
               </div>
-            </div>
 
-            <input
-              value={globalTitleFilter}
-              onChange={(e) => setGlobalTitleFilter(e.target.value)}
-              placeholder="标题关键词（可选）"
-              className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none"
-            />
+              <input
+                value={globalTitleFilter}
+                onChange={(e) => setGlobalTitleFilter(e.target.value)}
+                placeholder="标题关键词（可选）"
+                className="w-full rounded-xl border border-stone-200 bg-white/90 px-3 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none"
+              />
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="text-xs text-stone-500">
-                开始日期
-                <input
-                  type="date"
-                  value={globalDateFrom}
-                  onChange={(e) => setGlobalDateFrom(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
-                />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="text-xs text-stone-500">
+                  开始日期
+                  <input
+                    type="date"
+                    value={globalDateFrom}
+                    onChange={(e) => setGlobalDateFrom(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white/90 px-3 py-2.5 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
+                  />
+                </label>
+                <label className="text-xs text-stone-500">
+                  结束日期
+                  <input
+                    type="date"
+                    value={globalDateTo}
+                    onChange={(e) => setGlobalDateTo(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white/90 px-3 py-2.5 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
+                  />
+                </label>
+              </div>
+
+              <label className="block text-xs text-stone-500">
+                文件夹范围
+                <select
+                  value={globalFolderFilter}
+                  onChange={(e) => setGlobalFolderFilter(e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white/90 px-3 py-2.5 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
+                >
+                  <option value="">全部会议</option>
+                  <option value="__ungrouped">未分组的会议</option>
+                  {folders.map((folder) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
               </label>
-              <label className="text-xs text-stone-500">
-                结束日期
-                <input
-                  type="date"
-                  value={globalDateTo}
-                  onChange={(e) => setGlobalDateTo(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
-                />
-              </label>
+
+              <p className="text-[11px] text-stone-400">留空表示不过滤。</p>
             </div>
-
-            <label className="block text-xs text-stone-500">
-              文件夹范围
-              <select
-                value={globalFolderFilter}
-                onChange={(e) => setGlobalFolderFilter(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
-              >
-                <option value="">全部会议</option>
-                <option value="__ungrouped">未分组的会议</option>
-                {folders.map((folder) => (
-                  <option key={folder.id} value={folder.id}>
-                    {folder.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <p className="text-[11px] text-stone-400">留空表示不过滤。</p>
           </div>
-        </div>
+        </>
       )}
 
       {chatMode === 'meeting' && showTemplates && (
