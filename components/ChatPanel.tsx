@@ -510,6 +510,11 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
                     : '开录后即可围绕当前会议提问，快速提炼重点。'
                   : '跨会议提问，快速召回相关结论与线索。'}
               </p>
+              {chatMode === 'global' && (
+                <p className="mx-auto max-w-[240px] text-center text-[12px] leading-5 text-stone-400/80">
+                  更多检索功能请使用底栏「知识库」
+                </p>
+              )}
             </div>
           </div>
         )}

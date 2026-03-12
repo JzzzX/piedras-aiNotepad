@@ -26,8 +26,13 @@ export async function GET(req: NextRequest) {
   const dateFrom = searchParams.get('dateFrom');
   const dateTo = searchParams.get('dateTo');
   const folderId = searchParams.get('folderId');
+  const workspaceId = searchParams.get('workspaceId');
 
   const where: Prisma.MeetingWhereInput = {};
+
+  if (workspaceId) {
+    where.workspaceId = workspaceId;
+  }
 
   if (query) {
     where.OR = [
@@ -78,6 +83,7 @@ export async function POST(req: NextRequest) {
     status,
     duration,
     folderId,
+    workspaceId,
     userNotes,
     enhancedNotes,
     speakers,
@@ -100,6 +106,7 @@ export async function POST(req: NextRequest) {
         status: status || 'ended',
         duration: duration || 0,
         folderId: folderId || null,
+        workspaceId: workspaceId,
         userNotes: userNotes || '',
         enhancedNotes: enhancedNotes || '',
         speakers: JSON.stringify(speakers || {}),
@@ -110,6 +117,7 @@ export async function POST(req: NextRequest) {
         status: status || 'ended',
         duration: duration || 0,
         folderId: folderId || null,
+        workspaceId: workspaceId,
         userNotes: userNotes || '',
         enhancedNotes: enhancedNotes || '',
         speakers: JSON.stringify(speakers || {}),

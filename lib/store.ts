@@ -7,6 +7,7 @@ import {
   PromptOptions,
   RecordingOptions,
   Folder,
+  Workspace,
   LlmSettings,
 } from './types';
 
@@ -38,6 +39,11 @@ interface MeetingStore {
   status: Meeting['status'];
   duration: number;
   currentFolderId: string | null;
+
+  // Workspace
+  workspaces: Workspace[];
+  currentWorkspaceId: string | null;
+  isLoadingWorkspaces: boolean;
 
   // 转写
   segments: TranscriptSegment[];
@@ -107,6 +113,13 @@ interface MeetingStore {
   createFolder: (input: { name: string; color: string }) => Promise<Folder | null>;
   deleteFolder: (folderId: string) => Promise<void>;
   updateMeetingFolder: (meetingId: string, folderId: string | null) => Promise<void>;
+
+  // Workspace Actions
+  loadWorkspaces: () => Promise<void>;
+  createWorkspace: (input: { name: string; description?: string; color?: string }) => Promise<Workspace | null>;
+  updateWorkspace: (id: string, input: { name?: string; description?: string; color?: string }) => Promise<void>;
+  deleteWorkspace: (id: string) => Promise<void>;
+  setCurrentWorkspaceId: (id: string | null) => void;
 }
 
 export const useMeetingStore = create<MeetingStore>((set, get) => ({
@@ -116,6 +129,13 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   status: 'idle',
   duration: 0,
   currentFolderId: null,
+
+  // Workspace
+  workspaces: [],
+  currentWorkspaceId: typeof window !== 'undefined'
+    ? localStorage.getItem('piedras_currentWorkspaceId')
+    : null,
+  isLoadingWorkspaces: false,
   segments: [],
   currentPartial: '',
   userNotes: '',
@@ -299,6 +319,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           status: state.status,
           duration: state.duration,
           folderId: state.currentFolderId,
+          workspaceId: state.currentWorkspaceId,
           userNotes: state.userNotes,
           enhancedNotes: state.enhancedNotes,
           speakers: state.speakers,
@@ -365,6 +386,8 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       if (filters?.dateFrom) params.set('dateFrom', filters.dateFrom);
       if (filters?.dateTo) params.set('dateTo', filters.dateTo);
       if (filters?.folderId) params.set('folderId', filters.folderId);
+      const wsId = get().currentWorkspaceId;
+      if (wsId) params.set('workspaceId', wsId);
 
       const queryString = params.toString();
       const res = await fetch(`/api/meetings${queryString ? `?${queryString}` : ''}`);
@@ -398,7 +421,9 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   loadFolders: async () => {
     set({ isLoadingFolders: true });
     try {
-      const res = await fetch('/api/folders');
+      const wsId = get().currentWorkspaceId;
+      const params = wsId ? `?workspaceId=${wsId}` : '';
+      const res = await fetch(`/api/folders${params}`);
       if (!res.ok) throw new Error('加载文件夹失败');
       const data = (await res.json()) as Folder[];
       set({ folders: data });
@@ -411,10 +436,11 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
 
   createFolder: async (input) => {
     try {
+      const wsId = get().currentWorkspaceId;
       const res = await fetch('/api/folders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(input),
+        body: JSON.stringify({ ...input, workspaceId: wsId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -474,6 +500,99 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       }));
     } catch (e) {
       console.error('更新会议分组失败:', e);
+    }
+  },
+
+  // ---- Workspace ----
+
+  loadWorkspaces: async () => {
+    set({ isLoadingWorkspaces: true });
+    try {
+      const res = await fetch('/api/workspaces');
+      if (!res.ok) throw new Error('加载工作区失败');
+      const data = (await res.json()) as Workspace[];
+      set({ workspaces: data });
+
+      // If no currentWorkspaceId set, or it's invalid, use the first workspace
+      const { currentWorkspaceId } = get();
+      if (!currentWorkspaceId || !data.find((w) => w.id === currentWorkspaceId)) {
+        const firstId = data[0]?.id || null;
+        set({ currentWorkspaceId: firstId });
+        if (firstId) {
+          localStorage.setItem('piedras_currentWorkspaceId', firstId);
+        }
+      }
+    } catch (e) {
+      console.error('加载工作区失败:', e);
+    } finally {
+      set({ isLoadingWorkspaces: false });
+    }
+  },
+
+  createWorkspace: async (input) => {
+    try {
+      const res = await fetch('/api/workspaces', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error((data as { error?: string }).error || '创建工作区失败');
+      }
+      const workspace = data as Workspace;
+      set((state) => ({
+        workspaces: [...state.workspaces, workspace].sort((a, b) => a.sortOrder - b.sortOrder),
+      }));
+      return workspace;
+    } catch (e) {
+      console.error('创建工作区失败:', e);
+      return null;
+    }
+  },
+
+  updateWorkspace: async (id, input) => {
+    try {
+      const res = await fetch(`/api/workspaces/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+      });
+      if (!res.ok) throw new Error('更新工作区失败');
+      const updated = (await res.json()) as Workspace;
+      set((state) => ({
+        workspaces: state.workspaces.map((w) => (w.id === id ? updated : w)),
+      }));
+    } catch (e) {
+      console.error('更新工作区失败:', e);
+    }
+  },
+
+  deleteWorkspace: async (id) => {
+    try {
+      const res = await fetch(`/api/workspaces/${id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error((data as { error?: string }).error || '删除工作区失败');
+      }
+      const remaining = get().workspaces.filter((w) => w.id !== id);
+      set({ workspaces: remaining });
+      // If deleted workspace was current, switch to first remaining
+      if (get().currentWorkspaceId === id) {
+        const nextId = remaining[0]?.id || null;
+        get().setCurrentWorkspaceId(nextId);
+      }
+    } catch (e) {
+      console.error('删除工作区失败:', e);
+    }
+  },
+
+  setCurrentWorkspaceId: (id) => {
+    set({ currentWorkspaceId: id });
+    if (id) {
+      localStorage.setItem('piedras_currentWorkspaceId', id);
+    } else {
+      localStorage.removeItem('piedras_currentWorkspaceId');
     }
   },
 }));

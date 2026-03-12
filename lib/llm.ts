@@ -6,6 +6,7 @@ export interface GlobalChatFilters {
   dateFrom?: string;
   dateTo?: string;
   folderId?: string;
+  workspaceId?: string;
 }
 
 // 构建转写文本（带说话人标注）

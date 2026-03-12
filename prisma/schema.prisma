@@ -7,6 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Workspace {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  color       String   @default("#94a3b8")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  meetings    Meeting[]
+  folders     Folder[]
+}
+
 model Meeting {
   id            String   @id @default(uuid())
   title         String   @default("")
@@ -19,21 +31,25 @@ model Meeting {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   folderId      String?
+  workspaceId   String
 
   segments     TranscriptSegment[]
   chatMessages ChatMessage[]
   folder       Folder?             @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  workspace    Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model Folder {
-  id        String    @id @default(uuid())
-  name      String
-  color     String    @default("#94a3b8")
-  sortOrder Int       @default(0)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          String    @id @default(uuid())
+  name        String
+  color       String    @default("#94a3b8")
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspaceId String
 
-  meetings Meeting[]
+  meetings  Meeting[]
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model TranscriptSegment {

@@ -52,11 +52,20 @@ export interface RecordingOptions {
   autoStopMinutes: number;
 }
 
+export interface Workspace {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  sortOrder: number;
+}
+
 export interface Folder {
   id: string;
   name: string;
   color: string;
   sortOrder: number;
+  workspaceId?: string;
   createdAt?: string;
   updatedAt?: string;
 }

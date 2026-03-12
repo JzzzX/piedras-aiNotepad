@@ -6,6 +6,7 @@ export interface GlobalChatFilters {
   dateFrom?: string;
   dateTo?: string;
   folderId?: string;
+  workspaceId?: string;
 }
 
 export interface GlobalMeetingSource {
@@ -252,6 +253,10 @@ function buildWhere(filters: GlobalChatFilters): Prisma.MeetingWhereInput {
 
   if (filters.folderId) {
     where.folderId = filters.folderId === '__ungrouped' ? null : filters.folderId;
+  }
+
+  if (filters.workspaceId) {
+    where.workspaceId = filters.workspaceId;
   }
 
   return where;

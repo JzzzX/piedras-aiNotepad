@@ -16,11 +16,13 @@ import NoteEditor from '@/components/NoteEditor';
 import FloatingBottomBar from '@/components/FloatingBottomBar';
 import FloatingTranscript from '@/components/FloatingTranscript';
 import FloatingChat from '@/components/FloatingChat';
+import FloatingKnowledgeBase from '@/components/FloatingKnowledgeBase';
 import EnhancedNotes from '@/components/EnhancedNotes';
 import MeetingHistory from '@/components/MeetingHistory';
 import McpConnectorPanel from '@/components/McpConnectorPanel';
 import RecorderSettingsPanel from '@/components/RecorderSettingsPanel';
 import PiedrasMark from '@/components/PiedrasMark';
+import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
 import { useMeetingStore } from '@/lib/store';
 import { generateMeetingTitle } from '@/lib/llm';
 
@@ -34,6 +36,9 @@ export default function Home() {
     isSaving,
     saveMeeting,
     loadMeetingList,
+    loadWorkspaces,
+    loadFolders,
+    currentWorkspaceId,
   } = useMeetingStore();
 
   const prevStatusRef = useRef(status);
@@ -45,7 +50,21 @@ export default function Home() {
   
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isKBOpen, setIsKBOpen] = useState(false);
   const [showRecorderSettings, setShowRecorderSettings] = useState(false);
+
+  // Load workspaces on mount
+  useEffect(() => {
+    void loadWorkspaces();
+  }, [loadWorkspaces]);
+
+  // Reload folders and meeting list when workspace changes
+  useEffect(() => {
+    if (currentWorkspaceId) {
+      void loadFolders();
+      void loadMeetingList();
+    }
+  }, [currentWorkspaceId, loadFolders, loadMeetingList]);
 
   const maybeGenerateAutoTitle = useCallback(async () => {
     const state = useMeetingStore.getState();
@@ -120,6 +139,7 @@ export default function Home() {
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#2B2420] text-[#F5EEE6] shadow-sm">
             <PiedrasMark className="h-5 w-5" />
           </div>
+          <WorkspaceSwitcher />
           <div className="group relative flex min-w-0 items-center rounded-xl transition-all hover:bg-[#F0EBE6] hover:ring-1 hover:ring-[#D8CEC4] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#D8CEC4] focus-within:shadow-sm">
             <span className="pl-3 text-[#A69B8F] transition-colors group-focus-within:text-[#8C7A6B]">
               <PenLine size={14} />
@@ -258,11 +278,26 @@ export default function Home() {
         onClose={() => setIsChatOpen(false)}
       />
 
-      <FloatingBottomBar 
+      <FloatingKnowledgeBase
+        isOpen={isKBOpen}
+        onClose={() => setIsKBOpen(false)}
+      />
+
+      <FloatingBottomBar
         onToggleTranscript={() => setIsTranscriptOpen(!isTranscriptOpen)}
         isTranscriptOpen={isTranscriptOpen}
-        onToggleChat={() => setIsChatOpen(!isChatOpen)}
+        onToggleChat={() => {
+          const next = !isChatOpen;
+          setIsChatOpen(next);
+          if (next) setIsKBOpen(false); // mobile mutual exclusion
+        }}
         isChatOpen={isChatOpen}
+        onToggleKnowledgeBase={() => {
+          const next = !isKBOpen;
+          setIsKBOpen(next);
+          if (next) setIsChatOpen(false); // mobile mutual exclusion
+        }}
+        isKnowledgeBaseOpen={isKBOpen}
       />
     </div>
   );
