@@ -1,4 +1,5 @@
 import type { LlmRuntimeConfig } from './types';
+import { normalizeOpenAIPath } from './llm-config';
 
 export type LlmProvider = 'gemini' | 'minimax' | 'openai';
 
@@ -103,12 +104,13 @@ function getOpenAIConfig(input: LlmGenerateInput) {
 
   return {
     apiKey: runtime?.apiKey || process.env.OPENAI_API_KEY || '',
-    model: runtime?.model || process.env.OPENAI_MODEL || 'gpt-4.1-mini',
+    model: runtime?.model || process.env.OPENAI_MODEL || 'gpt-4o-mini',
     baseUrl:
       (runtime?.baseUrl || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(
         /\/+$/,
         ''
       ),
+    path: normalizeOpenAIPath(runtime?.path || process.env.OPENAI_PATH || '/chat/completions'),
   };
 }
 
@@ -251,12 +253,12 @@ function extractOpenAIContent(content: unknown): string {
 }
 
 async function callOpenAI(input: LlmGenerateInput): Promise<string> {
-  const { apiKey, model, baseUrl } = getOpenAIConfig(input);
+  const { apiKey, model, baseUrl, path } = getOpenAIConfig(input);
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY 未配置');
   }
 
-  const res = await fetch(`${baseUrl}/chat/completions`, {
+  const res = await fetch(`${baseUrl}${path}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

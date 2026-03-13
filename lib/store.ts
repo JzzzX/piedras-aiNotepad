@@ -10,6 +10,7 @@ import {
   Workspace,
   LlmSettings,
 } from './types';
+import { DEFAULT_LLM_SETTINGS, normalizeLlmSettings } from './llm-config';
 
 // 会议列表项（从 API 返回的精简结构）
 export interface MeetingListItem {
@@ -153,15 +154,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     autoStopEnabled: true,
     autoStopMinutes: 10,
   },
-  llmSettings: {
-    provider: 'auto',
-    minimaxApiKey: '',
-    minimaxGroupId: '',
-    minimaxModel: 'MiniMax-Text-01',
-    openaiApiKey: '',
-    openaiModel: 'gpt-4.1-mini',
-    openaiBaseUrl: 'https://api.openai.com/v1',
-  },
+  llmSettings: DEFAULT_LLM_SETTINGS,
   recordingStartTime: null,
   micLevel: 0,
   systemLevel: 0,
@@ -240,7 +233,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     })),
   setLlmSettings: (patch) =>
     set((state) => ({
-      llmSettings: { ...state.llmSettings, ...patch },
+      llmSettings: normalizeLlmSettings({ ...state.llmSettings, ...patch }),
     })),
   setCurrentFolderId: (folderId) => set({ currentFolderId: folderId }),
 

@@ -1,5 +1,6 @@
 import { TranscriptSegment, ChatMessage } from './types';
 import type { LlmRuntimeConfig, LlmSettings, PromptOptions } from './types';
+import { normalizeLlmSettings } from './llm-config';
 
 export interface GlobalChatFilters {
   titleKeyword?: string;
@@ -24,13 +25,15 @@ function buildTranscriptText(
 }
 
 function buildRuntimeConfig(settings?: LlmSettings): LlmRuntimeConfig | undefined {
-  if (!settings || settings.provider === 'auto') {
+  const normalized = normalizeLlmSettings(settings);
+
+  if (!settings || normalized.provider === 'auto') {
     return { provider: 'auto' };
   }
 
-  if (settings.provider === 'minimax') {
-    const apiKey = settings.minimaxApiKey.trim();
-    const groupId = settings.minimaxGroupId.trim();
+  if (normalized.provider === 'minimax') {
+    const apiKey = normalized.minimaxApiKey.trim();
+    const groupId = normalized.minimaxGroupId.trim();
     if (!apiKey) {
       throw new Error('请先在 AI 设置中填写 MiniMax API Key');
     }
@@ -42,12 +45,12 @@ function buildRuntimeConfig(settings?: LlmSettings): LlmRuntimeConfig | undefine
       provider: 'minimax',
       apiKey,
       groupId,
-      model: settings.minimaxModel.trim() || 'MiniMax-Text-01',
+      model: normalized.minimaxModel.trim() || 'MiniMax-Text-01',
     };
   }
 
-  const apiKey = settings.openaiApiKey.trim();
-  const model = settings.openaiModel.trim();
+  const apiKey = normalized.openaiApiKey.trim();
+  const model = normalized.openaiModel.trim();
   if (!apiKey) {
     throw new Error('请先在 AI 设置中填写 OpenAI 兼容 API Key');
   }
@@ -59,7 +62,8 @@ function buildRuntimeConfig(settings?: LlmSettings): LlmRuntimeConfig | undefine
     provider: 'openai',
     apiKey,
     model,
-    baseUrl: settings.openaiBaseUrl.trim() || 'https://api.openai.com/v1',
+    baseUrl: normalized.openaiBaseUrl.trim() || 'https://api.openai.com/v1',
+    path: normalized.openaiPath.trim() || '/chat/completions',
   };
 }
 

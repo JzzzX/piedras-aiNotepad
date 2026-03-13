@@ -134,10 +134,10 @@ ${userNotes ? '- 基于用户笔记的重点' : ''}
 
 ## 决策事项
 - 此为 Demo 模式生成的示例内容
-- 配置默认 Gemini、MiniMax 或 OpenAI 兼容 API Key 后将使用真实 AI 生成
+- 配置默认 LLM 或 OpenAI 兼容 API Key 后将使用真实 AI 生成
 
 ## 行动项
-- [ ] 配置默认 Gemini、MiniMax 或 OpenAI 兼容 API Key
+- [ ] 配置默认 LLM 或 OpenAI 兼容 API Key
 - [ ] 配置阿里云 ASR 相关密钥以启用实时转写
 
 ## 待确认事项

@@ -16,21 +16,24 @@ export interface ChatMessage {
 }
 
 export type LlmSelection = 'auto' | 'minimax' | 'openai';
+export type OpenAICompatiblePreset = 'aihubmix' | 'openai' | 'custom';
 
 export interface LlmSettings {
   provider: LlmSelection;
   minimaxApiKey: string;
   minimaxGroupId: string;
   minimaxModel: string;
+  openaiPreset: OpenAICompatiblePreset;
   openaiApiKey: string;
   openaiModel: string;
   openaiBaseUrl: string;
+  openaiPath: string;
 }
 
 export type LlmRuntimeConfig =
   | { provider: 'auto' }
   | { provider: 'minimax'; apiKey: string; groupId: string; model?: string }
-  | { provider: 'openai'; apiKey: string; model: string; baseUrl?: string };
+  | { provider: 'openai'; apiKey: string; model: string; baseUrl?: string; path?: string };
 
 export type MeetingType =
   | '通用'
