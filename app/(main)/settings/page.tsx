@@ -52,7 +52,7 @@ export default function SettingsPage() {
 
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-8">
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto max-w-4xl">
           {activeTab === 'recorder' && <RecorderSettingsInline />}
           {activeTab === 'ai' && <AiRuntimeSettings />}
           {activeTab === 'templates' && <TemplateManagerInline />}

@@ -54,7 +54,7 @@ export default function AiRuntimeSettings() {
         : 'OpenAI 兼容（本地 API Key）';
 
   return (
-    <div className="space-y-3 rounded-2xl border border-[#D8CEC4] bg-[#FCFAF8] p-4">
+    <div className="space-y-4 rounded-2xl border border-[#E3D9CE] bg-[#FCFAF8] p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs font-semibold text-[#5C4D42]">
           <Sparkles size={13} className="text-sky-500" />

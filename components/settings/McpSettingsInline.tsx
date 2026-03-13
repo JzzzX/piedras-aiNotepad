@@ -18,7 +18,7 @@ function InfoCard({
   value: string; onCopy?: () => void; copied?: boolean;
 }) {
   return (
-    <section className="rounded-2xl border border-[#E3D9CE] bg-[#FCFAF8] p-4">
+    <section className="rounded-2xl border border-[#E3D9CE] bg-[#FCFAF8] p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-[#F3ECE4] text-[#6C5A4C]">

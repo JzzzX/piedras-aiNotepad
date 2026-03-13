@@ -174,9 +174,9 @@ export default function WorkspaceSwitcher() {
             ))}
           </div>
 
-          <div className="border-t border-[#E3D9CE]/50 p-1.5">
+          <div className="border-t border-[#E3D9CE]/50 p-2">
             {isCreating ? (
-              <div className="space-y-2 rounded-xl bg-[#F7F3EE] p-3">
+              <div className="space-y-3 rounded-xl bg-[#F7F3EE] p-4">
                 <input
                   autoFocus
                   value={newName}
@@ -186,31 +186,31 @@ export default function WorkspaceSwitcher() {
                     if (e.key === 'Escape') { setIsCreating(false); setNewName(''); }
                   }}
                   placeholder="工作区名称"
-                  className="w-full rounded-lg border border-[#D8CEC4] bg-white px-3 py-1.5 text-sm text-[#3A2E25] placeholder:text-[#A69B8F] focus:outline-none focus:ring-1 focus:ring-[#D8CEC4]"
+                  className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] placeholder:text-[#A69B8F] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all"
                 />
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-between gap-1.5 px-1">
                   {PRESET_COLORS.map((c) => (
                     <button
                       key={c}
                       onClick={() => setNewColor(c)}
                       className={`h-5 w-5 rounded-full transition-all ${
-                        newColor === c ? 'ring-2 ring-[#5C4D42] ring-offset-1' : 'hover:scale-110'
+                        newColor === c ? 'ring-2 ring-[#5C4D42] ring-offset-2 ring-offset-[#F7F3EE]' : 'hover:scale-110 opacity-80 hover:opacity-100'
                       }`}
                       style={{ backgroundColor: c }}
                     />
                   ))}
                 </div>
-                <div className="flex justify-end gap-1.5">
+                <div className="flex justify-end gap-2 pt-1">
                   <button
                     onClick={() => { setIsCreating(false); setNewName(''); }}
-                    className="rounded-lg px-3 py-1 text-xs text-[#8C7A6B] hover:bg-[#EFE9E2]"
+                    className="rounded-xl px-4 py-2 text-[13px] font-medium text-[#8C7A6B] hover:bg-[#EFE9E2] hover:text-[#5C4D42] transition-colors"
                   >
                     取消
                   </button>
                   <button
                     onClick={handleCreate}
                     disabled={!newName.trim()}
-                    className="rounded-lg bg-[#4A3C31] px-3 py-1 text-xs font-medium text-white hover:bg-[#3A2E25] disabled:opacity-50"
+                    className="rounded-xl bg-[#8C7A6B] px-5 py-2 text-[13px] font-medium text-white shadow-sm hover:bg-[#5C4D42] disabled:opacity-50 transition-all active:scale-[0.98]"
                   >
                     创建
                   </button>
