@@ -37,6 +37,13 @@ export interface MeetingListFilters {
   workspaceScope?: MeetingListScope;
 }
 
+function revokeBlobUrl(url?: string | null) {
+  if (typeof window === 'undefined') return;
+  if (url && url.startsWith('blob:')) {
+    URL.revokeObjectURL(url);
+  }
+}
+
 interface MeetingStore {
   // 当前会议状态
   meetingId: string;
@@ -45,6 +52,13 @@ interface MeetingStore {
   status: Meeting['status'];
   duration: number;
   currentFolderId: string | null;
+  audioUrl: string | null;
+  audioBlob: Blob | null;
+  audioMimeType: string | null;
+  audioDuration: number;
+  audioUpdatedAt: string | null;
+  hasAudio: boolean;
+  audioDirty: boolean;
 
   // Workspace
   workspaces: Workspace[];
@@ -106,13 +120,22 @@ interface MeetingStore {
   setRecordingOptions: (patch: Partial<RecordingOptions>) => void;
   setLlmSettings: (patch: Partial<LlmSettings>) => void;
   setCurrentFolderId: (folderId: string | null) => void;
+  setMeetingAudio: (input: {
+    url?: string | null;
+    blob?: Blob | null;
+    mimeType?: string | null;
+    duration?: number;
+    updatedAt?: string | null;
+    hasAudio?: boolean;
+    isDirty?: boolean;
+  }) => void;
   updateDuration: () => void;
   setAudioLevels: (mic: number, system: number) => void;
   removeSegment: (segmentId: string) => void;
   reset: () => void;
 
   // 持久化 Actions
-  saveMeeting: (options?: { allowEmpty?: boolean }) => Promise<boolean>;
+  saveMeeting: (options?: { allowEmpty?: boolean; includeAudio?: boolean }) => Promise<boolean>;
   loadMeeting: (id: string) => Promise<void>;
   loadMeetingList: (filters?: MeetingListFilters) => Promise<void>;
   deleteMeeting: (id: string) => Promise<void>;
@@ -138,6 +161,13 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   status: 'idle',
   duration: 0,
   currentFolderId: null,
+  audioUrl: null,
+  audioBlob: null,
+  audioMimeType: null,
+  audioDuration: 0,
+  audioUpdatedAt: null,
+  hasAudio: false,
+  audioDirty: false,
 
   // Workspace
   workspaces: [],
@@ -245,6 +275,26 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       llmSettings: normalizeLlmSettings({ ...state.llmSettings, ...patch }),
     })),
   setCurrentFolderId: (folderId) => set({ currentFolderId: folderId }),
+  setMeetingAudio: (input) =>
+    set((state) => {
+      const nextUrl = input.url !== undefined ? input.url : state.audioUrl;
+      if (input.url !== undefined && input.url !== state.audioUrl) {
+        revokeBlobUrl(state.audioUrl);
+      }
+
+      return {
+        audioUrl: nextUrl,
+        audioBlob: input.blob !== undefined ? input.blob : state.audioBlob,
+        audioMimeType:
+          input.mimeType !== undefined ? input.mimeType : state.audioMimeType,
+        audioDuration:
+          input.duration !== undefined ? input.duration : state.audioDuration,
+        audioUpdatedAt:
+          input.updatedAt !== undefined ? input.updatedAt : state.audioUpdatedAt,
+        hasAudio: input.hasAudio !== undefined ? input.hasAudio : state.hasAudio,
+        audioDirty: input.isDirty !== undefined ? input.isDirty : state.audioDirty,
+      };
+    }),
 
   updateDuration: () => {
     const { recordingStartTime } = get();
@@ -267,34 +317,44 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     })),
 
   reset: () =>
-    set({
-      meetingId: uuidv4(),
-      meetingTitle: '',
-      meetingDate: Date.now(),
-      status: 'idle',
-      duration: 0,
-      currentFolderId: null,
-      segments: [],
-      currentPartial: '',
-      userNotes: '',
-      enhancedNotes: '',
-      isEnhancing: false,
-      speakers: {},
-      chatMessages: [],
-      isChatLoading: false,
-      promptOptions: {
-        meetingType: '通用',
-        outputStyle: '平衡',
-        includeActionItems: true,
-      },
-      recordingOptions: get().recordingOptions,
-      llmSettings: get().llmSettings,
-      recordingStartTime: null,
-      micLevel: 0,
-      systemLevel: 0,
-      systemAudioActive: false,
-      micActive: false,
-      isPersistedMeeting: false,
+    set((state) => {
+      revokeBlobUrl(state.audioUrl);
+      return {
+        meetingId: uuidv4(),
+        meetingTitle: '',
+        meetingDate: Date.now(),
+        status: 'idle',
+        duration: 0,
+        currentFolderId: null,
+        audioUrl: null,
+        audioBlob: null,
+        audioMimeType: null,
+        audioDuration: 0,
+        audioUpdatedAt: null,
+        hasAudio: false,
+        audioDirty: false,
+        segments: [],
+        currentPartial: '',
+        userNotes: '',
+        enhancedNotes: '',
+        isEnhancing: false,
+        speakers: {},
+        chatMessages: [],
+        isChatLoading: false,
+        promptOptions: {
+          meetingType: '通用',
+          outputStyle: '平衡',
+          includeActionItems: true,
+        },
+        recordingOptions: get().recordingOptions,
+        llmSettings: get().llmSettings,
+        recordingStartTime: null,
+        micLevel: 0,
+        systemLevel: 0,
+        systemAudioActive: false,
+        micActive: false,
+        isPersistedMeeting: false,
+      };
     }),
 
   // ---- 持久化 ----
@@ -332,7 +392,58 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       if (!res.ok) {
         throw new Error(`保存会议失败：${res.status}`);
       }
-      set({ isPersistedMeeting: true });
+
+      const shouldUploadAudio =
+        options?.includeAudio ?? state.status !== 'recording';
+
+      if (
+        shouldUploadAudio &&
+        state.audioBlob &&
+        state.audioDirty
+      ) {
+        const formData = new FormData();
+        formData.append('file', state.audioBlob, 'meeting-audio');
+        formData.append('mimeType', state.audioMimeType || state.audioBlob.type || 'audio/webm');
+        formData.append('duration', String(state.audioDuration || state.duration || 0));
+
+        const audioRes = await fetch(`/api/meetings/${state.meetingId}/audio`, {
+          method: 'POST',
+          body: formData,
+        });
+        const audioData = await audioRes.json().catch(() => ({}));
+        if (!audioRes.ok) {
+          throw new Error(
+            (audioData as { error?: string }).error || '保存会议音频失败'
+          );
+        }
+
+        set((currentState) => {
+          const nextAudioUrl =
+            (audioData as { audioUrl?: string | null }).audioUrl || currentState.audioUrl;
+          if (nextAudioUrl !== currentState.audioUrl) {
+            revokeBlobUrl(currentState.audioUrl);
+          }
+
+          return {
+            isPersistedMeeting: true,
+            audioUrl: nextAudioUrl,
+            audioMimeType:
+              (audioData as { audioMimeType?: string | null }).audioMimeType ||
+              currentState.audioMimeType,
+            audioDuration:
+              (audioData as { audioDuration?: number | null }).audioDuration ??
+              currentState.audioDuration,
+            audioUpdatedAt:
+              (audioData as { audioUpdatedAt?: string | null }).audioUpdatedAt ||
+              currentState.audioUpdatedAt,
+            hasAudio: true,
+            audioDirty: false,
+          };
+        });
+      } else {
+        set({ isPersistedMeeting: true });
+      }
+
       return true;
     } catch (e) {
       console.error('保存会议失败:', e);
@@ -347,38 +458,53 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       const res = await fetch(`/api/meetings/${id}`);
       if (!res.ok) return;
       const data = await res.json();
-      set({
-        meetingId: data.id,
-        meetingTitle: data.title,
-        meetingDate: new Date(data.date).getTime(),
-        status: data.status as Meeting['status'],
-        duration: data.duration,
-        currentFolderId: data.folderId ?? null,
-        userNotes: data.userNotes,
-        enhancedNotes: data.enhancedNotes,
-        speakers: data.speakers,
-        segments: data.segments.map((s: TranscriptSegment) => ({
-          id: s.id,
-          speaker: s.speaker,
-          text: s.text,
-          startTime: s.startTime,
-          endTime: s.endTime,
-          isFinal: s.isFinal,
-        })),
-        chatMessages: data.chatMessages.map((m: ChatMessage) => ({
-          id: m.id,
-          role: m.role,
-          content: m.content,
-          timestamp: m.timestamp,
-          templateId: m.templateId,
-        })),
-        currentPartial: '',
-        recordingStartTime: null,
-        micLevel: 0,
-        systemLevel: 0,
-        systemAudioActive: false,
-        micActive: false,
-        isPersistedMeeting: true,
+      set((state) => {
+        const nextAudioUrl =
+          data.hasAudio && data.audioUrl ? String(data.audioUrl) : null;
+        if (state.audioUrl !== nextAudioUrl) {
+          revokeBlobUrl(state.audioUrl);
+        }
+
+        return {
+          meetingId: data.id,
+          meetingTitle: data.title,
+          meetingDate: new Date(data.date).getTime(),
+          status: data.status as Meeting['status'],
+          duration: data.duration,
+          currentFolderId: data.folderId ?? null,
+          audioUrl: nextAudioUrl,
+          audioBlob: null,
+          audioMimeType: data.audioMimeType ?? null,
+          audioDuration: data.audioDuration ?? 0,
+          audioUpdatedAt: data.audioUpdatedAt ?? null,
+          hasAudio: Boolean(data.hasAudio),
+          audioDirty: false,
+          userNotes: data.userNotes,
+          enhancedNotes: data.enhancedNotes,
+          speakers: data.speakers,
+          segments: data.segments.map((s: TranscriptSegment) => ({
+            id: s.id,
+            speaker: s.speaker,
+            text: s.text,
+            startTime: s.startTime,
+            endTime: s.endTime,
+            isFinal: s.isFinal,
+          })),
+          chatMessages: data.chatMessages.map((m: ChatMessage) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp,
+            templateId: m.templateId,
+          })),
+          currentPartial: '',
+          recordingStartTime: null,
+          micLevel: 0,
+          systemLevel: 0,
+          systemAudioActive: false,
+          micActive: false,
+          isPersistedMeeting: true,
+        };
       });
     } catch (e) {
       console.error('加载会议失败:', e);

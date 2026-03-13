@@ -29,6 +29,7 @@ const SCRIPT_BUFFER_SIZE = 4096;
 const AUTO_STOP_MINUTE_OPTIONS = [5, 10, 15, 30];
 const UPLOAD_CHUNK_DURATION_MS = 200;
 const UPLOAD_SEND_INTERVAL_MS = 30;
+const MEETING_AUDIO_TIMESLICE_MS = 5000;
 const AUDIO_FILE_ACCEPT = 'audio/*,.mp3,.wav,.m4a,.aac,.mp4,.webm,.ogg,.flac';
 
 type AudioSourceType = 'mic' | 'system';
@@ -159,10 +160,24 @@ function createAliyunMessageId(): string {
   return uuidv4().replace(/-/g, '');
 }
 
+function getMeetingAudioMimeType() {
+  if (typeof MediaRecorder === 'undefined') return null;
+
+  const candidates = ['audio/webm;codecs=opus', 'audio/webm'];
+  for (const candidate of candidates) {
+    if (MediaRecorder.isTypeSupported(candidate)) {
+      return candidate;
+    }
+  }
+
+  return '';
+}
+
 export default function AudioRecorder() {
   const {
     status,
     duration,
+    audioUrl,
     segments,
     micLevel,
     systemLevel,
@@ -181,6 +196,7 @@ export default function AudioRecorder() {
     updateDuration,
     setAudioLevels,
     currentWorkspaceId,
+    setMeetingAudio,
   } = useMeetingStore();
 
   const [hasSystemAudio, setHasSystemAudio] = useState(false);
@@ -205,6 +221,10 @@ export default function AudioRecorder() {
   const animFrameRef = useRef<number>(0);
   const micAnalyserRef = useRef<AnalyserNode | null>(null);
   const systemAnalyserRef = useRef<AnalyserNode | null>(null);
+  const meetingAudioContextRef = useRef<AudioContext | null>(null);
+  const meetingAudioRecorderRef = useRef<MediaRecorder | null>(null);
+  const meetingAudioPreviewUrlRef = useRef<string | null>(null);
+  const meetingAudioChunksRef = useRef<Blob[]>([]);
   const aliyunChannelsRef = useRef<AliyunChannelRuntime[]>([]);
   const aliyunEnabledRef = useRef(false);
   const uploadTaskRef = useRef<CancellableTask | null>(null);
@@ -227,6 +247,131 @@ export default function AudioRecorder() {
       return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
+
+  const releaseMeetingAudioPreview = useCallback(() => {
+    if (meetingAudioPreviewUrlRef.current) {
+      URL.revokeObjectURL(meetingAudioPreviewUrlRef.current);
+      meetingAudioPreviewUrlRef.current = null;
+    }
+  }, []);
+
+  const publishMeetingAudioBlob = useCallback(
+    (blob: Blob, nextDuration: number, mimeType?: string | null) => {
+      releaseMeetingAudioPreview();
+      const nextUrl = URL.createObjectURL(blob);
+      meetingAudioPreviewUrlRef.current = nextUrl;
+      setMeetingAudio({
+        url: nextUrl,
+        blob,
+        mimeType: mimeType || blob.type || 'audio/webm',
+        duration: nextDuration,
+        hasAudio: true,
+        isDirty: true,
+      });
+    },
+    [releaseMeetingAudioPreview, setMeetingAudio]
+  );
+
+  const startMeetingAudioCapture = useCallback(
+    (micStream: MediaStream, systemStream?: MediaStream) => {
+      if (typeof MediaRecorder === 'undefined') {
+        setMeetingAudio({
+          url: null,
+          blob: null,
+          mimeType: null,
+          duration: 0,
+          hasAudio: false,
+          isDirty: false,
+        });
+        return;
+      }
+
+      const audioContext = new AudioContext();
+      const destination = audioContext.createMediaStreamDestination();
+      const micSource = audioContext.createMediaStreamSource(micStream);
+      micSource.connect(destination);
+
+      let systemSource: MediaStreamAudioSourceNode | null = null;
+      if (systemStream) {
+        systemSource = audioContext.createMediaStreamSource(systemStream);
+        systemSource.connect(destination);
+      }
+
+      const preferredMimeType = getMeetingAudioMimeType();
+      const recorder =
+        preferredMimeType !== null
+          ? new MediaRecorder(
+              destination.stream,
+              preferredMimeType ? { mimeType: preferredMimeType } : undefined
+            )
+          : null;
+
+      if (!recorder) {
+        audioContext.close().catch(() => undefined);
+        return;
+      }
+
+      meetingAudioChunksRef.current = [];
+      meetingAudioContextRef.current = audioContext;
+      meetingAudioRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size === 0) return;
+        meetingAudioChunksRef.current.push(event.data);
+        const previewBlob = new Blob(meetingAudioChunksRef.current, {
+          type: recorder.mimeType || preferredMimeType || event.data.type || 'audio/webm',
+        });
+        publishMeetingAudioBlob(
+          previewBlob,
+          Math.max(1, useMeetingStore.getState().duration),
+          recorder.mimeType || preferredMimeType || event.data.type || 'audio/webm'
+        );
+      };
+
+      recorder.start(MEETING_AUDIO_TIMESLICE_MS);
+    },
+    [publishMeetingAudioBlob, setMeetingAudio]
+  );
+
+  const stopMeetingAudioCapture = useCallback(
+    async (finalDuration?: number) => {
+      const recorder = meetingAudioRecorderRef.current;
+      const audioContext = meetingAudioContextRef.current;
+      meetingAudioRecorderRef.current = null;
+      meetingAudioContextRef.current = null;
+
+      if (!recorder) {
+        await audioContext?.close().catch(() => undefined);
+        return;
+      }
+
+      await new Promise<void>((resolve) => {
+        const finalize = () => {
+          const mimeType = recorder.mimeType || 'audio/webm';
+          if (meetingAudioChunksRef.current.length > 0) {
+            const finalBlob = new Blob(meetingAudioChunksRef.current, { type: mimeType });
+            publishMeetingAudioBlob(
+              finalBlob,
+              finalDuration ?? useMeetingStore.getState().duration,
+              mimeType
+            );
+          }
+
+          audioContext?.close().catch(() => undefined);
+          resolve();
+        };
+
+        if (recorder.state === 'inactive') {
+          finalize();
+          return;
+        }
+
+        recorder.addEventListener('stop', finalize, { once: true });
+        recorder.stop();
+      });
+    },
+    [publishMeetingAudioBlob]
+  );
 
   const cleanupSystemAudioTrackListener = useCallback(() => {
     if (systemAudioTrackRef.current) {
@@ -834,6 +979,11 @@ export default function AudioRecorder() {
             }
 
             if (eventName === 'TranscriptionCompleted') {
+              setMeetingAudio({
+                duration: Math.round(decodedBuffer.duration),
+                hasAudio: true,
+                isDirty: true,
+              });
               useMeetingStore.setState({
                 duration: Math.round(decodedBuffer.duration),
               });
@@ -863,7 +1013,7 @@ export default function AudioRecorder() {
         };
       });
     },
-    [addSegment, setCurrentPartial]
+    [addSegment, setCurrentPartial, setMeetingAudio]
   );
 
   const handleUploadAudioClick = useCallback(async () => {
@@ -925,6 +1075,7 @@ export default function AudioRecorder() {
 
         reset();
         startMeeting();
+        publishMeetingAudioBlob(file, 0, file.type || 'audio/webm');
         setMeetingTitle(file.name.replace(/\.[^.]+$/, ''));
         setCurrentPartial('正在解析音频文件...');
 
@@ -967,6 +1118,7 @@ export default function AudioRecorder() {
       setMeetingTitle,
       startMeeting,
       status,
+      publishMeetingAudioBlob,
       transcribeAudioFile,
     ]
   );
@@ -1050,6 +1202,7 @@ export default function AudioRecorder() {
 
     // 3. 启动会议
     startMeeting();
+    startMeetingAudioCapture(micStream, systemStream);
 
     // 4. 计时器
     timerRef.current = setInterval(() => {
@@ -1097,6 +1250,7 @@ export default function AudioRecorder() {
       }
       systemSpeakingRef.current = false;
 
+      void stopMeetingAudioCapture();
       endMeeting();
       resetRecorderState();
     }
@@ -1109,14 +1263,16 @@ export default function AudioRecorder() {
     resetRecorderState,
     setupAudioAnalysis,
     startAliyunRecognition,
+    startMeetingAudioCapture,
     startMeeting,
     startWebSpeechRecognition,
+    stopMeetingAudioCapture,
     stopAliyunRecognition,
     stopWebSpeechRecognition,
     updateDuration,
   ]);
 
-  const handleStop = useCallback(() => {
+  const handleStop = useCallback(async () => {
     if (uploadTaskRef.current) {
       uploadTaskRef.current.cancel();
       setIsUploadingAudio(false);
@@ -1124,6 +1280,7 @@ export default function AudioRecorder() {
     }
 
     cleanupSystemAudioTrackListener();
+    await stopMeetingAudioCapture(useMeetingStore.getState().duration);
     endMeeting();
 
     stopWebSpeechRecognition();
@@ -1164,6 +1321,7 @@ export default function AudioRecorder() {
     cleanupLocalTracks,
     endMeeting,
     resetRecorderState,
+    stopMeetingAudioCapture,
     stopAliyunRecognition,
     stopWebSpeechRecognition,
   ]);
@@ -1215,6 +1373,8 @@ export default function AudioRecorder() {
   useEffect(() => {
     return () => {
       uploadTaskRef.current?.cancel();
+      releaseMeetingAudioPreview();
+      void stopMeetingAudioCapture();
       stopWebSpeechRecognition();
       stopAliyunRecognition();
       if (timerRef.current) clearInterval(timerRef.current);
@@ -1228,6 +1388,8 @@ export default function AudioRecorder() {
   }, [
     cleanupLocalTracks,
     cleanupSystemAudioTrackListener,
+    releaseMeetingAudioPreview,
+    stopMeetingAudioCapture,
     stopAliyunRecognition,
     stopWebSpeechRecognition,
   ]);
@@ -1235,6 +1397,21 @@ export default function AudioRecorder() {
   useEffect(() => {
     void loadAsrStatus();
   }, [loadAsrStatus]);
+
+  useEffect(() => {
+    if (!audioUrl && meetingAudioPreviewUrlRef.current) {
+      releaseMeetingAudioPreview();
+      return;
+    }
+
+    if (
+      audioUrl &&
+      !audioUrl.startsWith('blob:') &&
+      meetingAudioPreviewUrlRef.current
+    ) {
+      releaseMeetingAudioPreview();
+    }
+  }, [audioUrl, releaseMeetingAudioPreview]);
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {

@@ -109,4 +109,9 @@ export interface Meeting {
   speakers: Record<string, string>;
   chatMessages: ChatMessage[];
   duration: number;
+  audioMimeType?: string | null;
+  audioDuration?: number | null;
+  audioUpdatedAt?: string | null;
+  audioUrl?: string | null;
+  hasAudio?: boolean;
 }

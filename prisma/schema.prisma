@@ -27,6 +27,9 @@ model Meeting {
   date          DateTime @default(now())
   status        String   @default("idle")
   duration      Int      @default(0)
+  audioMimeType String?
+  audioDuration Int?
+  audioUpdatedAt DateTime?
   userNotes     String   @default("")
   enhancedNotes String   @default("")
   speakers      String   @default("{}")

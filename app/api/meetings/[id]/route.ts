@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { deleteMeetingAudioFile, hasMeetingAudioFile } from '@/lib/meeting-audio';
 
 // GET /api/meetings/[id] — 获取单个会议详情
 export async function GET(
@@ -21,9 +22,16 @@ export async function GET(
     return NextResponse.json({ error: '会议不存在' }, { status: 404 });
   }
 
+  const hasAudio =
+    Boolean(meeting.audioMimeType) && (await hasMeetingAudioFile(meeting.id));
+
   return NextResponse.json({
     ...meeting,
     speakers: JSON.parse(meeting.speakers),
+    hasAudio,
+    audioUrl: hasAudio
+      ? `/api/meetings/${meeting.id}/audio?t=${meeting.audioUpdatedAt?.getTime() || 0}`
+      : null,
   });
 }
 
@@ -108,7 +116,20 @@ export async function PUT(
     },
   });
 
-  return NextResponse.json(hydratedMeeting);
+  const hasAudio =
+    Boolean(hydratedMeeting?.audioMimeType) &&
+    hydratedMeeting
+      ? await hasMeetingAudioFile(hydratedMeeting.id)
+      : false;
+
+  return NextResponse.json({
+    ...hydratedMeeting,
+    hasAudio,
+    audioUrl:
+      hydratedMeeting && hasAudio
+        ? `/api/meetings/${hydratedMeeting.id}/audio?t=${hydratedMeeting.audioUpdatedAt?.getTime() || 0}`
+        : null,
+  });
 }
 
 // DELETE /api/meetings/[id] — 删除会议
@@ -118,6 +139,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
 
+  await deleteMeetingAudioFile(id);
   await prisma.meeting.delete({ where: { id } });
 
   return NextResponse.json({ success: true });

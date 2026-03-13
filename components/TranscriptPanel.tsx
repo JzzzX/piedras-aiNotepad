@@ -8,6 +8,8 @@ import {
   Copy,
   MessageSquare,
   Mic,
+  Pause,
+  Play,
   Search,
   Trash2,
   User,
@@ -15,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
+import type { TranscriptSegment } from '@/lib/types';
 
 function getSpeakerStyle(speaker: string) {
   if (speaker.includes('麦克风') || speaker === '我（麦克风）') {
@@ -24,7 +27,7 @@ function getSpeakerStyle(speaker: string) {
       label: 'ME',
     };
   }
-  if (speaker.includes('系统音频') || speaker.includes('对方')) {
+  if (speaker.includes('系统音频') || speaker.includes('对方') || speaker === '录音文件') {
     return {
       dot: 'bg-teal-400',
       icon: Volume2,
@@ -36,8 +39,8 @@ function getSpeakerStyle(speaker: string) {
     'Speaker B': { dot: 'bg-teal-400' },
     'Speaker C': { dot: 'bg-purple-400' },
   };
-  const c = colors[speaker] || { dot: 'bg-stone-400' };
-  return { ...c, icon: User, label: speaker.toUpperCase() };
+  const color = colors[speaker] || { dot: 'bg-stone-400' };
+  return { ...color, icon: User, label: speaker.toUpperCase() };
 }
 
 function escapeRegExp(value: string) {
@@ -59,6 +62,10 @@ function formatRelativeTime(offsetMs: number) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+function formatSeconds(seconds: number) {
+  return formatRelativeTime(seconds * 1000);
+}
+
 function highlightText(text: string, query: string) {
   const trimmedQuery = query.trim();
   if (!trimmedQuery) return text;
@@ -70,10 +77,7 @@ function highlightText(text: string, query: string) {
   return parts.map((part, index) => {
     if (part.toLocaleLowerCase() === normalizedQuery) {
       return (
-        <mark
-          key={`${part}-${index}`}
-          className="rounded bg-amber-100 px-0.5 text-amber-900"
-        >
+        <mark key={`${part}-${index}`} className="rounded bg-amber-100 px-0.5 text-amber-900">
           {part}
         </mark>
       );
@@ -96,14 +100,21 @@ export default function TranscriptPanel() {
     isPersistedMeeting,
     removeSegment,
     saveMeeting,
+    audioUrl,
+    audioDuration,
+    duration,
   } = useMeetingStore();
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const segmentRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
   const [copiedSegmentId, setCopiedSegmentId] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState('');
+  const [playbackTime, setPlaybackTime] = useState(0);
+  const [mediaDuration, setMediaDuration] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -157,6 +168,29 @@ export default function TranscriptPanel() {
     });
   }, [activeMatchedSegmentId]);
 
+  const playerDuration = Math.max(mediaDuration, audioDuration || 0, duration || 0);
+  const effectivePlaybackTime = audioUrl ? playbackTime : 0;
+  const effectiveIsPlaying = audioUrl ? isPlaying : false;
+
+  const activePlaybackSegmentId = useMemo(() => {
+    if (effectivePlaybackTime <= 0) return null;
+    return (
+      segments.find((segment) => {
+        const start = Math.max(0, (segment.startTime - baseTime) / 1000);
+        const end = Math.max(start + 0.2, (segment.endTime - baseTime) / 1000);
+        return effectivePlaybackTime >= start && effectivePlaybackTime <= end;
+      })?.id || null
+    );
+  }, [baseTime, effectivePlaybackTime, segments]);
+
+  useEffect(() => {
+    if (!activePlaybackSegmentId || !isPlaying) return;
+    segmentRefs.current[activePlaybackSegmentId]?.scrollIntoView({
+      block: 'nearest',
+      behavior: 'smooth',
+    });
+  }, [activePlaybackSegmentId, isPlaying]);
+
   const jumpToMatch = (direction: 'prev' | 'next') => {
     if (matchedSegmentIds.length === 0) return;
     setActiveMatchIndex((prev) => {
@@ -187,8 +221,39 @@ export default function TranscriptPanel() {
 
     const meetingExistsInList = meetingList.some((meeting) => meeting.id === meetingId);
     if (isPersistedMeeting || meetingExistsInList) {
-      await saveMeeting({ allowEmpty: true });
+      await saveMeeting({ allowEmpty: true, includeAudio: false });
     }
+  };
+
+  const handleSeekToSegment = async (segment: TranscriptSegment) => {
+    if (!audioRef.current || !audioUrl) return;
+    const target = Math.max(0, (segment.startTime - baseTime) / 1000);
+    audioRef.current.currentTime = Math.min(target, playerDuration || target);
+    setPlaybackTime(audioRef.current.currentTime);
+
+    try {
+      await audioRef.current.play();
+      setIsPlaying(true);
+    } catch {
+      setActionMessage('浏览器阻止了自动播放，请再点一次播放按钮');
+    }
+  };
+
+  const handleTogglePlayback = async () => {
+    if (!audioRef.current || !audioUrl) return;
+
+    if (audioRef.current.paused) {
+      try {
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } catch {
+        setActionMessage('浏览器阻止了自动播放，请重试');
+      }
+      return;
+    }
+
+    audioRef.current.pause();
+    setIsPlaying(false);
   };
 
   if (status === 'idle') {
@@ -219,6 +284,25 @@ export default function TranscriptPanel() {
 
   return (
     <div className="flex h-full flex-col bg-transparent">
+      <audio
+        key={audioUrl || 'no-audio'}
+        ref={audioRef}
+        src={audioUrl || undefined}
+        preload="metadata"
+        onLoadedMetadata={(event) => {
+          setPlaybackTime(0);
+          setMediaDuration(event.currentTarget.duration || 0);
+          setIsPlaying(false);
+        }}
+        onTimeUpdate={(event) => {
+          setPlaybackTime(event.currentTarget.currentTime);
+        }}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
+        className="hidden"
+      />
+
       <div className="border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
@@ -302,7 +386,7 @@ export default function TranscriptPanel() {
           {searchQuery.trim() ? (
             <p className="text-xs text-[#8C7A6B]">
               {matchedSegmentIds.length > 0
-                  ? `找到 ${safeActiveMatchIndex + 1} / ${matchedSegmentIds.length} 条匹配`
+                ? `找到 ${safeActiveMatchIndex + 1} / ${matchedSegmentIds.length} 条匹配`
                 : `未找到“${searchQuery.trim()}”`}
             </p>
           ) : actionMessage ? (
@@ -317,6 +401,9 @@ export default function TranscriptPanel() {
           const isSystemPlaceholder = segment.text.startsWith('[对方正在发言');
           const isMatched = matchedSegmentIds.includes(segment.id);
           const isActiveMatch = activeMatchedSegmentId === segment.id;
+          const isPlayingHere = activePlaybackSegmentId === segment.id;
+          const segmentOffset = Math.max(0, (segment.startTime - baseTime) / 1000);
+          const canSeek = Boolean(audioUrl) && !isSystemPlaceholder;
 
           return (
             <div
@@ -327,18 +414,18 @@ export default function TranscriptPanel() {
               className={`group relative rounded-2xl border transition-all duration-300 ${
                 isSystemPlaceholder ? 'opacity-50 grayscale' : ''
               } ${
-                isActiveMatch
-                  ? 'border-sky-300 bg-sky-50/30 ring-4 ring-sky-500/5'
-                  : isMatched
-                    ? 'border-amber-200 bg-amber-50/50'
-                    : 'border-[#E3D9CE] bg-white hover:border-[#D8CEC4] hover:shadow-md'
+                isPlayingHere
+                  ? 'border-indigo-300 bg-indigo-50/40 ring-4 ring-indigo-500/5'
+                  : isActiveMatch
+                    ? 'border-sky-300 bg-sky-50/30 ring-4 ring-sky-500/5'
+                    : isMatched
+                      ? 'border-amber-200 bg-amber-50/50'
+                      : 'border-[#E3D9CE] bg-white hover:border-[#D8CEC4] hover:shadow-md'
               } px-5 py-4`}
             >
               <div className="absolute right-3 top-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
-                  onClick={() =>
-                    handleCopySegment(segment.speaker, segment.text, segment.id)
-                  }
+                  onClick={() => handleCopySegment(segment.speaker, segment.text, segment.id)}
                   className="rounded-lg border border-[#E3D9CE] bg-white p-2 text-[#A69B8F] transition-all hover:bg-[#F7F3EE] hover:text-[#4A3C31]"
                   title="复制该段"
                 >
@@ -358,16 +445,26 @@ export default function TranscriptPanel() {
               </div>
 
               <div className="mb-3 flex items-center gap-3 pr-20">
-                <span className="inline-flex items-center gap-2 rounded-lg bg-[#F7F3EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#8C7A6B] border border-[#E3D9CE]">
+                <span className="inline-flex items-center gap-2 rounded-lg border border-[#E3D9CE] bg-[#F7F3EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#8C7A6B]">
                   <span className={`h-1.5 w-1.5 rounded-full ${style.dot} shadow-sm`} />
                   {getSpeakerDisplayName(segment.speaker)}
                 </span>
-                <span
-                  title={new Date(segment.startTime).toLocaleString('zh-CN')}
-                  className="cursor-default font-mono text-[10px] font-bold tracking-tighter text-[#A69B8F]"
-                >
-                  {formatRelativeTime(segment.startTime - baseTime)}
-                </span>
+                {canSeek ? (
+                  <button
+                    onClick={() => void handleSeekToSegment(segment)}
+                    className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 font-mono text-[10px] font-bold tracking-tighter text-indigo-600 transition-colors hover:bg-indigo-100"
+                    title="跳到这段并播放"
+                  >
+                    {formatSeconds(segmentOffset)}
+                  </button>
+                ) : (
+                  <span
+                    title={new Date(segment.startTime).toLocaleString('zh-CN')}
+                    className="cursor-default font-mono text-[10px] font-bold tracking-tighter text-[#A69B8F]"
+                  >
+                    {formatSeconds(segmentOffset)}
+                  </span>
+                )}
               </div>
               <p
                 className={`text-[15px] leading-relaxed text-[#3A2E25] selection:bg-sky-100 ${
@@ -387,7 +484,9 @@ export default function TranscriptPanel() {
               <Mic size={11} className="text-blue-400" />
               <span className="text-xs font-medium text-blue-500">识别中...</span>
             </div>
-            <p className="text-sm italic text-blue-500/80">{highlightText(currentPartial, searchQuery)}</p>
+            <p className="text-sm italic text-blue-500/80">
+              {highlightText(currentPartial, searchQuery)}
+            </p>
           </div>
         )}
 
@@ -404,49 +503,83 @@ export default function TranscriptPanel() {
         {segments.length === 0 && !currentPartial && status === 'recording' && (
           <div className="flex flex-col items-center justify-center py-8 text-[#A69B8F]">
             <div className="mb-3 flex gap-1">
-              <div
-                className="h-3 w-1 animate-pulse rounded bg-sky-300"
-                style={{ animationDelay: '0ms' }}
-              />
-              <div
-                className="h-4 w-1 animate-pulse rounded bg-sky-400"
-                style={{ animationDelay: '150ms' }}
-              />
-              <div
-                className="h-5 w-1 animate-pulse rounded bg-sky-500"
-                style={{ animationDelay: '300ms' }}
-              />
-              <div
-                className="h-4 w-1 animate-pulse rounded bg-sky-400"
-                style={{ animationDelay: '150ms' }}
-              />
-              <div
-                className="h-3 w-1 animate-pulse rounded bg-sky-300"
-                style={{ animationDelay: '0ms' }}
-              />
+              <div className="h-3 w-1 animate-pulse rounded bg-sky-300" style={{ animationDelay: '0ms' }} />
+              <div className="h-4 w-1 animate-pulse rounded bg-sky-400" style={{ animationDelay: '150ms' }} />
+              <div className="h-5 w-1 animate-pulse rounded bg-sky-500" style={{ animationDelay: '300ms' }} />
+              <div className="h-4 w-1 animate-pulse rounded bg-sky-400" style={{ animationDelay: '150ms' }} />
+              <div className="h-3 w-1 animate-pulse rounded bg-sky-300" style={{ animationDelay: '0ms' }} />
             </div>
             <p className="text-xs">正在聆听...</p>
           </div>
         )}
       </div>
 
-      {segments.length > 0 && (
-        <div className="border-t border-[#E3D9CE] px-4 py-2">
-          <div className="flex flex-wrap gap-3">
-            {Array.from(new Set(segments.map((segment) => segment.speaker))).map((speaker) => {
-              const style = getSpeakerStyle(speaker);
-              const Icon = style.icon;
-              return (
-                <div key={speaker} className="flex items-center gap-1.5 text-xs text-[#8C7A6B]">
-                  <div className={`h-2 w-2 rounded-full ${style.dot}`} />
-                  <Icon size={10} />
-                  <span>{getSpeakerDisplayName(speaker)}</span>
-                </div>
-              );
-            })}
+      <div className="border-t border-[#E3D9CE] bg-[#FCFAF8]/95 px-4 py-3 backdrop-blur">
+        <div className="rounded-2xl border border-[#E3D9CE] bg-white px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => void handleTogglePlayback()}
+              disabled={!audioUrl}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2B2420] text-white transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:bg-[#C4B6A9]"
+            >
+              {effectiveIsPlaying ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}
+            </button>
+
+            <div className="min-w-[44px] text-[12px] font-medium tabular-nums text-[#5C4D42]">
+              {formatSeconds(effectivePlaybackTime)}
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={Math.max(playerDuration, 0)}
+              step={0.1}
+              value={Math.min(effectivePlaybackTime, playerDuration || 0)}
+              disabled={!audioUrl || playerDuration <= 0}
+              onChange={(event) => {
+                const nextTime = Number(event.target.value);
+                setPlaybackTime(nextTime);
+                if (audioRef.current) {
+                  audioRef.current.currentTime = nextTime;
+                }
+              }}
+              className="h-1 flex-1 cursor-pointer accent-[#4A3C31]"
+            />
+
+            <div className="min-w-[44px] text-right text-[12px] font-medium tabular-nums text-[#8C7A6B]">
+              {formatSeconds(playerDuration)}
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[12px] text-[#8C7A6B]">
+              {audioUrl
+                ? status === 'recording'
+                  ? '可回放到当前已录进度；点任意时间戳可跳播。'
+                  : '点任意时间戳可直接跳到对应段落回放。'
+                : status === 'recording'
+                  ? '正在生成本地回放音频，录到首个片段后即可播放。'
+                  : '当前会议还没有可回放音频。'}
+            </p>
+
+            {segments.length > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {Array.from(new Set(segments.map((segment) => segment.speaker))).map((speaker) => {
+                  const style = getSpeakerStyle(speaker);
+                  const Icon = style.icon;
+                  return (
+                    <div key={speaker} className="flex items-center gap-1.5 text-xs text-[#8C7A6B]">
+                      <div className={`h-2 w-2 rounded-full ${style.dot}`} />
+                      <Icon size={10} />
+                      <span>{getSpeakerDisplayName(speaker)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
