@@ -12,26 +12,24 @@ import {
   X,
 } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
-import { enhanceNotes } from '@/lib/llm';
 import { buildUnifiedMeetingMarkdown } from '@/lib/meeting-export';
 
 type ShareChannel = 'feishu' | 'wecom';
 const SHARE_STORAGE_KEY = 'ai-notepad-webhook-config-v1';
 
-export default function EnhancedNotes() {
+export default function EnhancedNotes({
+  embedded = false,
+  onGenerate,
+}: {
+  embedded?: boolean;
+  onGenerate?: () => void;
+}) {
   const {
-    segments,
-    userNotes,
     meetingTitle,
     meetingDate,
     enhancedNotes,
     isEnhancing,
-    speakers,
     status,
-    promptOptions,
-    llmSettings,
-    setEnhancedNotes,
-    setIsEnhancing,
   } = useMeetingStore();
 
   const [copied, setCopied] = useState(false);
@@ -72,29 +70,6 @@ export default function EnhancedNotes() {
       }),
     [enhancedNotes, meetingDate, meetingTitle]
   );
-
-  const handleGenerate = async () => {
-    if (isEnhancing) return;
-    setIsEnhancing(true);
-    try {
-      const result = await enhanceNotes(
-        segments,
-        userNotes,
-        meetingTitle,
-        speakers,
-        undefined,
-        promptOptions,
-        llmSettings
-      );
-      setEnhancedNotes(result);
-    } catch (error) {
-      console.error('Enhance error:', error);
-      const detail = error instanceof Error ? error.message : '未知错误';
-      setEnhancedNotes(`生成失败：${detail}`);
-    } finally {
-      setIsEnhancing(false);
-    }
-  };
 
   const handleCopy = async () => {
     const markdown = buildUnifiedMeetingMarkdown({
@@ -193,13 +168,29 @@ export default function EnhancedNotes() {
     }
   };
 
-  const canGenerate = status === 'ended' || segments.length > 0;
+  const canGenerate = status === 'ended';
+  const triggerGenerate = () => {
+    onGenerate?.();
+  };
 
   if (!enhancedNotes && !isEnhancing) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-8">
+      <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-8 text-center">
+        {embedded && (
+          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-100/60 bg-sky-50 shadow-sm">
+            <Sparkles size={20} className="text-sky-500" />
+          </div>
+        )}
+        {embedded && (
+          <>
+            <p className="font-song text-[18px] font-semibold text-stone-700">AI 总结</p>
+            <p className="max-w-[360px] text-[13px] leading-6 text-stone-400">
+              录音结束后，可以把转写和用户笔记融合成结构化总结。
+            </p>
+          </>
+        )}
         <button
-          onClick={handleGenerate}
+          onClick={triggerGenerate}
           disabled={!canGenerate}
           className="flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3 text-[15px] font-semibold text-white shadow-sm transition-all hover:bg-sky-400 hover:shadow-md active:scale-95 disabled:opacity-40 disabled:hover:bg-sky-500 disabled:shadow-none"
         >
@@ -214,9 +205,9 @@ export default function EnhancedNotes() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full flex-col">
       {isEnhancing ? (
-        <div className="flex flex-col items-center justify-center py-10">
+        <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center">
           <Loader2 size={24} className="animate-spin text-sky-400 mb-3" />
           <p className="text-[14px] font-semibold text-stone-600">AI 正在融合转写与笔记...</p>
           <p className="text-[12px] text-stone-400 mt-1">
@@ -225,11 +216,18 @@ export default function EnhancedNotes() {
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between">
-            <h4 className="font-song flex items-center gap-1.5 text-[15px] font-semibold text-stone-800">
-              <Sparkles size={16} className="text-sky-500" />
-              AI 会议纪要
-            </h4>
+          <div className="flex items-center justify-between border-b border-black/[0.04] px-5 py-4 sm:px-6">
+            <div>
+              <h4 className="font-song flex items-center gap-1.5 text-[15px] font-semibold text-stone-800">
+                <Sparkles size={16} className="text-sky-500" />
+                AI 会议纪要
+              </h4>
+              {embedded && (
+                <p className="mt-1 text-xs text-stone-400">
+                  结构化总结会基于转写和用户笔记共同生成。
+                </p>
+              )}
+            </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={handleCopy}
@@ -265,7 +263,7 @@ export default function EnhancedNotes() {
                 <Share2 size={14} />
               </button>
               <button
-                onClick={handleGenerate}
+                onClick={triggerGenerate}
                 className="rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-white hover:text-stone-700 hover:shadow-sm"
                 title="重新生成"
               >
@@ -273,14 +271,18 @@ export default function EnhancedNotes() {
               </button>
             </div>
           </div>
-          <div className="prose prose-sm prose-stone max-w-none rounded-2xl border border-black/[0.04] bg-white p-6 shadow-sm">
-            <div className="whitespace-pre-wrap text-[15px] leading-relaxed font-sans text-stone-800">
-              {enhancedNotes}
+
+          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+            <div className="prose prose-sm prose-stone max-w-none rounded-2xl border border-black/[0.04] bg-white p-6 shadow-sm">
+              <div className="whitespace-pre-wrap text-[15px] leading-relaxed font-sans text-stone-800">
+                {enhancedNotes}
+              </div>
             </div>
+
+            {feedback && (
+              <p className="mt-4 text-[12px] font-medium text-stone-500">{feedback}</p>
+            )}
           </div>
-          {feedback && (
-            <p className="text-[12px] font-medium text-stone-500">{feedback}</p>
-          )}
         </>
       )}
 

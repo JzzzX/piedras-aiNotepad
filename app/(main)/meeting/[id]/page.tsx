@@ -9,12 +9,11 @@ import {
   PenLine,
   RotateCcw,
 } from 'lucide-react';
-import NoteEditor from '@/components/NoteEditor';
 import FloatingBottomBar from '@/components/FloatingBottomBar';
 import FloatingTranscript from '@/components/FloatingTranscript';
 import FloatingChat from '@/components/FloatingChat';
 import FloatingKnowledgeBase from '@/components/FloatingKnowledgeBase';
-import EnhancedNotes from '@/components/EnhancedNotes';
+import MeetingNotesWorkspace from '@/components/MeetingNotesWorkspace';
 import { useMeetingStore } from '@/lib/store';
 import { generateMeetingTitle } from '@/lib/llm';
 
@@ -174,14 +173,8 @@ export default function MeetingPage() {
 
       {/* Editor */}
       <main className="flex-1 overflow-y-auto pb-32 custom-scrollbar">
-        <div className="mx-auto flex min-h-full max-w-4xl flex-col bg-white px-6 py-8 shadow-sm ring-1 ring-gray-100 sm:my-6 sm:rounded-3xl sm:px-12 sm:py-10">
-          <NoteEditor />
-
-          {(status === 'ended' || segments.length > 0) && (
-            <div className="mt-8 space-y-6 border-t border-gray-100 pt-8">
-              <EnhancedNotes />
-            </div>
-          )}
+        <div className="mx-auto flex min-h-full max-w-4xl flex-col px-2 py-6 sm:my-6 sm:px-0 sm:py-2">
+          <MeetingNotesWorkspace />
         </div>
       </main>
 

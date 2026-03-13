@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { useMeetingStore } from '@/lib/store';
 import { FileText, Bold, Italic, List, ListOrdered, Heading2 } from 'lucide-react';
 
-export default function NoteEditor() {
+export default function NoteEditor({ embedded = false }: { embedded?: boolean }) {
   const { status, userNotes, setUserNotes } = useMeetingStore();
 
   const editor = useEditor({
@@ -26,12 +26,14 @@ export default function NoteEditor() {
   if (status === 'idle') {
     return (
       <div className="flex h-full flex-col bg-transparent">
-        <div className="border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
-          <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
-            <FileText size={16} className="mr-2 text-sky-400" />
-            灵感与笔记
-          </h3>
-        </div>
+        {!embedded && (
+          <div className="border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
+            <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
+              <FileText size={16} className="mr-2 text-sky-400" />
+              灵感与笔记
+            </h3>
+          </div>
+        )}
         <div className="flex flex-1 items-center justify-center px-4 py-5 text-stone-400 sm:px-7 sm:py-8">
           <div className="flex w-full max-w-[360px] flex-col items-center justify-center rounded-[28px] border border-dashed border-stone-200/90 bg-[#FCFBF8] px-5 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-8 sm:py-10">
             <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-100/50 bg-sky-50 shadow-sm">
@@ -51,12 +53,14 @@ export default function NoteEditor() {
 
   return (
     <div className="flex h-full flex-col bg-transparent">
-      <div className="border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
-        <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
-          <FileText size={16} className="mr-2 text-sky-400" />
-          灵感与笔记
-        </h3>
-      </div>
+      {!embedded && (
+        <div className="border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
+          <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
+            <FileText size={16} className="mr-2 text-sky-400" />
+            灵感与笔记
+          </h3>
+        </div>
+      )}
       {/* 极简工具栏悬浮 */}
       {editor && (
         <div className="sticky top-0 z-10 flex items-center gap-1 border-b border-black/[0.04] bg-[#FCFAF8]/90 px-6 py-4 backdrop-blur-md">
@@ -100,7 +104,7 @@ export default function NoteEditor() {
       )}
 
       {/* 沉浸式编辑区 */}
-      <div className="flex-1 overflow-y-auto px-8 py-8 bg-[#FCFAF8]">
+      <div className="flex-1 overflow-y-auto bg-[#FCFAF8] px-8 py-8">
         <EditorContent editor={editor} />
       </div>
     </div>
