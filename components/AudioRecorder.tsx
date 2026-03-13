@@ -54,6 +54,7 @@ interface AsrSessionResponse {
     token: string;
     appKey: string;
     tokenExpireTime: number | null;
+    vocabularyId?: string | null;
   };
   error?: string;
 }
@@ -179,6 +180,7 @@ export default function AudioRecorder() {
     setMeetingTitle,
     updateDuration,
     setAudioLevels,
+    currentWorkspaceId,
   } = useMeetingStore();
 
   const [hasSystemAudio, setHasSystemAudio] = useState(false);
@@ -510,6 +512,7 @@ export default function AudioRecorder() {
               enable_intermediate_result: true,
               enable_punctuation_prediction: true,
               enable_inverse_text_normalization: true,
+              ...(session.vocabularyId ? { vocabulary_id: session.vocabularyId } : {}),
             },
           })
         );
@@ -620,7 +623,7 @@ export default function AudioRecorder() {
   );
 
   const createAliyunSession = useCallback(
-    async (includeSystemAudio = false) => {
+    async (includeSystemAudio = false, workspaceId?: string | null) => {
       const res = await fetch('/api/asr/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -628,6 +631,7 @@ export default function AudioRecorder() {
           sampleRate: PCM_SAMPLE_RATE,
           channels: 1,
           includeSystemAudio,
+          workspaceId: workspaceId || undefined,
         }),
       });
 
@@ -785,6 +789,7 @@ export default function AudioRecorder() {
                 enable_intermediate_result: true,
                 enable_punctuation_prediction: true,
                 enable_inverse_text_normalization: true,
+                ...(session.vocabularyId ? { vocabulary_id: session.vocabularyId } : {}),
               },
             })
           );
@@ -923,7 +928,7 @@ export default function AudioRecorder() {
         setMeetingTitle(file.name.replace(/\.[^.]+$/, ''));
         setCurrentPartial('正在解析音频文件...');
 
-        const session = await createAliyunSession(false);
+        const session = await createAliyunSession(false, currentWorkspaceId);
         setCurrentPartial('正在上传并转写音频...');
         await transcribeAudioFile(session, file);
 
@@ -952,6 +957,7 @@ export default function AudioRecorder() {
     },
     [
       createAliyunSession,
+      currentWorkspaceId,
       endMeeting,
       loadAsrStatus,
       loadMeetingList,
@@ -969,7 +975,7 @@ export default function AudioRecorder() {
     async (micStream: MediaStream, systemStream?: MediaStream) => {
       stopAliyunRecognition();
 
-      const session = await createAliyunSession(Boolean(systemStream));
+      const session = await createAliyunSession(Boolean(systemStream), currentWorkspaceId);
 
       createAliyunChannel(session, micStream, 'mic');
       if (systemStream) {
@@ -978,7 +984,7 @@ export default function AudioRecorder() {
 
       aliyunEnabledRef.current = true;
     },
-    [createAliyunChannel, createAliyunSession, stopAliyunRecognition]
+    [createAliyunChannel, createAliyunSession, currentWorkspaceId, stopAliyunRecognition]
   );
 
   const cleanupLocalTracks = useCallback(() => {

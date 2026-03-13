@@ -64,6 +64,18 @@ export interface Workspace {
   sortOrder: number;
 }
 
+export type CustomVocabularyScope = 'global' | 'workspace';
+
+export interface AsrVocabularySyncStatus {
+  supported: boolean;
+  mode: 'browser' | 'aliyun';
+  ready: boolean;
+  remoteVocabularyId: string | null;
+  lastSyncedAt: string | null;
+  lastError: string | null;
+  message: string;
+}
+
 export interface Folder {
   id: string;
   name: string;

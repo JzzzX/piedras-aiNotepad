@@ -8,16 +8,17 @@ datasource db {
 }
 
 model Workspace {
-  id          String   @id @default(uuid())
-  name        String
-  description String   @default("")
-  icon        String   @default("folder")
-  color       String   @default("#94a3b8")
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  meetings    Meeting[]
-  folders     Folder[]
+  id                    String                 @id @default(uuid())
+  name                  String
+  description           String                 @default("")
+  icon                  String                 @default("folder")
+  color                 String                 @default("#94a3b8")
+  sortOrder             Int                    @default(0)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  meetings              Meeting[]
+  folders               Folder[]
+  customVocabularyTerms CustomVocabularyTerm[]
 }
 
 model Meeting {
@@ -89,4 +90,28 @@ model PromptTemplate {
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model CustomVocabularyTerm {
+  id          String    @id @default(uuid())
+  term        String
+  scope       String
+  workspaceId String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([scope, workspaceId, term])
+  @@index([scope, workspaceId])
+}
+
+model AsrVocabularySyncState {
+  id                String   @id
+  remoteVocabularyId String?
+  contentHash       String   @default("")
+  lastSyncedAt      DateTime?
+  lastError         String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
