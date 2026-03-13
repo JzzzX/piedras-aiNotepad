@@ -39,6 +39,7 @@ export async function PUT(
     status,
     duration,
     folderId,
+    workspaceId,
     userNotes,
     enhancedNotes,
     speakers,
@@ -52,6 +53,7 @@ export async function PUT(
   if (status !== undefined) updateData.status = status;
   if (duration !== undefined) updateData.duration = duration;
   if (folderId !== undefined) updateData.folderId = folderId || null;
+  if (workspaceId !== undefined) updateData.workspaceId = workspaceId;
   if (userNotes !== undefined) updateData.userNotes = userNotes;
   if (enhancedNotes !== undefined) updateData.enhancedNotes = enhancedNotes;
   if (speakers !== undefined) updateData.speakers = JSON.stringify(speakers);

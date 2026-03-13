@@ -35,6 +35,7 @@ export default function Sidebar() {
     loadFolders,
     loadMeetingList,
     loadWorkspaces,
+    updateMeetingWorkspace,
     reset,
   } = useMeetingStore();
 
@@ -45,6 +46,7 @@ export default function Sidebar() {
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#94a3b8');
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  const [dragOverWorkspaceId, setDragOverWorkspaceId] = useState<string | null>(null);
 
   useEffect(() => {
     void loadWorkspaces();
@@ -119,6 +121,15 @@ export default function Sidebar() {
     if (workspaces.length <= 1) return;
     await deleteWorkspace(id);
     await loadFolders();
+    await loadMeetingList();
+  };
+
+  const handleWorkspaceDrop = async (workspaceId: string, meetingId: string) => {
+    setDragOverWorkspaceId(null);
+    const meeting = useMeetingStore.getState().meetingList.find((item) => item.id === meetingId);
+    if (!meeting || meeting.workspaceId === workspaceId) return;
+
+    await updateMeetingWorkspace(meetingId, workspaceId);
     await loadMeetingList();
   };
 
@@ -204,10 +215,27 @@ export default function Sidebar() {
                 </div>
               ) : (
                 <div
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setDragOverWorkspaceId(ws.id);
+                  }}
+                  onDragLeave={() => {
+                    setDragOverWorkspaceId((prev) => (prev === ws.id ? null : prev));
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    const meetingIdValue = event.dataTransfer.getData('text/meeting-id');
+                    if (!meetingIdValue) return;
+                    void handleWorkspaceDrop(ws.id, meetingIdValue);
+                  }}
                   className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-all ${
                     ws.id === currentWorkspaceId
                       ? 'bg-white font-semibold text-[#3A2E25] shadow-sm border border-[#E3D9CE]/50'
                       : 'text-[#5C4D42] hover:bg-[#EFE9E2]'
+                  } ${
+                    dragOverWorkspaceId === ws.id
+                      ? 'ring-2 ring-sky-300 ring-offset-1 ring-offset-[#F7F3EE]'
+                      : ''
                   }`}
                 >
                   <button

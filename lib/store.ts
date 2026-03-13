@@ -12,6 +12,8 @@ import {
 } from './types';
 import { DEFAULT_LLM_SETTINGS, normalizeLlmSettings } from './llm-config';
 
+export type MeetingListScope = 'current' | 'all';
+
 // 会议列表项（从 API 返回的精简结构）
 export interface MeetingListItem {
   id: string;
@@ -21,7 +23,9 @@ export interface MeetingListItem {
   duration: number;
   createdAt: string;
   folderId: string | null;
+  workspaceId: string;
   folder?: Folder | null;
+  workspace?: Pick<Workspace, 'id' | 'name' | 'color'> | null;
   _count: { segments: number; chatMessages: number };
 }
 
@@ -30,6 +34,7 @@ export interface MeetingListFilters {
   dateFrom?: string;
   dateTo?: string;
   folderId?: string | null;
+  workspaceScope?: MeetingListScope;
 }
 
 interface MeetingStore {
@@ -76,6 +81,7 @@ interface MeetingStore {
 
   // 会议列表
   meetingList: MeetingListItem[];
+  meetingListScope: MeetingListScope;
   isLoadingList: boolean;
   isSaving: boolean;
   isPersistedMeeting: boolean;
@@ -114,6 +120,8 @@ interface MeetingStore {
   createFolder: (input: { name: string; color: string }) => Promise<Folder | null>;
   deleteFolder: (folderId: string) => Promise<void>;
   updateMeetingFolder: (meetingId: string, folderId: string | null) => Promise<void>;
+  updateMeetingWorkspace: (meetingId: string, workspaceId: string) => Promise<void>;
+  setMeetingListScope: (scope: MeetingListScope) => void;
 
   // Workspace Actions
   loadWorkspaces: () => Promise<void>;
@@ -161,6 +169,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   systemAudioActive: false,
   micActive: false,
   meetingList: [],
+  meetingListScope: 'current',
   isLoadingList: false,
   isSaving: false,
   isPersistedMeeting: false,
@@ -384,8 +393,9 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       if (filters?.dateFrom) params.set('dateFrom', filters.dateFrom);
       if (filters?.dateTo) params.set('dateTo', filters.dateTo);
       if (filters?.folderId) params.set('folderId', filters.folderId);
+      const scope = filters?.workspaceScope || get().meetingListScope;
       const wsId = get().currentWorkspaceId;
-      if (wsId) params.set('workspaceId', wsId);
+      if (scope === 'current' && wsId) params.set('workspaceId', wsId);
 
       const queryString = params.toString();
       const res = await fetch(`/api/meetings${queryString ? `?${queryString}` : ''}`);
@@ -500,6 +510,48 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       console.error('更新会议分组失败:', e);
     }
   },
+
+  updateMeetingWorkspace: async (meetingId, workspaceId) => {
+    try {
+      const res = await fetch(`/api/meetings/${meetingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workspaceId, folderId: null }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error((data as { error?: string }).error || '更新会议工作区失败');
+      }
+
+      const nextWorkspace =
+        get().workspaces.find((workspace) => workspace.id === workspaceId) || null;
+
+      set((state) => ({
+        meetingList: state.meetingList.map((meeting) =>
+          meeting.id === meetingId
+            ? {
+                ...meeting,
+                workspaceId,
+                workspace: nextWorkspace
+                  ? {
+                      id: nextWorkspace.id,
+                      name: nextWorkspace.name,
+                      color: nextWorkspace.color,
+                    }
+                  : null,
+                folderId: null,
+                folder: null,
+              }
+            : meeting
+        ),
+        currentFolderId: state.meetingId === meetingId ? null : state.currentFolderId,
+      }));
+    } catch (e) {
+      console.error('更新会议工作区失败:', e);
+    }
+  },
+
+  setMeetingListScope: (scope) => set({ meetingListScope: scope }),
 
   // ---- Workspace ----
 

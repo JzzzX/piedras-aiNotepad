@@ -66,7 +66,15 @@ export async function GET(req: NextRequest) {
       duration: true,
       createdAt: true,
       folderId: true,
+      workspaceId: true,
       folder: true,
+      workspace: {
+        select: {
+          id: true,
+          name: true,
+          color: true,
+        },
+      },
       _count: { select: { segments: true, chatMessages: true } },
     },
   });
