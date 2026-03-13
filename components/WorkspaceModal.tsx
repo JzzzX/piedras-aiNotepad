@@ -163,8 +163,8 @@ export default function WorkspaceModal({
         onClick={handleClose}
       />
 
-      <div className="relative z-10 flex w-full max-w-[720px] flex-col overflow-hidden rounded-[32px] border border-[#E3D9CE]/70 bg-[#FCF9F5] shadow-[0_30px_80px_rgba(58,46,37,0.18)] animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-start justify-between border-b border-[#E8DED3] px-6 py-5 sm:px-7">
+      <div className="relative z-10 flex w-full max-h-[90vh] max-w-[720px] flex-col overflow-hidden rounded-[32px] border border-[#E3D9CE]/70 bg-[#FCF9F5] shadow-[0_30px_80px_rgba(58,46,37,0.18)] animate-in fade-in zoom-in-95 duration-200">
+        <div className="shrink-0 flex items-start justify-between border-b border-[#E8DED3] px-6 py-5 sm:px-7">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#B29F8B]">Workspace</p>
             <h2 className="mt-2 font-song text-[24px] font-semibold text-[#3A2E25]">{title}</h2>
@@ -180,133 +180,135 @@ export default function WorkspaceModal({
           </button>
         </div>
 
-        <div className="grid gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[minmax(0,1.2fr)_280px]">
-          <div className="space-y-5">
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-[#5C4D42]">名称</span>
-              <input
-                ref={nameInputRef}
-                value={draft.name}
-                onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault();
-                    void handleSubmit();
-                  }
-                }}
-                placeholder="例如：Acme 项目"
-                className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
-              />
-            </label>
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="grid gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[minmax(0,1.2fr)_280px]">
+            <div className="space-y-5">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-[#5C4D42]">名称</span>
+                <input
+                  ref={nameInputRef}
+                  value={draft.name}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault();
+                      void handleSubmit();
+                    }
+                  }}
+                  placeholder="例如：Acme 项目"
+                  className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                />
+              </label>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-[#5C4D42]">描述</span>
-              <textarea
-                value={draft.description}
-                onChange={(event) => setDraft((prev) => ({ ...prev, description: event.target.value }))}
-                placeholder="一句话说明用途，可选"
-                rows={3}
-                className="w-full resize-none rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm leading-6 text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
-              />
-            </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-[#5C4D42]">描述</span>
+                <textarea
+                  value={draft.description}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, description: event.target.value }))}
+                  placeholder="一句话说明用途，可选"
+                  rows={3}
+                  className="w-full resize-none rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm leading-6 text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                />
+              </label>
 
-            <div>
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="block text-sm font-medium text-[#5C4D42]">图标</span>
-                {mode === 'create' ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-[#9D8B7B]">
-                    <WandSparkles size={12} />
-                    自动推荐
-                  </span>
-                ) : null}
-              </div>
-              <div className="grid grid-cols-5 gap-2.5 sm:grid-cols-5">
-                {WORKSPACE_ICON_OPTIONS.map((option) => {
-                  const selected = draft.icon === option.key;
-                  return (
-                    <button
-                      key={option.key}
-                      type="button"
-                      onClick={() => {
-                        setIconTouched(true);
-                        setDraft((prev) => ({ ...prev, icon: option.key }));
-                      }}
-                      className={`rounded-2xl border px-3 py-2.5 transition-all ${
-                        selected
-                          ? 'border-[#5C4D42] bg-white shadow-sm ring-2 ring-[#E8DED3]'
-                          : 'border-transparent bg-white/70 hover:border-[#D8CEC4] hover:bg-white'
-                      }`}
-                      aria-label={`选择图标 ${option.label}`}
-                      title={option.label}
-                    >
-                      <div className="flex items-center justify-center">
-                        <WorkspaceIconBadge icon={option.key} color={draft.color} size="sm" />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <span className="mb-3 block text-sm font-medium text-[#5C4D42]">颜色</span>
-              <div className="flex flex-wrap gap-3">
-                {PRESET_COLORS.map((color) => {
-                  const selected = draft.color === color;
-                  return (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setDraft((prev) => ({ ...prev, color }))}
-                      className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
-                        selected
-                          ? 'border-[#5C4D42] bg-white shadow-sm ring-2 ring-[#E8DED3]'
-                          : 'border-transparent bg-white/70 hover:border-[#D8CEC4] hover:bg-white'
-                      }`}
-                      aria-label={`选择颜色 ${color}`}
-                    >
-                      <span
-                        className="h-7 w-7 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {error ? (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                {error}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="rounded-[28px] border border-[#E8DED3] bg-white/80 p-5 shadow-sm">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#B29F8B]">
-              预览
-            </div>
-
-            <div className="mt-5 rounded-[24px] border border-[#E3D9CE] bg-white p-4 shadow-[0_10px_20px_rgba(58,46,37,0.08)]">
-              <div className="flex items-center gap-3">
-                <WorkspaceIconBadge icon={draft.icon} color={draft.color} size="lg" />
-                <div className="min-w-0">
-                  <div className="truncate text-base font-semibold text-[#3A2E25]">{previewName}</div>
-                  <div className="mt-1 line-clamp-2 text-xs text-[#A09082]">{previewDescription}</div>
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <span className="block text-sm font-medium text-[#5C4D42]">图标</span>
+                  {mode === 'create' ? (
+                    <span className="inline-flex items-center gap-1 text-xs text-[#9D8B7B]">
+                      <WandSparkles size={12} />
+                      自动推荐
+                    </span>
+                  ) : null}
+                </div>
+                <div className="grid grid-cols-5 gap-2.5 sm:grid-cols-5">
+                  {WORKSPACE_ICON_OPTIONS.map((option) => {
+                    const selected = draft.icon === option.key;
+                    return (
+                      <button
+                        key={option.key}
+                        type="button"
+                        onClick={() => {
+                          setIconTouched(true);
+                          setDraft((prev) => ({ ...prev, icon: option.key }));
+                        }}
+                        className={`rounded-2xl border px-3 py-2.5 transition-all ${
+                          selected
+                            ? 'border-[#5C4D42] bg-white shadow-sm ring-2 ring-[#E8DED3]'
+                            : 'border-transparent bg-white/70 hover:border-[#D8CEC4] hover:bg-white'
+                        }`}
+                        aria-label={`选择图标 ${option.label}`}
+                        title={option.label}
+                      >
+                        <div className="flex items-center justify-center">
+                          <WorkspaceIconBadge icon={option.key} color={draft.color} size="sm" />
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+
+              <div>
+                <span className="mb-3 block text-sm font-medium text-[#5C4D42]">颜色</span>
+                <div className="flex flex-wrap gap-3">
+                  {PRESET_COLORS.map((color) => {
+                    const selected = draft.color === color;
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setDraft((prev) => ({ ...prev, color }))}
+                        className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
+                          selected
+                            ? 'border-[#5C4D42] bg-white shadow-sm ring-2 ring-[#E8DED3]'
+                            : 'border-transparent bg-white/70 hover:border-[#D8CEC4] hover:bg-white'
+                        }`}
+                        aria-label={`选择颜色 ${color}`}
+                      >
+                        <span
+                          className="h-7 w-7 rounded-full"
+                          style={{ backgroundColor: color }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {error ? (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                  {error}
+                </div>
+              ) : null}
             </div>
 
-            {mode === 'create' ? (
-              <div className="mt-4 flex items-center gap-2 text-xs text-[#9D8B7B]">
-                <WorkspaceIconBadge icon={suggestedIcon} color={draft.color} size="sm" />
-                当前推荐：{WORKSPACE_ICON_OPTIONS.find((option) => option.key === suggestedIcon)?.label || '通用'}
+            <div className="rounded-[28px] border border-[#E8DED3] bg-white/80 p-5 shadow-sm lg:sticky lg:top-0 lg:h-fit">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#B29F8B]">
+                预览
               </div>
-            ) : null}
+
+              <div className="mt-5 rounded-[24px] border border-[#E3D9CE] bg-white p-4 shadow-[0_10px_20px_rgba(58,46,37,0.08)]">
+                <div className="flex items-center gap-3">
+                  <WorkspaceIconBadge icon={draft.icon} color={draft.color} size="lg" />
+                  <div className="min-w-0">
+                    <div className="truncate text-base font-semibold text-[#3A2E25]">{previewName}</div>
+                    <div className="mt-1 line-clamp-2 text-xs text-[#A09082]">{previewDescription}</div>
+                  </div>
+                </div>
+              </div>
+
+              {mode === 'create' ? (
+                <div className="mt-4 flex items-center gap-2 text-xs text-[#9D8B7B]">
+                  <WorkspaceIconBadge icon={suggestedIcon} color={draft.color} size="sm" />
+                  当前推荐：{WORKSPACE_ICON_OPTIONS.find((option) => option.key === suggestedIcon)?.label || '通用'}
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-[#E8DED3] bg-white/60 px-6 py-4 sm:px-7">
+        <div className="shrink-0 flex items-center justify-between border-t border-[#E8DED3] bg-white/60 px-6 py-4 sm:px-7">
           <div className="hidden items-center gap-2 text-sm text-[#9D8B7B] sm:flex">
             {mode === 'create' ? <Plus size={15} /> : <Pencil size={15} />}
             {mode === 'create' ? '创建后会自动切换' : '保存后立即生效'}
