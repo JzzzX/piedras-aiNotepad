@@ -14,6 +14,16 @@ interface VocabularyResponse {
   };
 }
 
+function formatVocabularyError(error: unknown) {
+  const message = error instanceof Error ? error.message : '加载自定义词汇失败';
+
+  if (message.includes("Cannot read properties of undefined (reading 'findMany')")) {
+    return '本地开发服务还没加载到最新数据库结构。重启 `npm run dev` 后再试即可。';
+  }
+
+  return message;
+}
+
 export default function AsrVocabularySettings() {
   const { currentWorkspaceId, workspaces, loadWorkspaces } = useMeetingStore();
   const [scope, setScope] = useState<CustomVocabularyScope>('global');
@@ -66,7 +76,7 @@ export default function AsrVocabularySettings() {
       setSyncStatus(data.syncStatus);
       setMaxTerms(data.limits.maxTerms);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : '加载自定义词汇失败');
+      setError(formatVocabularyError(loadError));
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +113,7 @@ export default function AsrVocabularySettings() {
       setSyncStatus(data.syncStatus);
       setSuccess(data.message || '已保存');
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : '保存自定义词汇失败');
+      setError(formatVocabularyError(saveError));
     } finally {
       setIsSaving(false);
     }
@@ -122,11 +132,20 @@ export default function AsrVocabularySettings() {
             自定义词汇
           </h4>
           <p className="mt-1 text-[12px] leading-relaxed text-[#8C7A6B]">
-            一行一个术语。实际识别时会合并全局词表与当前工作区词表。
+            把常被识别错的行业术语写在这里，一行一个。
           </p>
         </div>
         <div className="rounded-full border border-[#E3D9CE] bg-white px-3 py-1 text-[11px] text-[#8C7A6B]">
           最多 {maxTerms} 个有效词条
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-xl border border-[#E3D9CE] bg-white px-4 py-3 text-[12px] leading-relaxed text-[#6F6155]">
+          开始阿里云转写时，Piedras 会把这些词作为“热词”提交，识别时会优先参考这些写法。
+        </div>
+        <div className="rounded-xl border border-[#E3D9CE] bg-white px-4 py-3 text-[12px] leading-relaxed text-[#6F6155]">
+          `全局通用` 对所有会议生效；`当前工作区` 只对这个工作区生效。实际转写时会合并两者。
         </div>
       </div>
 
@@ -161,7 +180,7 @@ export default function AsrVocabularySettings() {
       ) : null}
 
       <div className={`rounded-xl border px-4 py-3 text-[12px] leading-relaxed ${helperTone}`}>
-        {syncStatus?.message || '词汇会保存在本地，阿里云 ASR 可用时自动参与识别。'}
+        {syncStatus?.message || '词汇会先保存在本地。阿里云 ASR 可用时，Piedras 会在开始转写时自动带上这些词。'}
         {syncStatus?.lastError ? (
           <div className="mt-2 rounded-lg bg-white/60 px-3 py-2 text-[11px] text-[#7B5B3B]">
             最近一次同步失败：{syncStatus.lastError}
@@ -170,7 +189,7 @@ export default function AsrVocabularySettings() {
       </div>
 
       <label className="block">
-        <span className="mb-2 block text-[12px] font-medium text-[#8C7A6B]">词条列表</span>
+        <span className="mb-2 block text-[12px] font-medium text-[#8C7A6B]">术语列表</span>
         <textarea
           value={termsText}
           onChange={(event) => {
@@ -179,7 +198,7 @@ export default function AsrVocabularySettings() {
             setError('');
           }}
           rows={9}
-          placeholder="例如：Piedras\nNLS\n专病库\n肿瘤标志物"
+          placeholder="每行一个术语，例如：\nPiedras\nNLS\n专病库\n肿瘤标志物"
           className="w-full resize-none rounded-2xl border border-[#E3D9CE] bg-white px-4 py-3 text-[13px] leading-6 text-[#4A3C31] placeholder:text-[#B4A79A] focus:border-[#BFAE9E] focus:outline-none"
         />
       </label>
