@@ -49,15 +49,9 @@ export default function Sidebar() {
   } = useMeetingStore();
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [workspaceListExpanded, setWorkspaceListExpanded] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem(WORKSPACE_EXPANDED_STORAGE_KEY) === 'true';
-  });
-  const [desktopWidth, setDesktopWidth] = useState(() => {
-    if (typeof window === 'undefined') return DESKTOP_SIDEBAR_DEFAULT_WIDTH;
-    const raw = Number(window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY));
-    return Number.isFinite(raw) ? clampSidebarWidth(raw) : DESKTOP_SIDEBAR_DEFAULT_WIDTH;
-  });
+  const [workspaceListExpanded, setWorkspaceListExpanded] = useState(false);
+  const [desktopWidth, setDesktopWidth] = useState(DESKTOP_SIDEBAR_DEFAULT_WIDTH);
+  const [mounted, setMounted] = useState(false);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   const [workspaceModalState, setWorkspaceModalState] = useState<{
     mode: 'create' | 'edit';
@@ -71,6 +65,17 @@ export default function Sidebar() {
     workspaceModalState?.mode === 'edit'
       ? workspaces.find((workspace) => workspace.id === workspaceModalState.workspaceId) || null
       : null;
+
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window !== 'undefined') {
+      setWorkspaceListExpanded(window.localStorage.getItem(WORKSPACE_EXPANDED_STORAGE_KEY) === 'true');
+      const rawWidth = Number(window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY));
+      if (Number.isFinite(rawWidth)) {
+        setDesktopWidth(clampSidebarWidth(rawWidth));
+      }
+    }
+  }, []);
 
   useEffect(() => {
     void loadWorkspaces();
@@ -282,8 +287,8 @@ export default function Sidebar() {
             ))}
           </nav>
 
-          <div className="mt-2 flex min-h-0 flex-1 flex-col rounded-[24px] bg-white/42 px-1.5 py-2">
-            <div className="flex items-center gap-1 px-1">
+          <div className={`mt-1 flex min-h-0 flex-1 flex-col transition-all duration-200 ${workspaceListExpanded ? 'rounded-[24px] bg-white/42 px-1.5 py-2' : ''}`}>
+            <div className={`flex items-center gap-1 ${workspaceListExpanded ? 'px-1' : ''}`}>
               <button
                 type="button"
                 onClick={() => {
