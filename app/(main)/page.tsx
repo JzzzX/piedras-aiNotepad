@@ -1,62 +1,115 @@
 'use client';
 
-import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Search,
-  Mic,
-  Clock,
-  MessageSquare,
-  FolderClosed,
-  Loader2,
-  FileText,
-  Send,
-  Bot,
-  User,
-  X,
-  MoreHorizontal,
-  GripVertical,
   ArrowRightLeft,
+  CalendarDays,
+  Clock3,
+  FileAudio,
+  FileText,
+  FolderClosed,
+  LayoutDashboard,
+  Loader2,
+  MessageSquare,
+  MoreHorizontal,
+  Mic,
+  Plus,
 } from 'lucide-react';
+import WorkspaceModal from '@/components/WorkspaceModal';
 import WorkspaceIconBadge from '@/components/WorkspaceIconBadge';
-import { useMeetingStore, type MeetingListItem } from '@/lib/store';
-import { chatAcrossMeetings } from '@/lib/llm';
-import { v4 as uuidv4 } from 'uuid';
-import type { ChatMessage } from '@/lib/types';
+import { useMeetingStore } from '@/lib/store';
+import type { DashboardMeetingItem, DashboardResponse, DashboardScope } from '@/lib/types';
 
-export default function HomePage() {
+function formatDuration(seconds: number) {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes} 分钟`;
+}
+
+function formatTime(isoString: string) {
+  return new Date(isoString).toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function formatMeetingDate(isoString: string) {
+  const date = new Date(isoString);
+  return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+}
+
+function groupMeetingsByDate(meetings: DashboardMeetingItem[]) {
+  const map = new Map<string, DashboardMeetingItem[]>();
+
+  for (const meeting of meetings) {
+    const date = new Date(meeting.date);
+    const key = date.toDateString();
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)?.push(meeting);
+  }
+
+  return Array.from(map.entries()).map(([key, items]) => {
+    const date = new Date(key);
+    return {
+      label: date.toLocaleDateString('zh-CN', {
+        month: 'long',
+        day: 'numeric',
+        weekday: 'short',
+      }),
+      items,
+    };
+  });
+}
+
+export default function WorkbenchPage() {
   const router = useRouter();
   const {
-    meetingList,
-    meetingListScope,
-    setMeetingListScope,
-    isLoadingList,
-    loadMeetingList,
-    updateMeetingWorkspace,
-    workspaces,
-    folders,
     currentWorkspaceId,
-    promptOptions,
-    llmSettings,
+    workspaces,
+    loadWorkspaces,
+    loadFolders,
+    createWorkspace,
+    setCurrentWorkspaceId,
+    updateMeetingWorkspace,
   } = useMeetingStore();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [aiExpanded, setAiExpanded] = useState(false);
-  const [aiMessages, setAiMessages] = useState<ChatMessage[]>([]);
-  const [aiInput, setAiInput] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [meetingQuery, setMeetingQuery] = useState('');
+  const [taskScope, setTaskScope] = useState<DashboardScope>('all');
+  const [meetingScope, setMeetingScope] = useState<DashboardScope>('all');
   const [openMoveMenuId, setOpenMoveMenuId] = useState<string | null>(null);
-  const aiScrollRef = useRef<HTMLDivElement>(null);
+  const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (aiScrollRef.current) {
-      aiScrollRef.current.scrollTop = aiScrollRef.current.scrollHeight;
+  const currentWorkspaceName = useMemo(
+    () => workspaces.find((workspace) => workspace.id === currentWorkspaceId)?.name || null,
+    [currentWorkspaceId, workspaces]
+  );
+
+  const loadDashboard = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/dashboard');
+      if (!res.ok) {
+        throw new Error('加载工作台失败');
+      }
+      setDashboard((await res.json()) as DashboardResponse);
+    } catch (loadError) {
+      console.error(loadError);
+      setError(loadError instanceof Error ? loadError.message : '加载工作台失败');
+    } finally {
+      setIsLoading(false);
     }
-  }, [aiMessages]);
+  }, []);
 
   useEffect(() => {
-    void loadMeetingList({ workspaceScope: meetingListScope });
-  }, [currentWorkspaceId, loadMeetingList, meetingListScope]);
+    void loadWorkspaces();
+    void loadFolders();
+    void loadDashboard();
+  }, [loadDashboard, loadFolders, loadWorkspaces]);
 
   useEffect(() => {
     const handleCloseMenu = () => setOpenMoveMenuId(null);
@@ -64,411 +117,441 @@ export default function HomePage() {
     return () => window.removeEventListener('pointerdown', handleCloseMenu);
   }, []);
 
-  // Filter meetings by search query (client-side simple filter)
+  const filteredActionItems = useMemo(() => {
+    if (!dashboard) return [];
+    return dashboard.recentActionItems.filter((item) =>
+      taskScope === 'current' ? item.workspaceId === currentWorkspaceId : true
+    );
+  }, [currentWorkspaceId, dashboard, taskScope]);
+
   const filteredMeetings = useMemo(() => {
-    if (!searchQuery.trim()) return meetingList;
-    const q = searchQuery.toLowerCase();
-    return meetingList.filter((m) => (m.title || '').toLowerCase().includes(q));
-  }, [meetingList, searchQuery]);
+    if (!dashboard) return [];
+    const scoped = dashboard.recentMeetings.filter((meeting) =>
+      meetingScope === 'current' ? meeting.workspaceId === currentWorkspaceId : true
+    );
+    if (!meetingQuery.trim()) return scoped;
+    const query = meetingQuery.trim().toLowerCase();
+    return scoped.filter((meeting) => {
+      const title = (meeting.title || '').toLowerCase();
+      const folderName = meeting.folder?.name?.toLowerCase() || '';
+      return title.includes(query) || folderName.includes(query);
+    });
+  }, [currentWorkspaceId, dashboard, meetingQuery, meetingScope]);
 
-  // Group meetings by date
-  const groupedByDate = useMemo(() => {
-    const groups: { label: string; meetings: MeetingListItem[] }[] = [];
-    const map = new Map<string, MeetingListItem[]>();
+  const groupedMeetings = useMemo(() => groupMeetingsByDate(filteredMeetings), [filteredMeetings]);
 
-    for (const m of filteredMeetings) {
-      const d = new Date(m.date);
-      const key = d.toDateString();
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(m);
-    }
-
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    for (const [key, meetings] of map) {
-      const d = new Date(key);
-      let label: string;
-      if (d.toDateString() === now.toDateString()) {
-        label = `今天 · ${d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}`;
-      } else if (d.toDateString() === yesterday.toDateString()) {
-        label = `昨天 · ${d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}`;
-      } else {
-        label = d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
-      }
-      groups.push({ label, meetings });
-    }
-
-    return groups;
-  }, [filteredMeetings]);
-
-  const formatDuration = (seconds: number) => {
-    if (seconds < 60) return `${seconds}s`;
-    const m = Math.floor(seconds / 60);
-    return `${m}分钟`;
-  };
-
-  const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const handleNewRecording = () => {
+  const handleNewMeeting = useCallback(() => {
     const { reset } = useMeetingStore.getState();
     reset();
     const newId = useMeetingStore.getState().meetingId;
     router.push(`/meeting/${newId}`);
-  };
+  }, [router]);
 
-  const handleAiSend = useCallback(async () => {
-    const q = aiInput.trim();
-    if (!q || isAiLoading) return;
-
-    setAiInput('');
-    const userMsg: ChatMessage = { id: uuidv4(), role: 'user', content: q, timestamp: Date.now() };
-    setAiMessages((prev) => [...prev, userMsg]);
-    setIsAiLoading(true);
-
-    try {
-      const filters: Record<string, string | undefined> = {};
-      if (currentWorkspaceId) filters.workspaceId = currentWorkspaceId;
-
-      const stream = await chatAcrossMeetings(aiMessages, q, filters, promptOptions, llmSettings);
-      if (!stream) throw new Error('No stream');
-
-      const reader = stream.getReader();
-      const decoder = new TextDecoder();
-      let fullContent = '';
-      const msgId = uuidv4();
-
-      setAiMessages((prev) => [...prev, { id: msgId, role: 'assistant', content: '', timestamp: Date.now() }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        fullContent += decoder.decode(value, { stream: true });
-        setAiMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, content: fullContent } : m)));
-      }
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : '未知错误';
-      setAiMessages((prev) => [...prev, { id: uuidv4(), role: 'assistant', content: `抱歉，请求出错了。\n\n${detail}`, timestamp: Date.now() }]);
-    } finally {
-      setIsAiLoading(false);
-    }
-  }, [aiInput, isAiLoading, aiMessages, currentWorkspaceId, promptOptions, llmSettings]);
-
-  const getFolderName = (folderId: string | null) => {
-    if (!folderId) return null;
-    const folder = folders.find((f) => f.id === folderId);
-    return folder ? folder.name : null;
-  };
+  const handleImportAudio = useCallback(() => {
+    const { reset } = useMeetingStore.getState();
+    reset();
+    const newId = useMeetingStore.getState().meetingId;
+    router.push(`/meeting/${newId}?intent=upload`);
+  }, [router]);
 
   const handleMoveMeeting = useCallback(
-    async (meeting: MeetingListItem, workspaceId: string) => {
-      if (meeting.workspaceId === workspaceId) {
-        setOpenMoveMenuId(null);
-        return;
-      }
-
-      await updateMeetingWorkspace(meeting.id, workspaceId);
+    async (meetingId: string, workspaceId: string) => {
+      await updateMeetingWorkspace(meetingId, workspaceId);
       setOpenMoveMenuId(null);
-      await loadMeetingList({ workspaceScope: meetingListScope });
+      await loadDashboard();
     },
-    [loadMeetingList, meetingListScope, updateMeetingWorkspace]
+    [loadDashboard, updateMeetingWorkspace]
   );
 
-  return (
-    <div className="flex h-full flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 sm:px-8">
-        <h1 className="font-song text-lg font-semibold text-[#3A2E25] pl-10 md:pl-0">首页</h1>
-        <div className="flex items-center gap-3">
-          <div className="relative hidden sm:block">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A69B8F]" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索会议..."
-              className="w-48 rounded-xl border border-[#D8CEC4] bg-white py-2 pl-9 pr-3 text-sm text-[#3A2E25] placeholder:text-[#A69B8F] focus:outline-none focus:ring-1 focus:ring-[#D8CEC4]"
-            />
-          </div>
-          <button
-            onClick={handleNewRecording}
-            className="flex items-center gap-1.5 rounded-xl bg-[#4A3C31] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[#3A2E25]"
-          >
-            <Mic size={15} />
-            新录音
-          </button>
-        </div>
-      </header>
+  const handleCreateWorkspace = useCallback(
+    async (input: { name: string; description: string; color: string; icon: string }) => {
+      const workspace = await createWorkspace(input);
+      setCurrentWorkspaceId(workspace.id);
+      await loadFolders();
+      setWorkspaceModalOpen(false);
+    },
+    [createWorkspace, loadFolders, setCurrentWorkspaceId]
+  );
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-6 pb-8 sm:px-8">
-        {/* AI Search Box */}
-        <div className="mb-6">
-          {!aiExpanded ? (
-            <button
-              onClick={() => setAiExpanded(true)}
-              className="flex w-full items-center gap-3 rounded-2xl border border-[#E3D9CE] bg-white px-5 py-4 text-left text-sm text-[#A69B8F] transition-all hover:border-[#D8CEC4] hover:shadow-sm"
-            >
-              <Bot size={18} className="text-amber-500" />
-              向 AI 提问关于你的会议...
-            </button>
-          ) : (
-            <div className="rounded-2xl border border-[#E3D9CE] bg-white shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between border-b border-[#E3D9CE]/50 px-5 py-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-[#3A2E25]">
-                  <Bot size={16} className="text-amber-500" />
-                  AI 问答
+  const shortcuts = [
+    {
+      id: 'record',
+      title: '开始录音',
+      description: '新建一场会议并立即进入录音。',
+      icon: Mic,
+      onClick: handleNewMeeting,
+    },
+    {
+      id: 'upload',
+      title: '导入音频',
+      description: '上传已有录音并直接转写。',
+      icon: FileAudio,
+      onClick: handleImportAudio,
+    },
+    {
+      id: 'chat',
+      title: 'AI 对话',
+      description: '围绕全部会议发起全局提问。',
+      icon: MessageSquare,
+      onClick: () => router.push('/chat'),
+    },
+    {
+      id: 'workspace',
+      title: '新建工作区',
+      description: '把不同主题和项目拆开管理。',
+      icon: Plus,
+      onClick: () => setWorkspaceModalOpen(true),
+    },
+  ];
+
+  return (
+    <div className="min-h-full bg-[#F6F2EB]">
+      <div className="mx-auto flex max-w-[1180px] flex-col gap-8 px-6 pb-10 pt-8 sm:px-8 lg:px-10">
+        <section className="rounded-[34px] border border-[#DDD2C6] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(249,244,237,0.98)_58%,_rgba(239,231,221,1))] px-6 py-7 shadow-[0_24px_72px_rgba(58,46,37,0.08)] sm:px-8 sm:py-9">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-[#A79380]">
+                <LayoutDashboard size={12} />
+                Workbench
+              </div>
+              <p className="mt-4 text-sm text-[#8B796A]">{dashboard?.dateLabel || '今天'}</p>
+              <h1 className="mt-2 font-song text-[34px] leading-tight text-[#3A2E25] sm:text-[44px]">
+                {dashboard?.greeting || '你好'}，今天从哪件事开始？
+              </h1>
+              <p className="mt-3 max-w-[640px] text-[15px] leading-7 text-[#7C6B5C]">
+                先看最近行动项，再决定是继续会议、导入音频，还是直接进入 AI 对话。
+              </p>
+            </div>
+
+            {currentWorkspaceName ? (
+              <div className="inline-flex items-center gap-2 self-start rounded-full border border-[#E2D6CA] bg-white/85 px-4 py-2 text-sm text-[#6C5D50]">
+                <span className="text-[#A08E7E]">当前工作区</span>
+                <span className="font-medium text-[#3A2E25]">{currentWorkspaceName}</span>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-7 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {shortcuts.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={item.onClick}
+                className="rounded-[24px] border border-[#E7DDD2] bg-white/90 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[#D9CCBF] hover:shadow-[0_16px_32px_rgba(58,46,37,0.08)]"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F5EEE5] text-[#5E4E43]">
+                  <item.icon size={19} />
                 </div>
-                <button onClick={() => { setAiExpanded(false); setAiMessages([]); }} className="rounded-lg p-1 text-[#8C7A6B] hover:bg-[#F7F3EE]">
-                  <X size={15} />
+                <div className="mt-4 text-[16px] font-semibold text-[#3A2E25]">{item.title}</div>
+                <div className="mt-1 text-sm leading-6 text-[#8B796A]">{item.description}</div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)]">
+          <div className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-song text-[26px] text-[#3A2E25]">最近行动项</h2>
+                <p className="mt-1 text-sm text-[#8B796A]">从近期 AI 总结里抽取出来的待办和跟进。</p>
+              </div>
+              <div className="inline-flex rounded-full border border-[#E3D9CE] bg-[#F8F4EF] p-1 text-[12px]">
+                <button
+                  type="button"
+                  onClick={() => setTaskScope('all')}
+                  className={`rounded-full px-3 py-1.5 transition-all ${
+                    taskScope === 'all' ? 'bg-white text-[#3A2E25] shadow-sm' : 'text-[#8C7A6B]'
+                  }`}
+                >
+                  全部工作区
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTaskScope('current')}
+                  className={`rounded-full px-3 py-1.5 transition-all ${
+                    taskScope === 'current'
+                      ? 'bg-white text-[#3A2E25] shadow-sm'
+                      : 'text-[#8C7A6B]'
+                  }`}
+                >
+                  当前工作区
                 </button>
               </div>
-              <div ref={aiScrollRef} className="max-h-[300px] overflow-y-auto px-5 py-4 space-y-4">
-                {aiMessages.length === 0 && (
-                  <p className="text-center text-sm text-[#A69B8F] py-4">跨会议提问，快速召回历史结论。</p>
-                )}
-                {aiMessages.map((msg) => (
-                  <div key={msg.id} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    {msg.role === 'assistant' && (
-                      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 border border-amber-100/50">
-                        <Bot size={14} className="text-amber-500" />
-                      </div>
-                    )}
-                    <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                      msg.role === 'user'
-                        ? 'bg-[#4A3C31] text-white rounded-tr-sm'
-                        : 'bg-[#F7F3EE] text-[#3A2E25] rounded-tl-sm'
-                    }`}>
-                      <div className="whitespace-pre-wrap">{msg.content}</div>
-                      {msg.role === 'assistant' && !msg.content && isAiLoading && (
-                        <div className="flex items-center gap-2 text-amber-500">
-                          <Loader2 size={14} className="animate-spin" />
-                          <span className="text-xs">思考中...</span>
-                        </div>
-                      )}
-                    </div>
-                    {msg.role === 'user' && (
-                      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F7F3EE] border border-[#E3D9CE]/50">
-                        <User size={14} className="text-[#8C7A6B]" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <div className="border-t border-[#E3D9CE]/50 px-4 py-3">
-                <div className="flex items-end gap-2">
-                  <input
-                    value={aiInput}
-                    onChange={(e) => setAiInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAiSend(); } }}
-                    placeholder="输入跨会议问题..."
-                    disabled={isAiLoading}
-                    className="flex-1 rounded-xl border border-[#D8CEC4] bg-[#F9F9F8] px-4 py-2.5 text-sm text-[#3A2E25] placeholder:text-[#A69B8F] focus:outline-none focus:ring-1 focus:ring-[#D8CEC4] disabled:opacity-50"
-                  />
-                  <button
-                    onClick={handleAiSend}
-                    disabled={!aiInput.trim() || isAiLoading}
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${
-                      aiInput.trim() && !isAiLoading
-                        ? 'bg-[#4A3C31] text-white hover:bg-[#3A2E25]'
-                        : 'bg-[#F7F3EE] text-[#A69B8F]'
-                    }`}
-                  >
-                    {isAiLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                  </button>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {isLoading ? (
+                <div className="flex items-center gap-3 rounded-2xl bg-[#F8F3EC] px-4 py-6 text-sm text-[#8C7A6B]">
+                  <Loader2 size={16} className="animate-spin" />
+                  正在整理最近行动项...
                 </div>
+              ) : null}
+
+              {!isLoading && filteredActionItems.length === 0 ? (
+                <div className="rounded-[24px] border border-dashed border-[#DDD2C7] bg-[#FCFAF7] px-4 py-10 text-center text-sm text-[#9A8877]">
+                  还没有可展示的行动项。先完成一场 AI 总结，工作台会自动把行动项提到这里。
+                </div>
+              ) : null}
+
+              {!isLoading &&
+                filteredActionItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => router.push(`/meeting/${item.meetingId}`)}
+                    className="w-full rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] px-4 py-4 text-left transition-all hover:border-[#D8CEC4] hover:bg-white"
+                  >
+                    <div className="flex flex-wrap items-center gap-2 text-[12px] text-[#8C7A6B]">
+                      <span className="inline-flex items-center gap-1">
+                        <CalendarDays size={12} />
+                        {formatMeetingDate(item.meetingDate)}
+                      </span>
+                      {item.workspace ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F5EFE7] px-2.5 py-1 text-[11px] text-[#6C5D50]">
+                          <WorkspaceIconBadge
+                            icon={item.workspace.icon}
+                            color={item.workspace.color}
+                            size="sm"
+                          />
+                          {item.workspace.name}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-3 text-[15px] font-medium leading-7 text-[#3A2E25]">
+                      {item.text}
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-[#8C7A6B]">
+                      {item.owner ? (
+                        <span className="rounded-full bg-white px-2.5 py-1">负责人：{item.owner}</span>
+                      ) : null}
+                      {item.dueDate ? (
+                        <span className="rounded-full bg-white px-2.5 py-1">截止：{item.dueDate}</span>
+                      ) : null}
+                      <span className="rounded-full bg-white px-2.5 py-1">
+                        来自：{item.meetingTitle || '无标题记录'}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+            </div>
+          </div>
+
+          <div className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+            <h2 className="font-song text-[26px] text-[#3A2E25]">当前上下文</h2>
+            <div className="mt-5 space-y-3 text-sm text-[#7C6B5C]">
+              <div className="rounded-[22px] border border-[#E7DDD2] bg-[#FCFAF7] px-4 py-4">
+                <div className="text-[12px] uppercase tracking-[0.2em] text-[#A08E7E]">Workspace</div>
+                <div className="mt-2 text-[18px] font-semibold text-[#3A2E25]">
+                  {currentWorkspaceName || '未选择工作区'}
+                </div>
+                <p className="mt-2 leading-6 text-[#8B796A]">
+                  工作台默认从全局视角看最近任务和会议；切到“当前工作区”后，会用这里作为过滤上下文。
+                </p>
+              </div>
+
+              <div className="rounded-[22px] border border-[#E7DDD2] bg-[#FCFAF7] px-4 py-4">
+                <div className="text-[12px] uppercase tracking-[0.2em] text-[#A08E7E]">Tips</div>
+                <ul className="mt-3 space-y-2 leading-6 text-[#6F6053]">
+                  <li>先录音，再生成 AI 总结，行动项才会自动出现在首页。</li>
+                  <li>“导入音频”会直接进入上传转写链路，无需先手动点录音页按钮。</li>
+                  <li>全局问题请直接去 AI 对话页，工作台不再重复放一个简化版 chat。</li>
+                </ul>
               </div>
             </div>
-          )}
-        </div>
-
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="inline-flex rounded-2xl border border-[#E3D9CE] bg-white p-1 shadow-sm">
-            <button
-              onClick={() => setMeetingListScope('current')}
-              className={`rounded-[14px] px-4 py-2 text-sm font-medium transition-all ${
-                meetingListScope === 'current'
-                  ? 'bg-[#4A3C31] text-white shadow-sm'
-                  : 'text-[#8C7A6B] hover:bg-[#F7F3EE] hover:text-[#4A3C31]'
-              }`}
-            >
-              当前工作区
-            </button>
-            <button
-              onClick={() => setMeetingListScope('all')}
-              className={`rounded-[14px] px-4 py-2 text-sm font-medium transition-all ${
-                meetingListScope === 'all'
-                  ? 'bg-[#4A3C31] text-white shadow-sm'
-                  : 'text-[#8C7A6B] hover:bg-[#F7F3EE] hover:text-[#4A3C31]'
-              }`}
-            >
-              全部工作区
-            </button>
           </div>
-          <p className="text-xs text-[#A69B8F]">
-            {meetingListScope === 'current'
-              ? '聚焦当前工作区内的会议记录'
-              : '跨工作区查看会议，并显示归属标识'}
-          </p>
-        </div>
+        </section>
 
-        {/* Meeting list */}
-        {isLoadingList && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 size={20} className="animate-spin text-[#A69B8F]" />
-          </div>
-        )}
+        <section className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 className="font-song text-[28px] text-[#3A2E25]">最近会议</h2>
+              <p className="mt-1 text-sm text-[#8B796A]">会议浏览还在这里，只是不再占据首页首屏。</p>
+            </div>
 
-        {!isLoadingList && filteredMeetings.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-[#A69B8F]">
-            <FileText size={32} className="mb-3 opacity-40" />
-            <p className="text-sm">{searchQuery ? '没有符合条件的会议' : '暂无会议记录'}</p>
-            <p className="mt-1 text-xs text-[#C4B6A9]">
-              {searchQuery
-                ? '试试调整搜索条件'
-                : meetingListScope === 'current'
-                  ? '当前工作区内还没有会议，点击“新录音”开始记录'
-                  : '所有工作区下都还没有会议记录'}
-            </p>
-          </div>
-        )}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="inline-flex rounded-full border border-[#E3D9CE] bg-[#F8F4EF] p-1 text-[12px]">
+                <button
+                  type="button"
+                  onClick={() => setMeetingScope('all')}
+                  className={`rounded-full px-3 py-1.5 transition-all ${
+                    meetingScope === 'all'
+                      ? 'bg-white text-[#3A2E25] shadow-sm'
+                      : 'text-[#8C7A6B]'
+                  }`}
+                >
+                  全部工作区
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMeetingScope('current')}
+                  className={`rounded-full px-3 py-1.5 transition-all ${
+                    meetingScope === 'current'
+                      ? 'bg-white text-[#3A2E25] shadow-sm'
+                      : 'text-[#8C7A6B]'
+                  }`}
+                >
+                  当前工作区
+                </button>
+              </div>
 
-        {!isLoadingList && groupedByDate.map((group) => (
-          <div key={group.label} className="mb-6">
-            <h2 className="mb-3 text-xs font-semibold text-[#A69B8F]">{group.label}</h2>
-            <div className="space-y-2">
-              {group.meetings.map((meeting) => {
-                const folderName = getFolderName(meeting.folderId);
-                return (
-                  <div
-                    key={meeting.id}
-                    draggable
-                    onDragStart={(event) => {
-                      event.dataTransfer.setData('text/meeting-id', meeting.id);
-                      event.dataTransfer.effectAllowed = 'move';
-                    }}
-                    className="group flex items-start gap-3 rounded-2xl border border-[#E3D9CE]/60 bg-white px-4 py-4 transition-all hover:border-[#D8CEC4] hover:shadow-md"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/meeting/${meeting.id}`)}
-                      className="mt-0.5 rounded-lg p-1 text-[#C4B6A9] opacity-0 transition-all group-hover:opacity-100 hover:bg-[#F7F3EE] hover:text-[#8C7A6B]"
-                      title="拖拽到工作区或文件夹"
-                    >
-                      <GripVertical size={14} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/meeting/${meeting.id}`)}
-                      className="min-w-0 flex-1 text-left"
-                    >
-                      <p className="line-clamp-2 text-[15px] font-medium text-[#3A2E25] group-hover:text-[#2B2420]">
-                        {meeting.title || '无标题记录'}
-                      </p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#A69B8F]">
-                        <span>{formatTime(meeting.date)}</span>
-                        {meetingListScope === 'all' && meeting.workspace && (
-                          <>
-                            <span className="opacity-50">·</span>
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E3D9CE] bg-[#FCFAF8] px-2 py-1 text-[11px] text-[#6C5D50]">
-                              <WorkspaceIconBadge
-                                icon={meeting.workspace.icon}
-                                color={meeting.workspace.color}
-                                size="sm"
-                              />
-                              <span>{meeting.workspace.name}</span>
-                            </span>
-                          </>
-                        )}
-                        {meeting.duration > 0 && (
-                          <>
-                            <span className="opacity-50">·</span>
-                            <span className="flex items-center gap-0.5">
-                              <Clock size={10} />
-                              {formatDuration(meeting.duration)}
-                            </span>
-                          </>
-                        )}
-                        {folderName && (
-                          <>
-                            <span className="opacity-50">·</span>
-                            <span className="flex items-center gap-0.5">
-                              <FolderClosed size={10} />
-                              {folderName}
-                            </span>
-                          </>
-                        )}
-                        {meeting._count.segments > 0 && (
-                          <>
-                            <span className="opacity-50">·</span>
-                            <span className="flex items-center gap-0.5">
-                              <MessageSquare size={10} />
-                              {meeting._count.segments}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </button>
-
-                    <div
-                      className="relative"
-                      onClick={(event) => event.stopPropagation()}
-                      onPointerDown={(event) => event.stopPropagation()}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setOpenMoveMenuId((prev) => (prev === meeting.id ? null : meeting.id))
-                        }
-                        className="rounded-lg p-2 text-[#A69B8F] opacity-0 transition-all group-hover:opacity-100 hover:bg-[#F7F3EE] hover:text-[#5C4D42]"
-                        title="移动到工作区"
-                      >
-                        <MoreHorizontal size={16} />
-                      </button>
-
-                      {openMoveMenuId === meeting.id && (
-                        <div className="absolute right-0 top-10 z-20 w-56 overflow-hidden rounded-2xl border border-[#E3D9CE] bg-white shadow-xl">
-                          <div className="border-b border-[#EDE6DE] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#A69B8F]">
-                            移动到工作区
-                          </div>
-                          <div className="py-1">
-                            {workspaces.map((workspace) => {
-                              const isCurrent = workspace.id === meeting.workspaceId;
-                              return (
-                                <button
-                                  key={workspace.id}
-                                  type="button"
-                                  disabled={isCurrent}
-                                  onClick={() => void handleMoveMeeting(meeting, workspace.id)}
-                                  className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm text-[#4A3C31] transition-colors hover:bg-[#F7F3EE] disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent"
-                                >
-                                  <span className="flex min-w-0 items-center gap-2">
-                                    <WorkspaceIconBadge icon={workspace.icon} color={workspace.color} size="sm" />
-                                    <span className="truncate">{workspace.name}</span>
-                                  </span>
-                                  {isCurrent ? (
-                                    <span className="text-[11px] text-[#A69B8F]">当前</span>
-                                  ) : (
-                                    <ArrowRightLeft size={13} className="text-[#C4B6A9]" />
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+              <input
+                value={meetingQuery}
+                onChange={(event) => setMeetingQuery(event.target.value)}
+                placeholder="搜索最近会议"
+                className="w-full rounded-2xl border border-[#D8CEC4] bg-[#FCFAF7] px-4 py-2.5 text-sm text-[#3A2E25] placeholder:text-[#A69B8F] focus:border-[#C7B6A5] focus:outline-none sm:w-56"
+              />
             </div>
           </div>
-        ))}
+
+          <div className="mt-6 space-y-6">
+            {error ? (
+              <div className="rounded-[22px] border border-[#F0C6C3] bg-[#FFF3F2] px-4 py-4 text-sm text-[#B35454]">
+                {error}
+              </div>
+            ) : null}
+
+            {!isLoading && filteredMeetings.length === 0 ? (
+              <div className="rounded-[24px] border border-dashed border-[#DDD2C7] bg-[#FCFAF7] px-4 py-10 text-center text-sm text-[#9A8877]">
+                {meetingQuery ? '没有符合条件的会议。' : '这里还没有可显示的会议记录。'}
+              </div>
+            ) : null}
+
+            {isLoading ? (
+              <div className="flex items-center gap-3 rounded-2xl bg-[#F8F3EC] px-4 py-6 text-sm text-[#8C7A6B]">
+                <Loader2 size={16} className="animate-spin" />
+                正在加载最近会议...
+              </div>
+            ) : null}
+
+            {!isLoading &&
+              groupedMeetings.map((group) => (
+                <div key={group.label}>
+                  <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#A08E7E]">
+                    {group.label}
+                  </div>
+                  <div className="space-y-2.5">
+                    {group.items.map((meeting) => {
+                      const canMove = workspaces.length > 0;
+                      return (
+                        <div
+                          key={meeting.id}
+                          className="group flex items-start gap-3 rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] px-4 py-4 transition-all hover:border-[#D8CEC4] hover:bg-white"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => router.push(`/meeting/${meeting.id}`)}
+                            className="min-w-0 flex-1 text-left"
+                          >
+                            <div className="line-clamp-2 text-[15px] font-medium text-[#3A2E25]">
+                              {meeting.title || '无标题记录'}
+                            </div>
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-[#8C7A6B]">
+                              <span>{formatTime(meeting.date)}</span>
+                              {meeting.workspace ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E8DED3] bg-white px-2.5 py-1 text-[11px] text-[#6C5D50]">
+                                  <WorkspaceIconBadge
+                                    icon={meeting.workspace.icon}
+                                    color={meeting.workspace.color}
+                                    size="sm"
+                                  />
+                                  {meeting.workspace.name}
+                                </span>
+                              ) : null}
+                              {meeting.duration > 0 ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <Clock3 size={12} />
+                                  {formatDuration(meeting.duration)}
+                                </span>
+                              ) : null}
+                              {meeting.folder ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <FolderClosed size={12} />
+                                  {meeting.folder.name}
+                                </span>
+                              ) : null}
+                              {meeting._count.segments > 0 ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <FileText size={12} />
+                                  {meeting._count.segments} 段
+                                </span>
+                              ) : null}
+                            </div>
+                          </button>
+
+                          {canMove ? (
+                            <div
+                              className="relative"
+                              onClick={(event) => event.stopPropagation()}
+                              onPointerDown={(event) => event.stopPropagation()}
+                            >
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setOpenMoveMenuId((prev) =>
+                                    prev === meeting.id ? null : meeting.id
+                                  )
+                                }
+                                className="rounded-xl p-2 text-[#A69B8F] opacity-0 transition-all group-hover:opacity-100 hover:bg-[#F4EEE6] hover:text-[#5C4D42]"
+                              >
+                                <MoreHorizontal size={16} />
+                              </button>
+
+                              {openMoveMenuId === meeting.id ? (
+                                <div className="absolute right-0 top-10 z-20 w-56 overflow-hidden rounded-2xl border border-[#E3D9CE] bg-white shadow-xl">
+                                  <div className="border-b border-[#EDE6DE] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#A69B8F]">
+                                    移动到工作区
+                                  </div>
+                                  <div className="py-1">
+                                    {workspaces.map((workspace) => {
+                                      const isCurrent = workspace.id === meeting.workspaceId;
+                                      return (
+                                        <button
+                                          key={workspace.id}
+                                          type="button"
+                                          disabled={isCurrent}
+                                          onClick={() =>
+                                            void handleMoveMeeting(meeting.id, workspace.id)
+                                          }
+                                          className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm text-[#4A3C31] transition-colors hover:bg-[#F7F3EE] disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent"
+                                        >
+                                          <span className="flex min-w-0 items-center gap-2">
+                                            <WorkspaceIconBadge
+                                              icon={workspace.icon}
+                                              color={workspace.color}
+                                              size="sm"
+                                            />
+                                            <span className="truncate">{workspace.name}</span>
+                                          </span>
+                                          {isCurrent ? (
+                                            <span className="text-[11px] text-[#A69B8F]">当前</span>
+                                          ) : (
+                                            <ArrowRightLeft size={13} className="text-[#C4B6A9]" />
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </section>
       </div>
+
+      <WorkspaceModal
+        open={workspaceModalOpen}
+        mode="create"
+        onClose={() => setWorkspaceModalOpen(false)}
+        onSubmit={handleCreateWorkspace}
+      />
     </div>
   );
 }

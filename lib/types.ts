@@ -122,6 +122,39 @@ export interface GlobalChatSessionDetail extends GlobalChatSessionSummary {
   messages: ChatMessage[];
 }
 
+export type DashboardScope = 'all' | 'current';
+
+export interface DashboardActionItem {
+  id: string;
+  text: string;
+  owner?: string | null;
+  dueDate?: string | null;
+  meetingId: string;
+  meetingTitle: string;
+  meetingDate: string;
+  workspaceId: string;
+  workspace?: Pick<Workspace, 'id' | 'name' | 'icon' | 'color'> | null;
+}
+
+export interface DashboardMeetingItem {
+  id: string;
+  title: string;
+  date: string;
+  duration: number;
+  folderId: string | null;
+  workspaceId: string;
+  folder?: Pick<Folder, 'id' | 'name' | 'color'> | null;
+  workspace?: Pick<Workspace, 'id' | 'name' | 'icon' | 'color'> | null;
+  _count: { segments: number; chatMessages: number };
+}
+
+export interface DashboardResponse {
+  greeting: string;
+  dateLabel: string;
+  recentActionItems: DashboardActionItem[];
+  recentMeetings: DashboardMeetingItem[];
+}
+
 export interface Meeting {
   id: string;
   title: string;

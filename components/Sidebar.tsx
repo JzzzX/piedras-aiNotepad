@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Home,
+  LayoutDashboard,
   MessageSquare,
   Settings,
   Plus,
@@ -147,7 +147,7 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { href: '/', label: '首页', icon: Home },
+    { href: '/', label: '工作台', icon: LayoutDashboard },
     { href: '/chat', label: 'AI 对话', icon: MessageSquare },
   ];
 

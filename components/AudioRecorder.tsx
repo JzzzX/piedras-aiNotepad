@@ -1033,6 +1033,17 @@ export default function AudioRecorder() {
     audioFileInputRef.current?.click();
   }, [asrStatus, loadAsrStatus, status]);
 
+  useEffect(() => {
+    const handleTriggerUpload = () => {
+      void handleUploadAudioClick();
+    };
+
+    window.addEventListener('piedras:triggerUploadAudio', handleTriggerUpload);
+    return () => {
+      window.removeEventListener('piedras:triggerUploadAudio', handleTriggerUpload);
+    };
+  }, [handleUploadAudioClick]);
+
   const handleAudioFileSelected = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];

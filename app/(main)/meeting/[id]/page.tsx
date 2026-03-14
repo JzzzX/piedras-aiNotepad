@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   Save,
@@ -20,6 +20,7 @@ import { generateMeetingTitle } from '@/lib/llm';
 export default function MeetingPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id as string;
 
   const {
@@ -38,6 +39,7 @@ export default function MeetingPage() {
   const prevStatusRef = useRef(status);
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasLoadedRef = useRef(false);
+  const uploadIntentHandledRef = useRef(false);
 
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -55,6 +57,19 @@ export default function MeetingPage() {
       void loadMeeting(id);
     }
   }, [id, meetingId, loadMeeting, reset]);
+
+  useEffect(() => {
+    if (uploadIntentHandledRef.current) return;
+    if (searchParams.get('intent') !== 'upload') return;
+
+    uploadIntentHandledRef.current = true;
+    const timer = window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('piedras:triggerUploadAudio'));
+      router.replace(`/meeting/${id}`);
+    }, 240);
+
+    return () => window.clearTimeout(timer);
+  }, [id, router, searchParams]);
 
   // Auto-generate title when recording ends
   const maybeGenerateAutoTitle = useCallback(async () => {
