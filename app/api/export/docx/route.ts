@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
-import { parseStructuredMeetingContent } from '@/lib/meeting-export';
+import { parseEnhancedNotesSections } from '@/lib/meeting-export';
 
 interface ExportDocxPayload {
   meetingTitle?: string;
@@ -30,15 +30,31 @@ function createNormal(text: string): Paragraph {
   });
 }
 
-function createBullets(items: string[]): Paragraph[] {
-  return items.map(
-    (item) =>
-      new Paragraph({
+function createSectionParagraphs(lines: string[]): Paragraph[] {
+  return lines.map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      return new Paragraph({
+        spacing: { after: 80 },
+        children: [new TextRun({ text: '', font: 'Microsoft YaHei' })],
+      });
+    }
+
+    if (/^[-*+]\s+/.test(trimmed) || /^\d+[\.\)、]\s+/.test(trimmed)) {
+      return new Paragraph({
         bullet: { level: 0 },
         spacing: { after: 80 },
-        children: [new TextRun({ text: item, font: 'Microsoft YaHei' })],
-      })
-  );
+        children: [
+          new TextRun({
+            text: trimmed.replace(/^[-*+]\s+/, '').replace(/^\d+[\.\)、]\s+/, ''),
+            font: 'Microsoft YaHei',
+          }),
+        ],
+      });
+    }
+
+    return createNormal(trimmed);
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -51,8 +67,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '缺少 enhancedNotes，无法导出 Docx' }, { status: 400 });
     }
 
-    const structured = parseStructuredMeetingContent(enhancedNotes);
+    const sections = parseEnhancedNotesSections(enhancedNotes);
     const meetingDate = toDateText(body.meetingDate);
+
+    const sectionParagraphs =
+      sections.length > 0
+        ? sections.flatMap((section) => [createHeading(section.title), ...createSectionParagraphs(section.lines)])
+        : [createHeading('AI 总结'), createNormal(enhancedNotes)];
 
     const doc = new Document({
       sections: [
@@ -64,14 +85,7 @@ export async function POST(req: NextRequest) {
               children: [new TextRun({ text: meetingTitle, bold: true, font: 'Microsoft YaHei' })],
             }),
             createNormal(`会议时间：${meetingDate}`),
-            createHeading('会议摘要'),
-            createNormal(structured.summary),
-            createHeading('关键讨论点'),
-            ...createBullets(structured.discussionPoints),
-            createHeading('决策事项'),
-            ...createBullets(structured.decisions),
-            createHeading('行动项'),
-            ...createBullets(structured.actionItems),
+            ...sectionParagraphs,
           ],
         },
       ],

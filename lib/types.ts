@@ -16,6 +16,8 @@ export interface ChatMessage {
   templateId?: string;
 }
 
+export type RecipeSurface = 'chat' | 'meeting' | 'both';
+
 export type LlmSelection = 'auto' | 'minimax' | 'openai';
 export type OpenAICompatiblePreset = 'aihubmix' | 'openai' | 'custom';
 
@@ -145,8 +147,9 @@ export interface Recipe {
   icon: string;
   description: string;
   prompt: string;
+  starterQuestion?: string;
+  surfaces: RecipeSurface;
   category: string;
-  kind: RecipeKind;
   scope?: GlobalChatScope;
   accent?: 'lime' | 'amber' | 'sky' | 'violet';
   isSystem?: boolean;
@@ -186,6 +189,7 @@ export interface Meeting {
   segments: TranscriptSegment[];
   userNotes: string;
   enhancedNotes: string;
+  enhanceRecipeId?: string | null;
   roundLabel: string;
   interviewerName: string;
   recommendation: InterviewRecommendation;

@@ -36,6 +36,7 @@ model Meeting {
   audioUpdatedAt DateTime?
   userNotes     String   @default("")
   enhancedNotes String   @default("")
+  enhanceRecipeId String?
   roundLabel    String   @default("")
   interviewerName String @default("")
   recommendation String  @default("pending")
@@ -127,6 +128,8 @@ model PromptTemplate {
   icon        String   @default("📝")
   description String
   prompt      String
+  starterQuestion String @default("")
+  surfaces    String   @default("both")
   category    String   @default("记录")
   isSystem    Boolean  @default(false)
   sortOrder   Int      @default(0)

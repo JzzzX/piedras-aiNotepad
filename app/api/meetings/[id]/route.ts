@@ -50,6 +50,7 @@ export async function PUT(
     workspaceId,
     userNotes,
     enhancedNotes,
+    enhanceRecipeId,
     roundLabel,
     interviewerName,
     recommendation,
@@ -68,6 +69,7 @@ export async function PUT(
   if (workspaceId !== undefined) updateData.workspaceId = workspaceId;
   if (userNotes !== undefined) updateData.userNotes = userNotes;
   if (enhancedNotes !== undefined) updateData.enhancedNotes = enhancedNotes;
+  if (enhanceRecipeId !== undefined) updateData.enhanceRecipeId = enhanceRecipeId || null;
   if (roundLabel !== undefined) updateData.roundLabel = roundLabel;
   if (interviewerName !== undefined) updateData.interviewerName = interviewerName;
   if (recommendation !== undefined) updateData.recommendation = recommendation;

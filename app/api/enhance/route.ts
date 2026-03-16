@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateTextWithFallback, hasAvailableLlm } from '@/lib/llm-provider';
 import type { PromptOptions } from '@/lib/types';
+import { getRecipeById } from '@/lib/recipe-service';
 
 type PromptOptionsInput = Partial<PromptOptions> | undefined;
 
@@ -14,7 +15,7 @@ function normalizePromptOptions(input: PromptOptionsInput): PromptOptions {
 
 function buildEnhanceSystemPrompt(
   options: PromptOptions,
-  templatePrompt?: string
+  recipePrompt?: string
 ): string {
   const styleMap: Record<PromptOptions['outputStyle'], string> = {
     简洁: '表达尽量精炼，优先输出结论和关键点。',
@@ -53,8 +54,8 @@ function buildEnhanceSystemPrompt(
 4. 使用中文输出，不要捏造会议未出现的信息。`;
 
   const sections = [];
-  if (templatePrompt) {
-    sections.push(templatePrompt.trim());
+  if (recipePrompt) {
+    sections.push(recipePrompt.trim());
     sections.push(`补充约束：${basePrompt}`);
   } else {
     sections.push(basePrompt);
@@ -69,11 +70,18 @@ export async function POST(req: NextRequest) {
       transcript,
       userNotes,
       meetingTitle,
-      templatePrompt,
+      recipePrompt,
+      recipeId,
       promptOptions,
       llmRuntimeConfig,
     } =
       await req.json();
+
+    let resolvedRecipePrompt = typeof recipePrompt === 'string' ? recipePrompt.trim() : '';
+    if (!resolvedRecipePrompt && typeof recipeId === 'string' && recipeId.trim()) {
+      const recipe = await getRecipeById(recipeId.trim());
+      resolvedRecipePrompt = recipe?.prompt?.trim() || '';
+    }
 
     if (!hasAvailableLlm(llmRuntimeConfig)) {
       // Demo 模式：无 API Key 时返回模拟结果
@@ -84,7 +92,7 @@ export async function POST(req: NextRequest) {
     }
 
     const options = normalizePromptOptions(promptOptions);
-    const systemPrompt = buildEnhanceSystemPrompt(options, templatePrompt);
+    const systemPrompt = buildEnhanceSystemPrompt(options, resolvedRecipePrompt);
 
     const { content, provider } = await generateTextWithFallback({
       messages: [

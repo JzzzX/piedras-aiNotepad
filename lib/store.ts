@@ -81,6 +81,7 @@ interface MeetingStore {
   // 笔记
   userNotes: string;
   enhancedNotes: string;
+  enhanceRecipeId: string | null;
   isEnhancing: boolean;
   roundLabel: string;
   interviewerName: string;
@@ -127,6 +128,7 @@ interface MeetingStore {
   setCurrentPartial: (text: string) => void;
   setUserNotes: (notes: string) => void;
   setEnhancedNotes: (notes: string) => void;
+  setEnhanceRecipeId: (recipeId: string | null) => void;
   setIsEnhancing: (v: boolean) => void;
   setInterviewMeta: (patch: {
     roundLabel?: string;
@@ -233,6 +235,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   currentPartial: '',
   userNotes: '',
   enhancedNotes: '',
+  enhanceRecipeId: null,
   isEnhancing: false,
   roundLabel: '',
   interviewerName: '',
@@ -312,6 +315,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   setCurrentPartial: (text) => set({ currentPartial: text }),
   setUserNotes: (notes) => set({ userNotes: notes, meetingDirty: true }),
   setEnhancedNotes: (notes) => set({ enhancedNotes: notes, meetingDirty: true }),
+  setEnhanceRecipeId: (recipeId) => set({ enhanceRecipeId: recipeId, meetingDirty: true }),
   setIsEnhancing: (v) => set({ isEnhancing: v }),
   setInterviewMeta: (patch) =>
     set((state) => ({
@@ -413,6 +417,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
         currentPartial: '',
         userNotes: '',
         enhancedNotes: '',
+        enhanceRecipeId: null,
         isEnhancing: false,
         roundLabel: '',
         interviewerName: '',
@@ -466,6 +471,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           workspaceId: state.currentWorkspaceId,
           userNotes: state.userNotes,
           enhancedNotes: state.enhancedNotes,
+          enhanceRecipeId: state.enhanceRecipeId,
           roundLabel: state.roundLabel,
           interviewerName: state.interviewerName,
           recommendation: state.recommendation,
@@ -570,6 +576,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           audioDirty: false,
           userNotes: data.userNotes,
           enhancedNotes: data.enhancedNotes,
+          enhanceRecipeId: data.enhanceRecipeId ?? null,
           roundLabel: data.roundLabel ?? '',
           interviewerName: data.interviewerName ?? '',
           recommendation: (data.recommendation ?? 'pending') as InterviewRecommendation,

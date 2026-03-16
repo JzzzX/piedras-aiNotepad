@@ -86,7 +86,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
       if (!res.ok) {
         throw new Error(data.error || '加载 Recipe 失败');
       }
-      setTemplates((data as Recipe[]).filter((recipe) => recipe.kind === 'prompt'));
+      setTemplates((data as Recipe[]).filter((recipe) => recipe.surfaces === 'chat' || recipe.surfaces === 'both'));
     } catch (e) {
       setTemplates([]);
       setTemplatesError(e instanceof Error ? e.message : '加载 Recipe 失败');

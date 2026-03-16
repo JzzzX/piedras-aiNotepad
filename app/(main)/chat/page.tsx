@@ -164,10 +164,10 @@ export default function ChatHomePage() {
     [filters, input, isLaunching, router, selectedWorkspaceId]
   );
 
-  const featuredRecipes = useMemo(() => getFeaturedGlobalChatRecipes(), []);
+  const featuredRecipes = useMemo(() => getFeaturedGlobalChatRecipes(recipes), [recipes]);
 
   return (
-    <div className="min-h-full bg-[#F6F2EB]">
+    <div>
       <div className="mx-auto flex max-w-[1100px] flex-col gap-10 px-6 pb-12 pt-10 sm:px-8 lg:px-10">
         <section className="rounded-[36px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.92),_rgba(248,243,236,0.98)_58%,_rgba(239,231,221,1))] px-6 py-8 shadow-[0_24px_80px_rgba(58,46,37,0.08)] sm:px-8 sm:py-10">
           <div className="mx-auto max-w-[760px]">
@@ -189,7 +189,6 @@ export default function ChatHomePage() {
                 onSubmit={handleLaunch}
                 selectedWorkspaceId={selectedWorkspaceId}
                 onSelectedWorkspaceChange={setSelectedWorkspaceId}
-                preferredWorkspaceId={currentWorkspaceId || workspaces[0]?.id || null}
                 workspaces={workspaces}
                 filters={filters}
                 onFiltersChange={setFilters}
@@ -226,28 +225,17 @@ export default function ChatHomePage() {
                   onClick={() =>
                     void handleLaunch({
                       displayText: recipe.name,
-                      question: recipe.prompt,
-                      nextScope: recipe.scope,
-                      workspaceId:
-                        recipe.scope === 'my_notes'
-                          ? selectedWorkspaceId || currentWorkspaceId || workspaces[0]?.id || null
-                          : null,
+                      question: recipe.starterQuestion?.trim() || recipe.name,
+                      recipePrompt: recipe.prompt,
+                      recipeId: recipe.id,
+                      nextScope: selectedWorkspaceId ? 'my_notes' : 'all_meetings',
+                      workspaceId: selectedWorkspaceId,
                     })
                   }
                   className="group rounded-[24px] border border-[#E9E1D7] bg-[#FCFAF7] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[#D8CEC4] hover:shadow-[0_16px_32px_rgba(58,46,37,0.08)]"
                 >
                   <div className="flex items-center gap-3">
-                    <span
-                      className={`h-10 w-2 rounded-full ${
-                        recipe.accent === 'lime'
-                          ? 'bg-lime-400'
-                          : recipe.accent === 'sky'
-                            ? 'bg-sky-400'
-                            : recipe.accent === 'violet'
-                              ? 'bg-violet-400'
-                              : 'bg-amber-400'
-                      }`}
-                    />
+                    <span className="h-10 w-2 rounded-full bg-[#D8C2A8]" />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="text-[15px] font-semibold text-[#3A2E25]">{recipe.name}</div>

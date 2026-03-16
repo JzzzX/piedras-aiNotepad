@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Recipe } from '@/lib/types';
 import { TEMPLATE_CATEGORIES } from '@/lib/templates';
 import { ChevronUp, ChevronDown, Plus, Trash2 } from 'lucide-react';
@@ -11,6 +11,8 @@ interface TemplateForm {
   icon: string;
   description: string;
   prompt: string;
+  starterQuestion: string;
+  surfaces: 'chat' | 'meeting' | 'both';
   category: string;
 }
 
@@ -20,6 +22,8 @@ const DEFAULT_FORM: TemplateForm = {
   icon: '📝',
   description: '',
   prompt: '',
+  starterQuestion: '',
+  surfaces: 'both',
   category: '记录',
 };
 
@@ -30,6 +34,8 @@ function toForm(template: Recipe): TemplateForm {
     icon: template.icon,
     description: template.description,
     prompt: template.prompt,
+    starterQuestion: template.starterQuestion || '',
+    surfaces: template.surfaces,
     category: template.category,
   };
 }
@@ -42,17 +48,20 @@ export default function TemplateManagerInline() {
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       const res = await fetch('/api/recipes');
       if (res.ok) {
         const data = await res.json();
         setTemplates(data);
+        if (!selectedId && !isCreating && data[0]?.id) {
+          handleSelect(data[0]);
+        }
       }
     } catch { /* ignore */ }
-  };
+  }, [isCreating, selectedId]);
 
-  useEffect(() => { void loadTemplates(); }, []);
+  useEffect(() => { void loadTemplates(); }, [loadTemplates]);
 
   const selected = templates.find((t) => t.id === selectedId);
   const isReadOnly = Boolean(selected?.isSystem && !isCreating);
@@ -67,6 +76,18 @@ export default function TemplateManagerInline() {
   const handleNew = () => {
     setSelectedId(null);
     setForm(DEFAULT_FORM);
+    setIsCreating(true);
+    setError('');
+  };
+
+  const handleDuplicate = () => {
+    if (!selected) return;
+    setSelectedId(null);
+    setForm({
+      ...toForm(selected),
+      name: `${selected.name}（副本）`,
+      command: '',
+    });
     setIsCreating(true);
     setError('');
   };
@@ -218,6 +239,21 @@ export default function TemplateManagerInline() {
                   ))}
                 </select>
               </label>
+              <label className="space-y-1.5">
+                <span className="text-[12px] font-medium text-[#8C7A6B]">适用入口</span>
+                <select
+                  value={form.surfaces}
+                  onChange={(e) =>
+                    setForm({ ...form, surfaces: e.target.value as TemplateForm['surfaces'] })
+                  }
+                  disabled={isBusy || isReadOnly}
+                  className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+                >
+                  <option value="both">Chat + 笔记工作台</option>
+                  <option value="chat">仅 Chat</option>
+                  <option value="meeting">仅笔记工作台</option>
+                </select>
+              </label>
             </div>
             
             <label className="block space-y-1.5">
@@ -226,6 +262,17 @@ export default function TemplateManagerInline() {
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 disabled={isBusy || isReadOnly}
+                className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+              />
+            </label>
+
+            <label className="block space-y-1.5">
+              <span className="text-[12px] font-medium text-[#8C7A6B]">一键启动语句</span>
+              <input
+                value={form.starterQuestion}
+                onChange={(e) => setForm({ ...form, starterQuestion: e.target.value })}
+                disabled={isBusy || isReadOnly}
+                placeholder="用于 Chat 首页和 all-recipes 的默认提问"
                 className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
               />
             </label>
@@ -246,7 +293,13 @@ export default function TemplateManagerInline() {
             
             {isReadOnly && (
               <div className="rounded-xl border border-[#E3D9CE] bg-[#FCFAF8] px-4 py-3 text-[12px] leading-relaxed text-[#8C7A6B]">
-                系统 Recipe 只读，如需修改请点击左侧“新建 Recipe”后复制一份再编辑。
+                <div>系统 Recipe 只读，如需修改请复制为自定义 Recipe 后再编辑。</div>
+                <button
+                  onClick={handleDuplicate}
+                  className="mt-3 rounded-lg border border-[#D8CEC4] bg-white px-3 py-1.5 text-[12px] font-medium text-[#5C4D42] hover:bg-[#F7F3EE]"
+                >
+                  复制为自定义 Recipe
+                </button>
               </div>
             )}
             

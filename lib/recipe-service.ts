@@ -1,5 +1,4 @@
 import { prisma } from './db';
-import { GLOBAL_CHAT_RECIPES } from './global-chat-ui';
 import {
   ensureSystemTemplates,
   getNextSortOrder,
@@ -18,6 +17,8 @@ function mapStoredRecipe(
     icon: string;
     description: string;
     prompt: string;
+    starterQuestion: string;
+    surfaces: string;
     category: string;
     isSystem: boolean;
     sortOrder: number;
@@ -30,8 +31,9 @@ function mapStoredRecipe(
     icon: recipe.icon,
     description: recipe.description,
     prompt: recipe.prompt,
+    starterQuestion: recipe.starterQuestion,
+    surfaces: (recipe.surfaces || 'both') as Recipe['surfaces'],
     category: recipe.category,
-    kind: 'prompt',
     isSystem: recipe.isSystem,
     sortOrder: recipe.sortOrder,
   };
@@ -44,14 +46,10 @@ export async function listRecipes(): Promise<Recipe[]> {
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
   });
 
-  return [...GLOBAL_CHAT_RECIPES, ...storedRecipes.map(mapStoredRecipe)];
+  return storedRecipes.map(mapStoredRecipe);
 }
 
 export async function getRecipeById(id: string): Promise<Recipe | null> {
-  if (GLOBAL_CHAT_RECIPES.some((recipe) => recipe.id === id)) {
-    return GLOBAL_CHAT_RECIPES.find((recipe) => recipe.id === id) || null;
-  }
-
   await ensureSystemTemplates();
   const storedRecipe = await prisma.promptTemplate.findUnique({ where: { id } });
   return storedRecipe ? mapStoredRecipe(storedRecipe) : null;
@@ -87,6 +85,8 @@ export async function updatePromptRecipe(id: string, input: RecipeMutationInput)
     icon: input.icon ?? existing.icon,
     description: input.description ?? existing.description,
     prompt: input.prompt ?? existing.prompt,
+    starterQuestion: input.starterQuestion ?? existing.starterQuestion,
+    surfaces: input.surfaces ?? existing.surfaces,
     category: input.category ?? existing.category,
   });
 
@@ -112,7 +112,11 @@ export async function deletePromptRecipe(id: string) {
 
 export async function reorderPromptRecipes(orderedIds: string[]) {
   await ensureSystemTemplates();
-  const builtInIds = new Set(GLOBAL_CHAT_RECIPES.map((recipe) => recipe.id));
+  const systemRecipes = await prisma.promptTemplate.findMany({
+    where: { isSystem: true },
+    select: { id: true },
+  });
+  const builtInIds = new Set(systemRecipes.map((recipe) => recipe.id));
   const storedOrderedIds = orderedIds.filter((id) => !builtInIds.has(id));
 
   if (storedOrderedIds.length === 0) {

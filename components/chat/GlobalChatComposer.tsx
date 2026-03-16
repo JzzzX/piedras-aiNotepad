@@ -23,7 +23,6 @@ interface GlobalChatComposerProps {
   onSubmit: (payload?: GlobalChatSubmitPayload) => void | Promise<void>;
   selectedWorkspaceId: string | null;
   onSelectedWorkspaceChange: (workspaceId: string | null) => void;
-  preferredWorkspaceId?: string | null;
   workspaces: Workspace[];
   filters: GlobalChatFilters;
   onFiltersChange: (filters: GlobalChatFilters) => void;
@@ -34,11 +33,8 @@ interface GlobalChatComposerProps {
   placeholder: string;
 }
 
-function accentClass(accent: 'lime' | 'amber' | 'sky' | 'violet') {
-  if (accent === 'lime') return 'bg-lime-400';
-  if (accent === 'sky') return 'bg-sky-400';
-  if (accent === 'violet') return 'bg-violet-400';
-  return 'bg-amber-400';
+function accentClass(accent: 'system' | 'custom') {
+  return accent === 'system' ? 'bg-[#D8C2A8]' : 'bg-[#CFC6BC]';
 }
 
 export default function GlobalChatComposer({
@@ -48,7 +44,6 @@ export default function GlobalChatComposer({
   onSubmit,
   selectedWorkspaceId,
   onSelectedWorkspaceChange,
-  preferredWorkspaceId = null,
   workspaces,
   filters,
   onFiltersChange,
@@ -201,30 +196,19 @@ export default function GlobalChatComposer({
   };
 
   const selectRecipe = async (recipe: Recipe) => {
-    const recipeWorkspaceId =
-      recipe.kind === 'quick' && recipe.scope === 'my_notes'
-        ? selectedWorkspaceId || preferredWorkspaceId || workspaces[0]?.id || null
-        : recipe.kind === 'quick'
-          ? null
-          : selectedWorkspaceId;
+    const recipeWorkspaceId = selectedWorkspaceId;
+    const nextScope = selectedWorkspaceId ? 'my_notes' : 'all_meetings';
 
     onInputChange('');
     setCommandsDismissed(false);
-    onSelectedWorkspaceChange(recipe.kind === 'quick' ? recipeWorkspaceId : selectedWorkspaceId);
+    onSelectedWorkspaceChange(recipeWorkspaceId);
     await onSubmit({
       displayText: recipe.name,
-      question: recipe.kind === 'quick' ? recipe.prompt : recipe.name,
-      recipePrompt: recipe.kind === 'prompt' ? recipe.prompt : undefined,
-      recipeId: recipe.kind === 'prompt' ? recipe.id : undefined,
-      nextScope:
-        recipe.kind === 'quick'
-          ? recipeWorkspaceId
-            ? recipe.scope
-            : 'all_meetings'
-          : selectedWorkspaceId
-            ? 'my_notes'
-            : 'all_meetings',
-      workspaceId: recipe.kind === 'quick' ? recipeWorkspaceId : selectedWorkspaceId,
+      question: recipe.starterQuestion?.trim() || recipe.name,
+      recipePrompt: recipe.prompt,
+      recipeId: recipe.id,
+      nextScope,
+      workspaceId: nextScope === 'my_notes' ? recipeWorkspaceId : null,
     });
   };
 
@@ -454,12 +438,9 @@ export default function GlobalChatComposer({
                             {item.command}
                           </code>
                         ) : null}
-                        <span className="rounded-full bg-[#F1EBE3] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
-                          {item.sourceLabel}
-                        </span>
-                        {item.recipe.kind === 'quick' ? (
-                          <span className="rounded-full bg-[#FFF5DF] px-2 py-0.5 text-[10px] text-[#AD7A1C]">
-                            快捷
+                        {!item.recipe.isSystem ? (
+                          <span className="rounded-full bg-[#F1EBE3] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
+                            {item.sourceLabel}
                           </span>
                         ) : null}
                       </div>

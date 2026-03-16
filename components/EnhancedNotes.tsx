@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
-import { buildUnifiedMeetingMarkdown } from '@/lib/meeting-export';
+import { buildUnifiedMeetingMarkdown, parseEnhancedNotesSections } from '@/lib/meeting-export';
 
 type ShareChannel = 'feishu' | 'wecom';
 const SHARE_STORAGE_KEY = 'ai-notepad-webhook-config-v1';
@@ -20,9 +20,11 @@ const SHARE_STORAGE_KEY = 'ai-notepad-webhook-config-v1';
 export default function EnhancedNotes({
   embedded = false,
   onGenerate,
+  recipeName = 'Auto',
 }: {
   embedded?: boolean;
   onGenerate?: () => void;
+  recipeName?: string;
 }) {
   const {
     meetingTitle,
@@ -70,6 +72,7 @@ export default function EnhancedNotes({
       }),
     [enhancedNotes, meetingDate, meetingTitle]
   );
+  const sections = useMemo(() => parseEnhancedNotesSections(enhancedNotes || ''), [enhancedNotes]);
 
   const handleCopy = async () => {
     const markdown = buildUnifiedMeetingMarkdown({
@@ -223,9 +226,12 @@ export default function EnhancedNotes({
                 AI 会议纪要
               </h4>
               {embedded && (
-                <p className="mt-1 text-xs text-stone-400">
-                  结构化总结会基于转写和用户笔记共同生成。
-                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-stone-400">
+                  <span>结构化总结会基于转写和用户笔记共同生成。</span>
+                  <span className="rounded-full bg-[#F5EEE6] px-2.5 py-1 text-[11px] text-[#8C7A6B]">
+                    {recipeName}
+                  </span>
+                </div>
               )}
             </div>
             <div className="flex items-center gap-1">
@@ -273,11 +279,59 @@ export default function EnhancedNotes({
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
-            <div className="prose prose-sm prose-stone max-w-none rounded-2xl border border-black/[0.04] bg-white p-6 shadow-sm">
-              <div className="whitespace-pre-wrap text-[15px] leading-relaxed font-sans text-stone-800">
-                {enhancedNotes}
+            {sections.length > 0 ? (
+              <div className="space-y-4">
+                {sections.map((section) => (
+                  <section
+                    key={section.title}
+                    className="rounded-[24px] border border-black/[0.04] bg-white p-6 shadow-sm"
+                  >
+                    <h5 className="font-song text-[18px] font-semibold text-stone-800">
+                      {section.title}
+                    </h5>
+                    <div className="mt-4 space-y-3">
+                      {section.lines.map((line, index) => {
+                        const trimmed = line.trim();
+                        if (!trimmed) {
+                          return <div key={`${section.title}-${index}`} className="h-1" />;
+                        }
+
+                        if (/^[-*+]\s+/.test(trimmed) || /^\d+[\.\)、]\s+/.test(trimmed)) {
+                          return (
+                            <div
+                              key={`${section.title}-${index}`}
+                              className="flex items-start gap-3 text-[15px] leading-7 text-stone-700"
+                            >
+                              <span className="mt-[10px] h-1.5 w-1.5 rounded-full bg-[#B79E84]" />
+                              <span>
+                                {trimmed
+                                  .replace(/^[-*+]\s+/, '')
+                                  .replace(/^\d+[\.\)、]\s+/, '')}
+                              </span>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <p
+                            key={`${section.title}-${index}`}
+                            className="text-[15px] leading-7 text-stone-700"
+                          >
+                            {trimmed}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
               </div>
-            </div>
+            ) : (
+              <div className="rounded-[24px] border border-black/[0.04] bg-white p-6 shadow-sm">
+                <p className="text-[15px] leading-7 text-stone-700">
+                  暂时无法结构化解析当前内容，请重新生成，或复制后在外部查看原始 Markdown。
+                </p>
+              </div>
+            )}
 
             {feedback && (
               <p className="mt-4 text-[12px] font-medium text-stone-500">{feedback}</p>

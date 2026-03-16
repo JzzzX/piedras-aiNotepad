@@ -13,11 +13,8 @@ import {
 import { useMeetingStore } from '@/lib/store';
 import type { Recipe } from '@/lib/types';
 
-function accentClass(accent: 'lime' | 'amber' | 'sky' | 'violet') {
-  if (accent === 'lime') return 'bg-lime-400';
-  if (accent === 'sky') return 'bg-sky-400';
-  if (accent === 'violet') return 'bg-violet-400';
-  return 'bg-amber-400';
+function accentClass(accent: 'system' | 'custom') {
+  return accent === 'system' ? 'bg-[#D8C2A8]' : 'bg-[#CFC6BC]';
 }
 
 export default function ChatRecipesPage() {
@@ -77,44 +74,25 @@ export default function ChatRecipesPage() {
 
   const launchItem = (item: (typeof items)[number]) => {
     const recipe = item.recipe;
-    const workspaceId =
-      recipe.kind === 'quick'
-        ? recipe.scope === 'my_notes'
-          ? selectedWorkspaceId || currentWorkspaceId || workspaces[0]?.id || null
-          : null
-        : selectedWorkspaceId;
-    const scope =
-      recipe.kind === 'quick'
-        ? recipe.scope === 'my_notes' && workspaceId
-          ? 'my_notes'
-          : 'all_meetings'
-        : resolveGlobalChatScope(workspaceId);
+    const workspaceId = selectedWorkspaceId;
+    const scope = resolveGlobalChatScope(workspaceId);
 
-    const draft: GlobalChatDraft =
-      recipe.kind === 'quick'
-        ? {
-            displayText: recipe.name,
-            question: recipe.prompt,
-            scope,
-            workspaceId,
-            filters: {},
-          }
-        : {
-            displayText: recipe.name,
-            question: recipe.name,
-            recipePrompt: recipe.prompt,
-            recipeId: recipe.id,
-            scope,
-            workspaceId,
-            filters: {},
-          };
+    const draft: GlobalChatDraft = {
+      displayText: recipe.name,
+      question: recipe.starterQuestion?.trim() || recipe.name,
+      recipePrompt: recipe.prompt,
+      recipeId: recipe.id,
+      scope,
+      workspaceId,
+      filters: {},
+    };
 
     sessionStorage.setItem(GLOBAL_CHAT_DRAFT_KEY, JSON.stringify(draft));
     router.push('/chat/new');
   };
 
   return (
-    <div className="min-h-full bg-[#F6F2EB]">
+    <div>
       <div className="mx-auto flex max-w-[1100px] flex-col gap-8 px-6 pb-12 pt-8 sm:px-8 lg:px-10">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -198,12 +176,9 @@ export default function ChatRecipesPage() {
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <div className="text-[16px] font-semibold text-[#3A2E25]">{item.label}</div>
-                            <span className="rounded-full bg-[#F1EBE3] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
-                              {item.sourceLabel}
-                            </span>
-                            {item.recipe.kind === 'quick' ? (
-                              <span className="rounded-full bg-[#FFF5DF] px-2 py-0.5 text-[10px] text-[#AD7A1C]">
-                                快捷
+                            {!item.recipe.isSystem ? (
+                              <span className="rounded-full bg-[#F1EBE3] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
+                                {item.sourceLabel}
                               </span>
                             ) : null}
                             {item.command ? (

@@ -443,8 +443,8 @@ export default function GlobalChatSessionPage() {
   }, [isDeleting, router, sessionId, title]);
 
   return (
-    <div className="min-h-full bg-[#F6F2EB]">
-      <div className="mx-auto flex min-h-full max-w-[1100px] flex-col px-6 pb-10 pt-8 sm:px-8 lg:px-10">
+    <div>
+      <div className="mx-auto flex max-w-[1100px] flex-col px-6 pb-10 pt-8 sm:px-8 lg:px-10">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -573,7 +573,6 @@ export default function GlobalChatSessionPage() {
                 onSubmit={handleSubmit}
                 selectedWorkspaceId={selectedWorkspaceId}
                 onSelectedWorkspaceChange={setSelectedWorkspaceId}
-                preferredWorkspaceId={currentWorkspaceId || workspaces[0]?.id || null}
                 workspaces={workspaces}
                 filters={filters}
                 onFiltersChange={setFilters}

@@ -72,7 +72,8 @@ export async function enhanceNotes(
   userNotes: string,
   meetingTitle: string,
   speakers: Record<string, string>,
-  templatePrompt?: string,
+  recipePrompt?: string,
+  recipeId?: string | null,
   promptOptions?: PromptOptions,
   llmSettings?: LlmSettings
 ): Promise<string> {
@@ -85,7 +86,8 @@ export async function enhanceNotes(
       transcript,
       userNotes,
       meetingTitle,
-      templatePrompt,
+      recipePrompt,
+      recipeId,
       promptOptions,
       llmRuntimeConfig: buildRuntimeConfig(llmSettings),
     }),

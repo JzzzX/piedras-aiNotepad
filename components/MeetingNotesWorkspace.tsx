@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FileText, Sparkles, Wand2, X } from 'lucide-react';
 import { useMeetingStore } from '@/lib/store';
 import { enhanceNotes } from '@/lib/llm';
+import type { Recipe } from '@/lib/types';
 import NoteEditor from './NoteEditor';
 import EnhancedNotes from './EnhancedNotes';
 
@@ -17,18 +18,43 @@ export default function MeetingNotesWorkspace() {
     segments,
     userNotes,
     enhancedNotes,
+    enhanceRecipeId,
     isEnhancing,
     speakers,
     promptOptions,
     llmSettings,
     setEnhancedNotes,
+    setEnhanceRecipeId,
     setIsEnhancing,
   } = useMeetingStore();
 
   const [activeView, setActiveView] = useState<NotesView>('notes');
   const [promptDismissed, setPromptDismissed] = useState(false);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const prevStatusRef = useRef(status);
   const prevMeetingIdRef = useRef(meetingId);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadRecipes = async () => {
+      try {
+        const res = await fetch('/api/recipes');
+        if (!res.ok || !active) return;
+        const data = (await res.json()) as Recipe[];
+        setRecipes(data.filter((recipe) => recipe.surfaces === 'meeting' || recipe.surfaces === 'both'));
+      } catch (error) {
+        console.error('加载会议 Recipes 失败:', error);
+      }
+    };
+
+    void loadRecipes();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectedRecipe = recipes.find((recipe) => recipe.id === enhanceRecipeId) || null;
 
   useEffect(() => {
     if (prevMeetingIdRef.current !== meetingId) {
@@ -53,6 +79,9 @@ export default function MeetingNotesWorkspace() {
 
   const handleGenerate = useCallback(async () => {
     if (isEnhancing) return;
+    if (enhanceRecipeId && !selectedRecipe) {
+      setEnhanceRecipeId(null);
+    }
 
     setActiveView('ai');
     setPromptDismissed(true);
@@ -64,7 +93,8 @@ export default function MeetingNotesWorkspace() {
         userNotes,
         meetingTitle,
         speakers,
-        undefined,
+        selectedRecipe?.prompt,
+        selectedRecipe?.id || null,
         promptOptions,
         llmSettings
       );
@@ -77,15 +107,18 @@ export default function MeetingNotesWorkspace() {
       setIsEnhancing(false);
     }
   }, [
+    enhanceRecipeId,
     isEnhancing,
     llmSettings,
     meetingTitle,
     promptOptions,
     segments,
     setEnhancedNotes,
+    setEnhanceRecipeId,
     setIsEnhancing,
     speakers,
     userNotes,
+    selectedRecipe,
   ]);
 
   const shouldShowEnhancePrompt =
@@ -122,6 +155,29 @@ export default function MeetingNotesWorkspace() {
             />
           </div>
         </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#A69B8F]">
+            Recipe
+          </span>
+          <select
+            value={enhanceRecipeId || '__auto__'}
+            onChange={(event) =>
+              setEnhanceRecipeId(event.target.value === '__auto__' ? null : event.target.value)
+            }
+            className="rounded-full border border-[#E3D9CE] bg-white px-4 py-2 text-[13px] text-[#5C4D42] focus:border-[#BFAE9E] focus:outline-none"
+          >
+            <option value="__auto__">Auto</option>
+            {recipes.map((recipe) => (
+              <option key={recipe.id} value={recipe.id}>
+                {recipe.name}
+              </option>
+            ))}
+          </select>
+          <span className="text-[12px] text-[#8C7A6B]">
+            {selectedRecipe?.description || '默认生成通用会议摘要，可随时切换到更具体的 Recipe。'}
+          </span>
+        </div>
       </div>
 
       <div className="relative min-h-[560px] bg-[#FCFAF8]">
@@ -130,7 +186,11 @@ export default function MeetingNotesWorkspace() {
         </div>
 
         <div className={activeView === 'ai' ? 'block h-full' : 'hidden h-full'}>
-          <EnhancedNotes embedded onGenerate={handleGenerate} />
+          <EnhancedNotes
+            embedded
+            onGenerate={handleGenerate}
+            recipeName={selectedRecipe?.name || 'Auto'}
+          />
         </div>
 
         {shouldShowEnhancePrompt && (
