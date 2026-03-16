@@ -86,7 +86,13 @@ function compactExtractedText(text: string) {
 }
 
 async function extractPdfText(buffer: Buffer) {
-  const pdfParseModule: any = await import('pdf-parse');
+  const pdfParseModule = (await import('pdf-parse')) as unknown as {
+    default?: (
+      dataBuffer: Buffer
+    ) => Promise<{ text?: string }>;
+  } & ((
+    dataBuffer: Buffer
+  ) => Promise<{ text?: string }>);
   const pdfParse = (pdfParseModule.default || pdfParseModule) as (
     dataBuffer: Buffer
   ) => Promise<{ text?: string }>;
@@ -95,7 +101,19 @@ async function extractPdfText(buffer: Buffer) {
 }
 
 async function extractImageText(buffer: Buffer) {
-  const tesseractModule: any = await import('tesseract.js');
+  const tesseractModule = (await import('tesseract.js')) as unknown as {
+    createWorker?: (language?: string) => Promise<{
+      recognize: (image: Buffer) => Promise<{ data?: { text?: string } }>;
+      terminate: () => Promise<void>;
+    }>;
+    default?: {
+      createWorker?: (language?: string) => Promise<{
+        recognize: (image: Buffer) => Promise<{ data?: { text?: string } }>;
+        terminate: () => Promise<void>;
+      }>;
+    };
+  };
+
   const createWorker = (tesseractModule.createWorker ||
     tesseractModule.default?.createWorker) as (language?: string) => Promise<{
       recognize: (image: Buffer) => Promise<{ data?: { text?: string } }>;

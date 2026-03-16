@@ -94,7 +94,7 @@ export interface Collection {
 }
 
 export type WorkspaceAssetType = 'pdf' | 'image';
-export type WorkspaceAssetExtractionStatus = 'ready' | 'failed';
+export type WorkspaceAssetExtractionStatus = 'processing' | 'ready' | 'failed';
 
 export interface WorkspaceAsset {
   id: string;

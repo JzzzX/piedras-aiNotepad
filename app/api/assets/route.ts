@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import {
   createWorkspaceAssetStorageKey,
-  extractWorkspaceAssetText,
   inferWorkspaceAssetType,
   saveWorkspaceAssetFile,
 } from '@/lib/workspace-assets';
@@ -63,21 +62,6 @@ export async function POST(req: NextRequest) {
   const buffer = Buffer.from(await file.arrayBuffer());
   await saveWorkspaceAssetFile(storageKey, buffer);
 
-  let extractedText = '';
-  let extractionStatus: 'ready' | 'failed' = 'ready';
-  let extractionError = '';
-
-  try {
-    extractedText = await extractWorkspaceAssetText(buffer, assetType);
-    if (!extractedText.trim()) {
-      extractionStatus = 'failed';
-      extractionError = assetType === 'pdf' ? '未能从 PDF 中提取文本' : '未能从图片中识别文本';
-    }
-  } catch (error) {
-    extractionStatus = 'failed';
-    extractionError = error instanceof Error ? error.message : '资料文本抽取失败';
-  }
-
   const asset = await prisma.workspaceAsset.create({
     data: {
       id: assetId,
@@ -87,9 +71,9 @@ export async function POST(req: NextRequest) {
       mimeType: file.type || (assetType === 'pdf' ? 'application/pdf' : 'image/png'),
       fileSize: file.size,
       storageKey,
-      extractedText,
-      extractionStatus,
-      extractionError,
+      extractedText: '',
+      extractionStatus: 'processing',
+      extractionError: '',
       workspaceId,
       collectionId,
     },

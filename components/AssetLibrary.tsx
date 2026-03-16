@@ -85,6 +85,17 @@ export default function AssetLibrary({
   }, [loadAssets, loadCollections]);
 
   useEffect(() => {
+    const hasProcessingAssets = assets.some((asset) => asset.extractionStatus === 'processing');
+    if (!hasProcessingAssets) return;
+
+    const timer = window.setInterval(() => {
+      void loadAssets();
+    }, 2500);
+
+    return () => window.clearInterval(timer);
+  }, [assets, loadAssets]);
+
+  useEffect(() => {
     if (!uploadSignal || handledUploadSignalRef.current === uploadSignal) return;
     handledUploadSignalRef.current = uploadSignal;
     fileInputRef.current?.click();
@@ -144,8 +155,15 @@ export default function AssetLibrary({
         if (!res.ok) {
           throw new Error((await res.json().catch(() => null))?.error || '上传资料失败');
         }
-
+        const asset = (await res.json()) as WorkspaceAsset;
         await loadAssets();
+        void fetch(`/api/assets/${asset.id}/index`, { method: 'POST' })
+          .catch((error) => {
+            console.error('触发资料索引失败:', error);
+          })
+          .finally(() => {
+            void loadAssets();
+          });
       } catch (error) {
         console.error(error);
         alert(error instanceof Error ? error.message : '上传资料失败');
@@ -317,7 +335,11 @@ export default function AssetLibrary({
                   <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-[#8C7A6B]">
                     {asset.collection?.name || '工作区共享'}
                   </span>
-                  {asset.extractionStatus === 'failed' ? (
+                  {asset.extractionStatus === 'processing' ? (
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] text-amber-600">
+                      索引中
+                    </span>
+                  ) : asset.extractionStatus === 'failed' ? (
                     <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] text-rose-600">
                       未索引
                     </span>
@@ -333,7 +355,9 @@ export default function AssetLibrary({
                 </div>
 
                 <p className="mt-2 line-clamp-3 text-[13px] leading-6 text-[#746556]">
-                  {asset.extractionStatus === 'failed'
+                  {asset.extractionStatus === 'processing'
+                    ? '文件已上传，正在提取文本并建立检索索引。处理完成后会自动刷新。'
+                    : asset.extractionStatus === 'failed'
                     ? asset.extractionError || '这份资料已保存，但暂时未能抽取文本。'
                     : asset.extractedText || '资料已保存，暂未抽取到可检索文本。'}
                 </p>
