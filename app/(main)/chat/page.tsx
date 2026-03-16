@@ -167,7 +167,7 @@ export default function ChatHomePage() {
   const featuredRecipes = useMemo(() => getFeaturedGlobalChatRecipes(recipes), [recipes]);
 
   return (
-    <div>
+    <div className="flex-1">
       <div className="mx-auto flex max-w-[1100px] flex-col gap-10 px-6 pb-12 pt-10 sm:px-8 lg:px-10">
         <section className="rounded-[36px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.92),_rgba(248,243,236,0.98)_58%,_rgba(239,231,221,1))] px-6 py-8 shadow-[0_24px_80px_rgba(58,46,37,0.08)] sm:px-8 sm:py-10">
           <div className="mx-auto max-w-[760px]">

@@ -64,7 +64,7 @@ export default function ChatHistoryPage() {
   }, [query]);
 
   return (
-    <div className="min-h-full bg-[#F6F2EB]">
+    <div className="flex-1">
       <div className="mx-auto flex max-w-[980px] flex-col gap-8 px-6 pb-12 pt-8 sm:px-8 lg:px-10">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">

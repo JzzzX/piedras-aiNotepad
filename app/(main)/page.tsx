@@ -168,7 +168,7 @@ export default function HomePage() {
   );
 
   return (
-    <div className="min-h-full bg-[#F6F2EB]">
+    <div className="flex-1">
       <div className="mx-auto flex max-w-[1100px] flex-col gap-8 px-6 pb-12 pt-10 sm:px-8 lg:px-10">
         <section className="rounded-[34px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(249,244,237,0.98)_58%,_rgba(239,231,221,1))] px-6 py-8 shadow-[0_24px_72px_rgba(58,46,37,0.08)] sm:px-8 sm:py-9">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">

@@ -443,7 +443,7 @@ export default function GlobalChatSessionPage() {
   }, [isDeleting, router, sessionId, title]);
 
   return (
-    <div>
+    <div className="flex-1">
       <div className="mx-auto flex max-w-[1100px] flex-col px-6 pb-10 pt-8 sm:px-8 lg:px-10">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">

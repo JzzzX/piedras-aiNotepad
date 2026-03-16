@@ -57,8 +57,8 @@ export default function UngroupedMeetingPage() {
   };
 
   return (
-    <div className="min-h-full bg-[#F6F2EB]">
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-6 px-6 pb-10 pt-8 sm:px-8 lg:px-10">
+    <div className="flex-1 flex flex-col">
+      <div className="flex-1 mx-auto flex w-full max-w-[1180px] flex-col gap-6 px-6 pb-10 pt-8 sm:px-8 lg:px-10">
         <section className="rounded-[30px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(249,244,237,0.98)_58%,_rgba(239,231,221,1))] px-6 py-7 shadow-[0_24px_72px_rgba(58,46,37,0.08)] sm:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
@@ -101,7 +101,7 @@ export default function UngroupedMeetingPage() {
           </div>
         </section>
 
-        <section className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-5 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+        <section className="flex-1 rounded-[30px] border border-[#DED4C9] bg-white/90 p-5 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
           <div className="mb-4">
             <h2 className="font-song text-[26px] text-[#3A2E25]">会议与笔记历史</h2>
             <p className="mt-1 text-sm text-[#8B796A]">
