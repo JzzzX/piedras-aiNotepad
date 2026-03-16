@@ -5,19 +5,6 @@ import { Readable } from 'node:stream';
 import type { WorkspaceAssetType } from './types';
 
 const ASSET_STORAGE_DIR = path.join(process.cwd(), 'storage', 'assets');
-const MAX_EXTRACTED_TEXT_LENGTH = 120_000;
-const OCR_WORKER_IDLE_MS = 2 * 60 * 1000;
-const MAX_OCR_IMAGE_EDGE = 2200;
-
-type OcrWorker = {
-  recognize: (image: Buffer) => Promise<{ data?: { text?: string } }>;
-  terminate: () => Promise<void>;
-};
-
-const globalForWorkspaceAssets = globalThis as unknown as {
-  workspaceAssetOcrWorker?: Promise<OcrWorker> | null;
-  workspaceAssetOcrWorkerIdleTimer?: ReturnType<typeof setTimeout> | null;
-};
 
 function normalizeExtension(originalName: string, assetType: WorkspaceAssetType) {
   const rawExt = path.extname(originalName).trim().toLowerCase();
@@ -88,93 +75,4 @@ export async function createWorkspaceAssetFileStreamResponse(input: {
   }
 
   return new Response(stream, { status: 200, headers });
-}
-
-function compactExtractedText(text: string) {
-  const normalized = text.replace(/\u0000/g, '').replace(/\s+\n/g, '\n').trim();
-  return normalized.length <= MAX_EXTRACTED_TEXT_LENGTH
-    ? normalized
-    : normalized.slice(0, MAX_EXTRACTED_TEXT_LENGTH);
-}
-
-async function extractPdfText(buffer: Buffer) {
-  const pdfParseModule = (await import('pdf-parse')) as unknown as {
-    default?: (
-      dataBuffer: Buffer
-    ) => Promise<{ text?: string }>;
-  } & ((
-    dataBuffer: Buffer
-  ) => Promise<{ text?: string }>);
-  const pdfParse = (pdfParseModule.default || pdfParseModule) as (
-    dataBuffer: Buffer
-  ) => Promise<{ text?: string }>;
-  const result = await pdfParse(buffer);
-  return compactExtractedText(result.text || '');
-}
-
-async function prepareImageForOcr(buffer: Buffer) {
-  try {
-    const sharpModule = await import('sharp');
-    const sharp = sharpModule.default;
-    return await sharp(buffer)
-      .rotate()
-      .resize({
-        width: MAX_OCR_IMAGE_EDGE,
-        height: MAX_OCR_IMAGE_EDGE,
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .grayscale()
-      .normalize()
-      .png()
-      .toBuffer();
-  } catch {
-    return buffer;
-  }
-}
-
-async function extractImageText(buffer: Buffer) {
-  const tesseractModule = (await import('tesseract.js')) as unknown as {
-    createWorker?: (language?: string) => Promise<OcrWorker>;
-    default?: {
-      createWorker?: (language?: string) => Promise<OcrWorker>;
-    };
-  };
-
-  const createWorker = (tesseractModule.createWorker ||
-    tesseractModule.default?.createWorker) as (language?: string) => Promise<OcrWorker>;
-
-  if (globalForWorkspaceAssets.workspaceAssetOcrWorkerIdleTimer) {
-    clearTimeout(globalForWorkspaceAssets.workspaceAssetOcrWorkerIdleTimer);
-    globalForWorkspaceAssets.workspaceAssetOcrWorkerIdleTimer = null;
-  }
-
-  if (!globalForWorkspaceAssets.workspaceAssetOcrWorker) {
-    globalForWorkspaceAssets.workspaceAssetOcrWorker = createWorker('eng+chi_sim');
-  }
-
-  const worker = await globalForWorkspaceAssets.workspaceAssetOcrWorker;
-  try {
-    const preparedBuffer = await prepareImageForOcr(buffer);
-    const result = await worker.recognize(preparedBuffer);
-    return compactExtractedText(result.data?.text || '');
-  } finally {
-    globalForWorkspaceAssets.workspaceAssetOcrWorkerIdleTimer = setTimeout(() => {
-      const workerPromise = globalForWorkspaceAssets.workspaceAssetOcrWorker;
-      globalForWorkspaceAssets.workspaceAssetOcrWorker = null;
-      globalForWorkspaceAssets.workspaceAssetOcrWorkerIdleTimer = null;
-      if (!workerPromise) return;
-      void workerPromise.then((currentWorker) => currentWorker.terminate()).catch(() => {});
-    }, OCR_WORKER_IDLE_MS);
-  }
-}
-
-export async function extractWorkspaceAssetText(
-  buffer: Buffer,
-  assetType: WorkspaceAssetType
-) {
-  if (assetType === 'pdf') {
-    return extractPdfText(buffer);
-  }
-  return extractImageText(buffer);
 }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { enqueueWorkspaceAssetIndex, retryWorkspaceAssetIndex } from '@/lib/asset-index-queue';
 import { prisma } from '@/lib/db';
 
 export async function POST(
@@ -11,7 +10,6 @@ export async function POST(
     where: { id },
     select: {
       id: true,
-      extractionStatus: true,
     },
   });
 
@@ -19,21 +17,12 @@ export async function POST(
     return NextResponse.json({ error: '资料不存在' }, { status: 404 });
   }
 
-  if (asset.extractionStatus === 'ready') {
-    return NextResponse.json({ ok: true, status: 'ready' });
-  }
-
-  if (asset.extractionStatus === 'failed') {
-    await retryWorkspaceAssetIndex(asset.id);
-    return NextResponse.json({ ok: true, status: 'queued' }, { status: 202 });
-  }
-
-  await enqueueWorkspaceAssetIndex(asset.id);
   return NextResponse.json(
     {
-      ok: true,
-      status: asset.extractionStatus === 'processing' ? 'processing' : 'queued',
+      ok: false,
+      status: 'preview',
+      error: '资料库当前为预览模式，暂未启用资料识别',
     },
-    { status: 202 }
+    { status: 409 }
   );
 }

@@ -7,7 +7,6 @@ import {
   FileImage,
   FileText,
   Loader2,
-  RefreshCw,
   Search,
   Trash2,
   Upload,
@@ -46,7 +45,7 @@ export default function AssetLibrary({
   fixedCollectionId,
   uploadSignal = 0,
   emptyTitle = '还没有资料',
-  emptyDescription = '上传 PDF 或图片后，它们会在这里参与知识检索。',
+  emptyDescription = '上传 PDF 或图片后，它们会在这里用于预览和归档管理。',
 }: AssetLibraryProps) {
   const { collections, loadCollections } = useMeetingStore();
   const [assets, setAssets] = useState<WorkspaceAsset[]>([]);
@@ -87,20 +86,6 @@ export default function AssetLibrary({
   }, [loadAssets, loadCollections]);
 
   useEffect(() => {
-    const hasPendingAssets = assets.some(
-      (asset) => asset.extractionStatus === 'queued' || asset.extractionStatus === 'processing'
-    );
-    if (!hasPendingAssets) return;
-
-    const timer = window.setInterval(() => {
-      if (document.visibilityState !== 'visible') return;
-      void loadAssets();
-    }, 2500);
-
-    return () => window.clearInterval(timer);
-  }, [assets, loadAssets]);
-
-  useEffect(() => {
     if (!uploadSignal || handledUploadSignalRef.current === uploadSignal) return;
     handledUploadSignalRef.current = uploadSignal;
     fileInputRef.current?.click();
@@ -127,7 +112,7 @@ export default function AssetLibrary({
       if (!matchesCollection) return false;
       if (!normalizedQuery) return true;
 
-      return [asset.name, asset.originalName, asset.extractedText]
+      return [asset.name, asset.originalName]
         .filter(Boolean)
         .some((value) => value.toLowerCase().includes(normalizedQuery));
     });
@@ -173,19 +158,6 @@ export default function AssetLibrary({
       }
     },
     [fixedCollectionId, loadAssets, uploadCollectionId, workspaceId]
-  );
-
-  const handleRetryAsset = useCallback(
-    async (assetId: string) => {
-      const res = await fetch(`/api/assets/${assetId}/index`, { method: 'POST' });
-      if (!res.ok) {
-        alert('重试索引失败');
-        return;
-      }
-
-      await loadAssets();
-    },
-    [loadAssets]
   );
 
   const handleMoveAsset = useCallback(
@@ -237,7 +209,7 @@ export default function AssetLibrary({
         <div className="flex items-start gap-2">
           <AlertCircle size={16} className="mt-0.5 shrink-0" />
           <p>
-            当前暂未接入云端 OCR。PDF 会优先提取内嵌文本，图片会在本机后台识别，通常比上传慢；上传成功后即可继续使用，识别完成后会自动参与检索。
+            资料库当前为预览模式。你可以上传 PDF 和图片并在工作区内预览、整理和归档；当前尚未接入外部 OCR 或 PDF 解析能力，因此资料内容不会被识别，也不会进入 AI 对话或知识搜索。
           </p>
         </div>
       </div>
@@ -251,7 +223,7 @@ export default function AssetLibrary({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="搜索资料名称或提取文本"
+            placeholder="搜索资料名称"
             className="w-full rounded-2xl border border-[#E3D9CE] bg-white px-10 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none"
           />
         </label>
@@ -355,23 +327,9 @@ export default function AssetLibrary({
                   <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-[#8C7A6B]">
                     {asset.collection?.name || '工作区共享'}
                   </span>
-                  {asset.extractionStatus === 'queued' ? (
-                    <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] text-sky-600">
-                      排队中
-                    </span>
-                  ) : asset.extractionStatus === 'processing' ? (
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] text-amber-600">
-                      索引中
-                    </span>
-                  ) : asset.extractionStatus === 'failed' ? (
-                    <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] text-rose-600">
-                      未索引
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] text-emerald-600">
-                      已索引
-                    </span>
-                  )}
+                  <span className="rounded-full bg-[#F4EFE7] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
+                    仅预览
+                  </span>
                 </div>
 
                 <div className="mt-1 text-[12px] text-[#9A8877]">
@@ -379,15 +337,7 @@ export default function AssetLibrary({
                 </div>
 
                 <p className="mt-2 line-clamp-3 text-[13px] leading-6 text-[#746556]">
-                  {asset.extractionStatus === 'queued'
-                    ? '文件已上传，正在等待后台索引。你可以先离开当前页面，完成后会自动参与检索。'
-                    : asset.extractionStatus === 'processing'
-                    ? asset.assetType === 'pdf'
-                      ? 'PDF 已上传，正在提取文本并建立检索索引。'
-                      : '图片已上传，正在进行本机 OCR 识别。这个过程通常会比上传更慢。'
-                    : asset.extractionStatus === 'failed'
-                    ? asset.extractionError || '这份资料已保存，但暂时未能抽取文本。'
-                    : asset.extractedText || '资料已保存，暂未抽取到可检索文本。'}
+                  当前仅支持文件预览与归档管理。后续接入外部识别工具后，这些资料才会参与内容检索与 AI 使用。
                 </p>
               </div>
 
@@ -427,19 +377,6 @@ export default function AssetLibrary({
                     删除
                   </span>
                 </button>
-
-                {asset.extractionStatus === 'failed' ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleRetryAsset(asset.id)}
-                    className="rounded-lg px-2 py-1.5 text-xs text-[#7C6B5C] transition-colors hover:bg-[#F1EBE3] hover:text-[#5C4D42]"
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <RefreshCw size={12} />
-                      重试索引
-                    </span>
-                  </button>
-                ) : null}
               </div>
             </div>
           ))}

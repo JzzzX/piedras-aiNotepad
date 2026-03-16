@@ -374,7 +374,11 @@ export async function retrieveGlobalMeetingContext(
   });
 
   const assets = await prisma.workspaceAsset.findMany({
-    where: assetWhere,
+    // 资料库当前为预览模式，不参与 AI 检索。
+    where: {
+      ...assetWhere,
+      id: '__asset_preview_mode_disabled__',
+    },
     orderBy: { updatedAt: 'desc' },
     take: 80,
     select: {
