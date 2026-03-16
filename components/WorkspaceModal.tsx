@@ -10,6 +10,7 @@ import {
   WORKSPACE_ICON_OPTIONS,
   type WorkspaceIconKey,
 } from '@/lib/workspace-icons';
+import { getWorkspaceModeConfig, getWorkspaceModeLabel } from '@/lib/workspace-mode';
 import type { Workspace, WorkspaceWorkflowMode } from '@/lib/types';
 
 const PRESET_COLORS = ['#94a3b8', '#f87171', '#fb923c', '#fbbf24', '#4ade80', '#38bdf8', '#a78bfa', '#f472b6'];
@@ -21,6 +22,7 @@ interface WorkspaceDraft {
   color: string;
   icon: WorkspaceIconKey;
   workflowMode: WorkspaceWorkflowMode;
+  modeLabel: string;
 }
 
 type WorkspaceModalMode = 'create' | 'edit';
@@ -39,6 +41,7 @@ const DEFAULT_DRAFT: WorkspaceDraft = {
   color: DEFAULT_COLOR,
   icon: getDefaultWorkspaceIconKey(),
   workflowMode: 'general',
+  modeLabel: '',
 };
 
 function normalizeIcon(icon?: string | null): WorkspaceIconKey {
@@ -62,6 +65,7 @@ function toDraft(workspace?: Workspace | null): WorkspaceDraft {
     color: workspace.color,
     icon: normalizeIcon(workspace.icon),
     workflowMode: workspace.workflowMode || 'general',
+    modeLabel: workspace.modeLabel || '',
   };
 }
 
@@ -145,6 +149,7 @@ export default function WorkspaceModal({
         color: draft.color,
         icon: draft.icon,
         workflowMode: draft.workflowMode,
+        modeLabel: draft.modeLabel,
       });
       onClose();
     } catch (submitError) {
@@ -227,6 +232,18 @@ export default function WorkspaceModal({
                     );
                   })}
                 </div>
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-[#5C4D42]">模式名称</span>
+                <input
+                  value={draft.modeLabel}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, modeLabel: event.target.value }))
+                  }
+                  placeholder={getWorkspaceModeConfig(draft.workflowMode).defaultLabel}
+                  className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                />
               </label>
 
               <label className="block">
@@ -339,6 +356,9 @@ export default function WorkspaceModal({
                   <WorkspaceIconBadge icon={draft.icon} color={draft.color} size="lg" />
                   <div className="min-w-0">
                     <div className="truncate text-base font-semibold text-[#3A2E25]">{previewName}</div>
+                    <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-[#A09082]">
+                      {getWorkspaceModeLabel(draft)}
+                    </div>
                     <div className="mt-1 line-clamp-2 text-xs text-[#A09082]">{previewDescription}</div>
                   </div>
                 </div>
@@ -346,8 +366,8 @@ export default function WorkspaceModal({
 
               <div className="mt-4 rounded-[22px] bg-[#F7F2EB] px-4 py-4 text-sm leading-6 text-[#7B6A5B]">
                 {draft.workflowMode === 'interview'
-                  ? '面试模式下，Collection 会作为候选人档案，每一场 Meeting 对应一轮面试与交接记录。'
-                  : '通用模式下，Collection 用来整理主题、客户或子项目，适合常规会议管理。'}
+                  ? '面试模板下，Collection 会作为候选人档案，每一场 Meeting 对应一轮面试与交接记录。'
+                  : '通用模板下，Collection 用来整理主题、客户或子项目，适合常规会议管理。'}
               </div>
 
               {mode === 'create' ? (

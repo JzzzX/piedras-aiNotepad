@@ -194,8 +194,16 @@ interface MeetingStore {
     icon?: string;
     color?: string;
     workflowMode?: WorkspaceWorkflowMode;
+    modeLabel?: string;
   }) => Promise<Workspace>;
-  updateWorkspace: (id: string, input: { name?: string; description?: string; icon?: string; color?: string; workflowMode?: WorkspaceWorkflowMode }) => Promise<void>;
+  updateWorkspace: (id: string, input: {
+    name?: string;
+    description?: string;
+    icon?: string;
+    color?: string;
+    workflowMode?: WorkspaceWorkflowMode;
+    modeLabel?: string;
+  }) => Promise<void>;
   deleteWorkspace: (id: string) => Promise<void>;
   setCurrentWorkspaceId: (id: string | null) => void;
 }

@@ -20,6 +20,7 @@ import PiedrasMark from '@/components/PiedrasMark';
 import WorkspaceIconBadge from '@/components/WorkspaceIconBadge';
 import WorkspaceModal from '@/components/WorkspaceModal';
 import { useMeetingStore } from '@/lib/store';
+import { getWorkspaceModeLabel } from '@/lib/workspace-mode';
 
 const DESKTOP_SIDEBAR_DEFAULT_WIDTH = 244;
 const DESKTOP_SIDEBAR_MIN_WIDTH = 232;
@@ -210,6 +211,7 @@ export default function Sidebar() {
     color: string;
     icon: string;
     workflowMode: 'general' | 'interview';
+    modeLabel: string;
   }) => {
     if (workspaceModalState?.mode === 'edit' && workspaceModalState.workspaceId) {
       await updateWorkspace(workspaceModalState.workspaceId, input);
@@ -400,7 +402,12 @@ export default function Sidebar() {
                             className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
                           >
                             <WorkspaceIconBadge icon={ws.icon} color={ws.color} size="sm" />
-                            <span className="min-w-0 flex-1 truncate">{ws.name}</span>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate">{ws.name}</div>
+                              <div className="mt-0.5 truncate text-[10px] font-medium text-[#A09082]">
+                                {getWorkspaceModeLabel(ws)}
+                              </div>
+                            </div>
                           </button>
                           <div className="ml-auto flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                             <button

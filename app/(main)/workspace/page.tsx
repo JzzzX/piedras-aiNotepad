@@ -7,6 +7,7 @@ import WorkspaceIconBadge from '@/components/WorkspaceIconBadge';
 import WorkspaceModal from '@/components/WorkspaceModal';
 import { useMeetingStore } from '@/lib/store';
 import type { WorkspaceOverviewItem } from '@/lib/types';
+import { getWorkspaceModeConfig, getWorkspaceModeLabel } from '@/lib/workspace-mode';
 
 function formatLatestMeeting(value?: string | null) {
   if (!value) return '还没有会议';
@@ -72,6 +73,7 @@ export default function WorkspaceOverviewPage() {
       color: string;
       icon: string;
       workflowMode: 'general' | 'interview';
+      modeLabel: string;
     }) => {
       const workspace = await createWorkspace(input);
       setCurrentWorkspaceId(workspace.id);
@@ -165,7 +167,7 @@ export default function WorkspaceOverviewPage() {
                   onClick={() => handleOpenWorkspace(workspace.id)}
                   className={`group rounded-[26px] border bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,236,0.92))] p-5 text-left shadow-[0_14px_40px_rgba(58,46,37,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(58,46,37,0.12)] ${
                     workspace.id === currentWorkspaceId
-                      ? 'border-[#D4C1AA] ring-2 ring-[#EFE1D0]'
+                      ? `border-[#D4C1AA] ring-2 ${getWorkspaceModeConfig(workspace.workflowMode).accentRing}`
                       : 'border-[#E7DDD2] hover:border-[#D9CBBB]'
                   }`}
                 >
@@ -177,8 +179,12 @@ export default function WorkspaceOverviewPage() {
                         <div className="mt-1 text-xs text-[#A09082]">
                           {workspace.id === currentWorkspaceId ? '当前工作区' : '点击进入管理'}
                         </div>
-                        <div className="mt-2 text-[11px] text-[#9D8B7B]">
-                          {workspace.workflowMode === 'interview' ? '面试模式' : '通用模式'}
+                        <div
+                          className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                            getWorkspaceModeConfig(workspace.workflowMode).accentSurface
+                          } ${getWorkspaceModeConfig(workspace.workflowMode).accentText}`}
+                        >
+                          {getWorkspaceModeLabel(workspace)}
                         </div>
                       </div>
                     </div>

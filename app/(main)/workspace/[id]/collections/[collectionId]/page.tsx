@@ -18,6 +18,7 @@ import MeetingHistory from '@/components/MeetingHistory';
 import WorkspaceIconBadge from '@/components/WorkspaceIconBadge';
 import { getCandidateStatusMeta, getRecommendationMeta } from '@/lib/interview';
 import { useMeetingStore } from '@/lib/store';
+import { getWorkspaceModeConfig, getWorkspaceModeLabel } from '@/lib/workspace-mode';
 
 export default function CollectionDetailPage() {
   const params = useParams();
@@ -84,6 +85,7 @@ export default function CollectionDetailPage() {
   }, [collection, collections.length, router, workspaceId]);
 
   const isInterviewMode = workspace?.workflowMode === 'interview';
+  const modeConfig = workspace ? getWorkspaceModeConfig(workspace.workflowMode) : null;
   const timelineMeetings = useMemo(
     () =>
       [...meetingList].sort(
@@ -181,6 +183,16 @@ export default function CollectionDetailPage() {
                 <ChevronLeft size={14} />
                 返回工作区
               </Link>
+              {workspace ? (
+                <div
+                  className={`mt-4 inline-flex items-center gap-3 rounded-full px-4 py-2 text-sm ${
+                    modeConfig?.accentSurface || 'bg-white/90'
+                  } ${modeConfig?.accentText || 'text-[#6C5D50]'}`}
+                >
+                  <WorkspaceIconBadge icon={workspace.icon} color={workspace.color} size="sm" />
+                  <span>{getWorkspaceModeLabel(workspace)}</span>
+                </div>
+              ) : null}
               <h1 className="mt-4 flex items-center gap-3 font-song text-[34px] leading-tight text-[#3A2E25] sm:text-[42px]">
                 {collection ? (
                   <WorkspaceIconBadge icon={collection.icon} color={collection.color} size="lg" />

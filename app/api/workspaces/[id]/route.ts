@@ -13,6 +13,7 @@ export async function PUT(
       icon?: string;
       color?: string;
       workflowMode?: 'general' | 'interview';
+      modeLabel?: string;
     };
 
     const workspace = await prisma.workspace.update({
@@ -25,6 +26,7 @@ export async function PUT(
         ...(body.workflowMode !== undefined && {
           workflowMode: body.workflowMode === 'interview' ? 'interview' : 'general',
         }),
+        ...(body.modeLabel !== undefined && { modeLabel: body.modeLabel.trim() }),
       },
     });
 

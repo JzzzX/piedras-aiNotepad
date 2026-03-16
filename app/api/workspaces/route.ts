@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
       icon?: string;
       color?: string;
       workflowMode?: 'general' | 'interview';
+      modeLabel?: string;
     };
     const name = body.name?.trim();
 
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest) {
         icon: body.icon?.trim() || 'folder',
         color: body.color?.trim() || '#94a3b8',
         workflowMode: body.workflowMode === 'interview' ? 'interview' : 'general',
+        modeLabel: body.modeLabel?.trim() || '',
         sortOrder: (lastWorkspace?.sortOrder || 0) + 1,
       },
     });

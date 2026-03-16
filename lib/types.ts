@@ -62,6 +62,7 @@ export interface Workspace {
   icon: string;
   color: string;
   workflowMode: WorkspaceWorkflowMode;
+  modeLabel: string;
   sortOrder: number;
 }
 

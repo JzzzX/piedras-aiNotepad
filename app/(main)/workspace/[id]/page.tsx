@@ -22,6 +22,7 @@ import WorkspaceModal from '@/components/WorkspaceModal';
 import { getCandidateStatusMeta, getRecommendationMeta } from '@/lib/interview';
 import { useMeetingStore } from '@/lib/store';
 import type { Collection } from '@/lib/types';
+import { getWorkspaceModeConfig, getWorkspaceModeLabel } from '@/lib/workspace-mode';
 
 function formatLatestMeeting(value?: string | null) {
   if (!value) return '还没有会议';
@@ -119,6 +120,7 @@ export default function WorkspacePage() {
       : null;
 
   const isInterviewMode = workspace?.workflowMode === 'interview';
+  const modeConfig = workspace ? getWorkspaceModeConfig(workspace.workflowMode) : null;
 
   const handleNewMeeting = useCallback(() => {
     const { reset } = useMeetingStore.getState();
@@ -143,6 +145,7 @@ export default function WorkspacePage() {
       color: string;
       icon: string;
       workflowMode: 'general' | 'interview';
+      modeLabel: string;
     }) => {
       if (!workspace) return;
       await updateWorkspace(workspace.id, input);
@@ -205,9 +208,13 @@ export default function WorkspacePage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
               {workspace ? (
-                <div className="inline-flex items-center gap-3 rounded-full bg-white/90 px-4 py-2 text-sm text-[#6C5D50]">
+                <div
+                  className={`inline-flex items-center gap-3 rounded-full px-4 py-2 text-sm ${
+                    modeConfig?.accentSurface || 'bg-white/90'
+                  } ${modeConfig?.accentText || 'text-[#6C5D50]'}`}
+                >
                   <WorkspaceIconBadge icon={workspace.icon} color={workspace.color} size="sm" />
-                  <span>{isInterviewMode ? '面试工作区' : '工作区'}</span>
+                  <span>{getWorkspaceModeLabel(workspace)}</span>
                 </div>
               ) : null}
               <h1 className="mt-4 font-song text-[34px] leading-tight text-[#3A2E25] sm:text-[42px]">
@@ -223,6 +230,13 @@ export default function WorkspacePage() {
                 <span className="rounded-full bg-white px-3 py-1.5">
                   {isInterviewMode ? '候选人' : 'Collection'} {collections.length} 个
                 </span>
+                {modeConfig ? (
+                  <span
+                    className={`rounded-full px-3 py-1.5 font-medium ${modeConfig.accentSurface} ${modeConfig.accentText}`}
+                  >
+                    {modeConfig.description}
+                  </span>
+                ) : null}
               </div>
             </div>
 
