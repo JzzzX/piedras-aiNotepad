@@ -278,7 +278,7 @@ export default function MeetingPage() {
       </header>
 
       {/* Editor */}
-      <main className="flex-1 overflow-y-auto pb-32 custom-scrollbar">
+      <main className="flex-1 overflow-y-auto pb-44 custom-scrollbar sm:pb-48">
         <div className="mx-auto flex flex-1 max-w-4xl flex-col px-2 py-6 sm:my-6 sm:px-0 sm:py-2">
           {isInterviewMode ? (
             <section className="mb-5 rounded-[28px] border border-[#E3D9CE] bg-white/88 p-5 shadow-[0_16px_36px_rgba(58,46,37,0.06)]">

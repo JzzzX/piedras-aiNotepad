@@ -5,6 +5,7 @@ interface WaveformIndicatorProps {
   systemLevel: number;
   isActive: boolean;
   compact?: boolean;
+  tone?: 'light' | 'dark';
 }
 
 const BAR_COUNT = 16;
@@ -14,6 +15,7 @@ export default function WaveformIndicator({
   systemLevel,
   isActive,
   compact = false,
+  tone = 'light',
 }: WaveformIndicatorProps) {
   const amplitude = Math.min(
     1,
@@ -34,7 +36,13 @@ export default function WaveformIndicator({
           <span
             key={index}
             className={`block w-[3px] rounded-full transition-all duration-150 ${
-              isActive ? 'bg-[#3A2E25]' : 'bg-[#C9BBAE]'
+              tone === 'dark'
+                ? isActive
+                  ? 'bg-white'
+                  : 'bg-white/28'
+                : isActive
+                  ? 'bg-[#4E5E34]'
+                  : 'bg-[#C5D0B3]'
             }`}
             style={{ height }}
           />

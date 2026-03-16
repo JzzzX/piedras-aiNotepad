@@ -8,7 +8,6 @@ import {
   MessageSquare,
   Mic,
   Send,
-  Sparkles,
 } from 'lucide-react';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { useMeetingChat } from '@/hooks/useMeetingChat';
@@ -60,174 +59,203 @@ export default function FloatingBottomBar({
     isLoading,
     templates,
     filteredTemplates,
+    templatesLoading,
+    templatesError,
+    assistantView,
+    recipeQuery,
     selectedTemplateIndex,
-    showTemplates,
     canAsk,
     inputRef,
     sendMessage,
     selectTemplate,
     handleKeyDown,
     handleInputChange,
+    showMessages,
     reloadTemplates,
   } = useMeetingChat();
 
   const isRecordingActive = status === 'recording' || status === 'paused';
+  const chatPanelOpen = isChatOpen || assistantView === 'recipes';
+  const hasOverlay = isAudioMenuOpen || chatPanelOpen;
 
-  const handleSend = async () => {
+  const handlePrimaryAction = async () => {
+    setIsAudioMenuOpen(false);
     setIsChatOpen(true);
+    if (assistantView === 'recipes') {
+      const selectedTemplate = filteredTemplates[selectedTemplateIndex];
+      if (selectedTemplate) {
+        selectTemplate(selectedTemplate);
+      }
+      return;
+    }
+
     await sendMessage();
+  };
+
+  const handleChatActivate = () => {
+    if (!canAsk) return;
+    setIsAudioMenuOpen(false);
+    setIsChatOpen(true);
+    inputRef.current?.focus();
+  };
+
+  const handleToggleAudioMenu = () => {
+    if (assistantView === 'recipes') {
+      showMessages();
+    }
+    setIsChatOpen(false);
+    setIsAudioMenuOpen((value) => !value);
+  };
+
+  const closeChat = () => {
+    if (assistantView === 'recipes') {
+      showMessages();
+    }
+    setIsChatOpen(false);
   };
 
   return (
     <>
-      <div
-        className="fixed inset-x-0 z-50 flex justify-center px-2 pb-2 sm:px-4"
-        style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
-      >
-        <div className="relative w-full max-w-[960px]">
-          <BubbleChat
-            open={isChatOpen}
-            messages={messages}
-            isLoading={isLoading}
-            templates={templates}
-            onReloadTemplates={reloadTemplates}
-            onClose={() => setIsChatOpen(false)}
+      <div className="pointer-events-none absolute inset-0 z-50">
+        {hasOverlay && (
+          <button
+            type="button"
+            aria-label="关闭底部浮层"
+            onClick={() => {
+              setIsAudioMenuOpen(false);
+              closeChat();
+            }}
+            className="pointer-events-auto absolute inset-0 bg-transparent"
           />
+        )}
 
-          {showTemplates && filteredTemplates.length > 0 && (
-            <div className="absolute bottom-[calc(100%+0.8rem)] left-[88px] right-16 z-[60] max-h-[260px] overflow-y-auto rounded-[28px] border border-[#E7DACD] bg-[#FFFDF9] p-2 shadow-[0_26px_70px_rgba(58,46,37,0.16)]">
-              <div className="flex items-center gap-2 border-b border-[#F0E5DA] px-4 py-3">
-                <Sparkles size={14} className="text-[#B88959]" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A49486]">
-                  Recipes
-                </span>
-              </div>
-              <div className="space-y-1.5 p-2">
-                {filteredTemplates.map((template, index) => (
-                  <button
-                    key={template.id}
-                    type="button"
-                    onClick={() => selectTemplate(template)}
-                    className={`flex w-full items-start gap-3 rounded-[20px] px-4 py-3 text-left transition-colors ${
-                      index === selectedTemplateIndex
-                        ? 'bg-[#F7F1EA]'
-                        : 'hover:bg-[#FBF6F0]'
-                    }`}
-                  >
-                    <span className="text-lg leading-none">{template.icon}</span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-[#3A2E25]">
-                        {template.name}
-                      </span>
-                      <span className="mt-0.5 block truncate text-xs text-[#8B796A]">
-                        {template.description}
-                      </span>
-                    </span>
-                    <code className="rounded-full bg-white px-2 py-1 text-[10px] text-[#8B796A] shadow-sm">
-                      {template.command}
-                    </code>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div
-            className={`relative overflow-visible rounded-full border border-[#E9DDD2] bg-white px-2 py-2 shadow-[0_18px_48px_rgba(58,46,37,0.14)] transition-all duration-300 ${
-              isRecordingActive ? 'pr-2' : 'pr-3'
-            }`}
-          >
-            <AudioMenuPopover
-              open={isAudioMenuOpen}
-              status={status}
-              isTranscriptOpen={isTranscriptOpen}
-              hasSystemAudio={hasSystemAudio}
-              canUploadAudio={canUploadAudio}
-              isUploadingAudio={isUploadingAudio}
-              uploadProgress={uploadProgress}
-              uploadFileName={uploadFileName}
-              recordingOptions={recordingOptions}
-              asrStatus={asrStatus}
-              onClose={() => setIsAudioMenuOpen(false)}
-              onStartRecording={() => {
-                void startRecording();
-              }}
-              onTriggerUpload={() => {
-                void triggerUpload();
-              }}
-              onToggleTranscript={onToggleTranscript}
-              onSetAutoStopEnabled={setAutoStopEnabled}
-              onSetAutoStopMinutes={setAutoStopMinutes}
-              onRefreshAsrStatus={() => {
-                void refreshAsrStatus();
-              }}
+        <div
+          className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-3 sm:px-5 sm:pb-5"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        >
+          <div className="pointer-events-auto relative w-full max-w-[980px]">
+            <BubbleChat
+              key={chatPanelOpen ? 'assistant-open' : 'assistant-closed'}
+              open={chatPanelOpen}
+              view={assistantView}
+              recipeQuery={recipeQuery}
+              messages={messages}
+              isLoading={isLoading}
+              templates={templates}
+              filteredTemplates={filteredTemplates}
+              templatesLoading={templatesLoading}
+              templatesError={templatesError}
+              selectedTemplateIndex={selectedTemplateIndex}
+              onSelectTemplate={selectTemplate}
+              onShowMessages={showMessages}
+              onReloadTemplates={reloadTemplates}
+              onClose={closeChat}
             />
 
-            <input
-              ref={audioFileInputRef}
-              type="file"
-              accept="audio/*,.mp3,.wav,.m4a,.aac,.mp4,.webm,.ogg,.flac"
-              className="hidden"
-              onChange={(event) => {
-                void handleFileSelected(event);
-              }}
-            />
+            <div className="flex items-end gap-3 md:gap-4">
+              <div className={`relative shrink-0 ${isRecordingActive ? 'w-full max-w-[330px] sm:w-[330px]' : ''}`}>
+                <AudioMenuPopover
+                  open={isAudioMenuOpen}
+                  status={status}
+                  isTranscriptOpen={isTranscriptOpen}
+                  hasSystemAudio={hasSystemAudio}
+                  canUploadAudio={canUploadAudio}
+                  isUploadingAudio={isUploadingAudio}
+                  uploadProgress={uploadProgress}
+                  uploadFileName={uploadFileName}
+                  recordingOptions={recordingOptions}
+                  asrStatus={asrStatus}
+                  onStartRecording={() => {
+                    void startRecording();
+                  }}
+                  onTriggerUpload={() => {
+                    void triggerUpload();
+                  }}
+                  onToggleTranscript={onToggleTranscript}
+                  onSetAutoStopEnabled={setAutoStopEnabled}
+                  onSetAutoStopMinutes={setAutoStopMinutes}
+                  onRefreshAsrStatus={() => {
+                    void refreshAsrStatus();
+                  }}
+                />
 
-            {isRecordingActive ? (
-              <RecordingControls
-                status={status}
-                durationLabel={formattedDuration}
-                micLevel={micLevel}
-                systemLevel={systemLevel}
-                hasSystemAudio={hasSystemAudio}
-                onPause={() => {
-                  void pauseRecording();
-                }}
-                onResume={() => {
-                  void resumeRecording();
-                }}
-                onStop={() => {
-                  void stopRecording();
-                }}
-                onOpenMenu={() => setIsAudioMenuOpen((value) => !value)}
-              />
-            ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAudioMenuOpen((value) => !value)}
-                  className="flex h-14 shrink-0 items-center gap-2 rounded-full bg-[#3A2E25] px-3 text-white transition-colors hover:bg-[#241b15]"
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
-                    <Mic size={18} />
-                  </span>
-                  <WaveformIndicator
+                <input
+                  ref={audioFileInputRef}
+                  type="file"
+                  accept="audio/*,.mp3,.wav,.m4a,.aac,.mp4,.webm,.ogg,.flac"
+                  className="hidden"
+                  onChange={(event) => {
+                    void handleFileSelected(event);
+                  }}
+                />
+
+                {isRecordingActive ? (
+                  <RecordingControls
+                    status={status}
+                    durationLabel={formattedDuration}
                     micLevel={micLevel}
                     systemLevel={systemLevel}
-                    isActive={false}
-                    compact
+                    hasSystemAudio={hasSystemAudio}
+                    onPause={() => {
+                      void pauseRecording();
+                    }}
+                    onResume={() => {
+                      void resumeRecording();
+                    }}
+                    onStop={() => {
+                      void stopRecording();
+                    }}
+                    onOpenMenu={handleToggleAudioMenu}
                   />
-                  <ChevronDown size={16} />
-                </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleToggleAudioMenu}
+                    className="flex h-16 items-center gap-3 rounded-full border border-[#434C35] bg-[#313827] px-3 pr-4 text-white shadow-[0_18px_48px_rgba(49,56,39,0.28)] transition-colors hover:bg-[#28301f]"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+                      <Mic size={18} />
+                    </span>
+                    <WaveformIndicator
+                      micLevel={micLevel}
+                      systemLevel={systemLevel}
+                      isActive={false}
+                      compact
+                      tone="dark"
+                    />
+                    <ChevronDown size={16} className="text-white/70" />
+                  </button>
+                )}
+              </div>
 
-                <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-[#FAF5EF] pl-3 pr-2">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8B796A]">
-                    <MessageSquare size={16} />
-                  </div>
+              <div className="min-w-0 flex-1">
+                <div
+                  onClick={handleChatActivate}
+                  className="flex min-h-[74px] items-end gap-3 rounded-[38px] border border-[#D8DEC8] bg-[#FFFDF9] p-3 shadow-[0_18px_48px_rgba(59,64,46,0.12)] transition-shadow hover:shadow-[0_22px_56px_rgba(59,64,46,0.14)]"
+                >
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F4F7EC] text-[#647344]">
+                    <MessageSquare size={18} />
+                  </span>
+
                   <textarea
                     ref={inputRef}
                     value={input}
                     onFocus={() => {
-                      if (canAsk || messages.length > 0) {
-                        setIsChatOpen(true);
-                      }
+                      setIsAudioMenuOpen(false);
+                      setIsChatOpen(true);
                     }}
-                    onChange={(event) => handleInputChange(event.target.value)}
+                    onChange={(event) => {
+                      handleInputChange(event.target.value);
+                      if (event.target.value.startsWith('/')) {
+                        setIsAudioMenuOpen(false);
+                      }
+                      setIsChatOpen(true);
+                    }}
                     onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
+                      handleKeyDown(event);
+                      if (event.key === 'Enter' && !event.shiftKey) {
                         setIsChatOpen(true);
                       }
-                      handleKeyDown(event);
                     }}
                     rows={1}
                     disabled={!canAsk || isLoading}
@@ -236,70 +264,81 @@ export default function FloatingBottomBar({
                         ? '输入问题，或输入 / 调用 Recipe…'
                         : '开始录音后可提问…'
                     }
-                    style={{ minHeight: '44px', maxHeight: '120px' }}
-                    className="max-h-[120px] min-h-[44px] flex-1 resize-none bg-transparent py-3 text-[14px] leading-6 text-[#3A2E25] outline-none placeholder:text-[#A49486] disabled:opacity-50"
+                    style={{ minHeight: '44px', maxHeight: '136px' }}
+                    className="max-h-[136px] min-h-[44px] flex-1 resize-none self-center bg-transparent py-2 text-[15px] leading-7 text-[#2F3526] outline-none placeholder:text-[#A0A68F] disabled:cursor-not-allowed disabled:opacity-55"
                   />
 
                   <button
                     type="button"
-                    onClick={handleSend}
-                    disabled={!input.trim() || isLoading || !canAsk}
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors ${
-                      input.trim() && !isLoading && canAsk
-                        ? 'bg-[#3A2E25] text-white hover:bg-[#241b15]'
-                        : 'bg-white text-[#C6B6A8]'
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void handlePrimaryAction();
+                    }}
+                    disabled={
+                      assistantView === 'recipes'
+                        ? filteredTemplates.length === 0 || isLoading || !canAsk
+                        : !input.trim() || isLoading || !canAsk
+                    }
+                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors ${
+                      (assistantView === 'recipes'
+                        ? filteredTemplates.length > 0
+                        : input.trim()) &&
+                      !isLoading &&
+                      canAsk
+                        ? 'bg-[#5B6B3B] text-white hover:bg-[#4d5a33]'
+                        : 'bg-[#EEF2E3] text-[#AAB39A]'
                     }`}
                   >
                     {isLoading ? (
-                      <Loader2 size={17} className="animate-spin" />
+                      <Loader2 size={18} className="animate-spin" />
                     ) : (
-                      <Send size={16} className="translate-x-[1px]" />
+                      <Send size={17} className="translate-x-[1px]" />
                     )}
                   </button>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {autoStopPrompt && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/20 p-4">
-          <div className="w-full max-w-md rounded-[30px] border border-[#E8DCCF] bg-white p-6 shadow-2xl">
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFF3E3] text-[#D08727]">
-                <AlertTriangle size={18} />
+        {autoStopPrompt && (
+          <div className="pointer-events-auto absolute inset-0 z-[70] flex items-center justify-center bg-[rgba(47,53,38,0.14)] p-4">
+            <div className="w-full max-w-md rounded-[30px] border border-[#DCE3CE] bg-white p-6 shadow-2xl">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFF4E8] text-[#D08727]">
+                  <AlertTriangle size={18} />
+                </div>
+                <div>
+                  <h4 className="text-base font-semibold text-[#2F3526]">
+                    {autoStopPrompt.title}
+                  </h4>
+                  <p className="mt-2 text-sm leading-6 text-[#72785F]">
+                    {autoStopPrompt.description}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-base font-semibold text-[#3A2E25]">
-                  {autoStopPrompt.title}
-                </h4>
-                <p className="mt-2 text-sm leading-6 text-[#7D6D60]">
-                  {autoStopPrompt.description}
-                </p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={continueRecording}
+                  className="rounded-full border border-[#DCE3CE] px-4 py-2 text-sm font-medium text-[#526038] transition-colors hover:bg-[#F5F7EE]"
+                >
+                  继续录音
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void stopRecording();
+                  }}
+                  className="rounded-full bg-[#4E5E34] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#44512d]"
+                >
+                  停止录音
+                </button>
               </div>
-            </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={continueRecording}
-                className="rounded-full border border-[#E5D8CB] px-4 py-2 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#F9F2EA]"
-              >
-                继续录音
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  void stopRecording();
-                }}
-                className="rounded-full bg-[#3A2E25] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#241b15]"
-              >
-                停止录音
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 }

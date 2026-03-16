@@ -21,6 +21,8 @@ interface SendMessageArgs {
   templateId?: string;
 }
 
+export type MeetingAssistantView = 'messages' | 'recipes';
+
 export interface UseMeetingChatResult {
   input: string;
   setInput: (value: string) => void;
@@ -30,7 +32,8 @@ export interface UseMeetingChatResult {
   filteredTemplates: Recipe[];
   templatesLoading: boolean;
   templatesError: string;
-  showTemplates: boolean;
+  assistantView: MeetingAssistantView;
+  recipeQuery: string;
   selectedTemplateIndex: number;
   isDictating: boolean;
   canAsk: boolean;
@@ -40,7 +43,7 @@ export interface UseMeetingChatResult {
   handleKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
   handleInputChange: (value: string) => void;
   toggleDictation: () => void;
-  closeTemplates: () => void;
+  showMessages: () => void;
   reloadTemplates: () => Promise<void>;
 }
 
@@ -63,7 +66,6 @@ export function useMeetingChat(): UseMeetingChatResult {
   const [templates, setTemplates] = useState<Recipe[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(true);
   const [templatesError, setTemplatesError] = useState('');
-  const [showTemplates, setShowTemplates] = useState(false);
   const [templateFilter, setTemplateFilter] = useState('');
   const [selectedTemplateIndex, setSelectedTemplateIndex] = useState(0);
   const [isDictating, setIsDictating] = useState(false);
@@ -107,16 +109,15 @@ export function useMeetingChat(): UseMeetingChatResult {
     () => filterTemplates(templates, templateFilter),
     [templateFilter, templates]
   );
+  const assistantView: MeetingAssistantView = input.startsWith('/') ? 'recipes' : 'messages';
 
   useEffect(() => {
     if (input.startsWith('/')) {
-      setShowTemplates(true);
       setTemplateFilter(input.slice(1));
       setSelectedTemplateIndex(0);
       return;
     }
 
-    setShowTemplates(false);
     setTemplateFilter('');
   }, [input]);
 
@@ -211,7 +212,6 @@ export function useMeetingChat(): UseMeetingChatResult {
 
       setInput('');
       resetInputHeight();
-      setShowTemplates(false);
       setTemplateFilter('');
 
       const userMessage: ChatMessage = {
@@ -298,7 +298,6 @@ export function useMeetingChat(): UseMeetingChatResult {
 
   const selectTemplate = useCallback(
     (template: Recipe) => {
-      setShowTemplates(false);
       setInput('');
       resetInputHeight();
       void sendMessage({
@@ -312,7 +311,7 @@ export function useMeetingChat(): UseMeetingChatResult {
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (showTemplates && filteredTemplates.length > 0) {
+      if (assistantView === 'recipes' && filteredTemplates.length > 0) {
         if (event.key === 'ArrowDown') {
           event.preventDefault();
           setSelectedTemplateIndex((index) =>
@@ -334,7 +333,8 @@ export function useMeetingChat(): UseMeetingChatResult {
         }
 
         if (event.key === 'Escape') {
-          setShowTemplates(false);
+          setInput('');
+          resetInputHeight();
           return;
         }
       }
@@ -345,15 +345,21 @@ export function useMeetingChat(): UseMeetingChatResult {
       }
     },
     [
+      assistantView,
       filteredTemplates,
+      resetInputHeight,
       selectTemplate,
       selectedTemplateIndex,
       sendMessage,
-      showTemplates,
     ]
   );
 
   const canAsk = segments.length > 0 || status !== 'idle';
+  const showMessages = useCallback(() => {
+    if (!input.startsWith('/')) return;
+    setInput('');
+    resetInputHeight();
+  }, [input, resetInputHeight]);
 
   return {
     input,
@@ -364,7 +370,8 @@ export function useMeetingChat(): UseMeetingChatResult {
     filteredTemplates,
     templatesLoading,
     templatesError,
-    showTemplates,
+    assistantView,
+    recipeQuery: templateFilter,
     selectedTemplateIndex,
     isDictating,
     canAsk,
@@ -374,7 +381,7 @@ export function useMeetingChat(): UseMeetingChatResult {
     handleKeyDown,
     handleInputChange,
     toggleDictation,
-    closeTemplates: () => setShowTemplates(false),
+    showMessages,
     reloadTemplates: loadTemplates,
   };
 }

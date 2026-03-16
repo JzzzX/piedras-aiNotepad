@@ -29,17 +29,18 @@ export default function RecordingControls({
   const isPaused = status === 'paused';
 
   return (
-    <div className="flex w-full items-center gap-2 rounded-full bg-white px-2 py-2 shadow-[0_18px_48px_rgba(58,46,37,0.14)] ring-1 ring-[#E9DDD2] transition-all">
+    <div className="flex w-full items-center gap-2 rounded-full border border-[#434C35] bg-[#313827] px-2 py-2 text-white shadow-[0_18px_48px_rgba(49,56,39,0.28)] transition-all">
       <button
         type="button"
         onClick={onOpenMenu}
-        className="flex items-center gap-2 rounded-full bg-[#F7F1EA] px-2 py-1.5 text-[#5C4D42] transition-colors hover:bg-[#F0E5DA]"
+        className="flex items-center gap-2 rounded-full bg-white/8 px-2 py-1.5 text-white transition-colors hover:bg-white/14"
       >
         <WaveformIndicator
           micLevel={micLevel}
           systemLevel={systemLevel}
           isActive={!isPaused}
           compact
+          tone="dark"
         />
       </button>
 
@@ -48,8 +49,8 @@ export default function RecordingControls({
         onClick={isPaused ? onResume : onPause}
         className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors ${
           isPaused
-            ? 'bg-[#3A2E25] text-white hover:bg-[#241b15]'
-            : 'bg-[#F7F1EA] text-[#5C4D42] hover:bg-[#EFE3D6]'
+            ? 'bg-[#70804D] text-white hover:bg-[#7d8d58]'
+            : 'bg-white/10 text-white hover:bg-white/16'
         }`}
       >
         {isPaused ? <Play size={18} className="translate-x-[1px]" /> : <Pause size={18} />}
@@ -65,14 +66,14 @@ export default function RecordingControls({
 
       <div className="ml-1 flex min-w-0 flex-1 items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-mono text-[15px] font-semibold tracking-[0.08em] text-[#3A2E25]">
+          <p className="font-mono text-[15px] font-semibold tracking-[0.08em] text-white">
             {durationLabel}
           </p>
-          <p className="truncate text-[11px] text-[#8B796A]">
+          <p className="truncate text-[11px] text-white/68">
             {isPaused ? '已暂停' : '正在转写'} · {hasSystemAudio ? 'Mic + System' : 'Mic Only'}
           </p>
         </div>
-        <span className="rounded-full bg-[#F7F1EA] px-2.5 py-1 text-[11px] font-medium text-[#6C5C50]">
+        <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/78">
           {hasSystemAudio ? '双通道' : '单通道'}
         </span>
       </div>
