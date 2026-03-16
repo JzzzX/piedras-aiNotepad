@@ -1,7 +1,6 @@
-import { readFile } from 'node:fs/promises';
 import { NextRequest, NextResponse } from 'next/server';
+import { enqueueWorkspaceAssetIndex, retryWorkspaceAssetIndex } from '@/lib/asset-index-queue';
 import { prisma } from '@/lib/db';
-import { extractWorkspaceAssetText, getWorkspaceAssetPath } from '@/lib/workspace-assets';
 
 export async function POST(
   _req: NextRequest,
@@ -12,8 +11,6 @@ export async function POST(
     where: { id },
     select: {
       id: true,
-      assetType: true,
-      storageKey: true,
       extractionStatus: true,
     },
   });
@@ -26,42 +23,17 @@ export async function POST(
     return NextResponse.json({ ok: true, status: 'ready' });
   }
 
-  try {
-    const buffer = await readFile(getWorkspaceAssetPath(asset.storageKey));
-    const extractedText = await extractWorkspaceAssetText(buffer, asset.assetType as 'pdf' | 'image');
-
-    if (!extractedText.trim()) {
-      await prisma.workspaceAsset.update({
-        where: { id: asset.id },
-        data: {
-          extractedText: '',
-          extractionStatus: 'failed',
-          extractionError:
-            asset.assetType === 'pdf' ? '未能从 PDF 中提取文本' : '未能从图片中识别文本',
-        },
-      });
-      return NextResponse.json({ ok: true, status: 'failed' });
-    }
-
-    await prisma.workspaceAsset.update({
-      where: { id: asset.id },
-      data: {
-        extractedText,
-        extractionStatus: 'ready',
-        extractionError: '',
-      },
-    });
-
-    return NextResponse.json({ ok: true, status: 'ready' });
-  } catch (error) {
-    await prisma.workspaceAsset.update({
-      where: { id: asset.id },
-      data: {
-        extractionStatus: 'failed',
-        extractionError: error instanceof Error ? error.message : '资料文本抽取失败',
-      },
-    });
-
-    return NextResponse.json({ ok: false, status: 'failed' }, { status: 500 });
+  if (asset.extractionStatus === 'failed') {
+    await retryWorkspaceAssetIndex(asset.id);
+    return NextResponse.json({ ok: true, status: 'queued' }, { status: 202 });
   }
+
+  await enqueueWorkspaceAssetIndex(asset.id);
+  return NextResponse.json(
+    {
+      ok: true,
+      status: asset.extractionStatus === 'processing' ? 'processing' : 'queued',
+    },
+    { status: 202 }
+  );
 }

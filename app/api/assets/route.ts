@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { enqueueWorkspaceAssetIndex, recoverWorkspaceAssetIndexQueue } from '@/lib/asset-index-queue';
 import { prisma } from '@/lib/db';
 import {
   createWorkspaceAssetStorageKey,
@@ -8,6 +9,7 @@ import {
 } from '@/lib/workspace-assets';
 
 export async function GET(req: NextRequest) {
+  void recoverWorkspaceAssetIndexQueue();
   const { searchParams } = new URL(req.url);
   const workspaceId = searchParams.get('workspaceId');
   const collectionId = searchParams.get('collectionId');
@@ -72,7 +74,7 @@ export async function POST(req: NextRequest) {
       fileSize: file.size,
       storageKey,
       extractedText: '',
-      extractionStatus: 'processing',
+      extractionStatus: 'queued',
       extractionError: '',
       workspaceId,
       collectionId,
@@ -83,6 +85,8 @@ export async function POST(req: NextRequest) {
       },
     },
   });
+
+  void enqueueWorkspaceAssetIndex(asset.id);
 
   return NextResponse.json(asset);
 }

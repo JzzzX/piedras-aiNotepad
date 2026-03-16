@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertCircle,
   ExternalLink,
   FileImage,
   FileText,
   Loader2,
+  RefreshCw,
   Search,
   Trash2,
   Upload,
@@ -85,10 +87,13 @@ export default function AssetLibrary({
   }, [loadAssets, loadCollections]);
 
   useEffect(() => {
-    const hasProcessingAssets = assets.some((asset) => asset.extractionStatus === 'processing');
-    if (!hasProcessingAssets) return;
+    const hasPendingAssets = assets.some(
+      (asset) => asset.extractionStatus === 'queued' || asset.extractionStatus === 'processing'
+    );
+    if (!hasPendingAssets) return;
 
     const timer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
       void loadAssets();
     }, 2500);
 
@@ -155,15 +160,8 @@ export default function AssetLibrary({
         if (!res.ok) {
           throw new Error((await res.json().catch(() => null))?.error || '上传资料失败');
         }
-        const asset = (await res.json()) as WorkspaceAsset;
+        await res.json();
         await loadAssets();
-        void fetch(`/api/assets/${asset.id}/index`, { method: 'POST' })
-          .catch((error) => {
-            console.error('触发资料索引失败:', error);
-          })
-          .finally(() => {
-            void loadAssets();
-          });
       } catch (error) {
         console.error(error);
         alert(error instanceof Error ? error.message : '上传资料失败');
@@ -175,6 +173,19 @@ export default function AssetLibrary({
       }
     },
     [fixedCollectionId, loadAssets, uploadCollectionId, workspaceId]
+  );
+
+  const handleRetryAsset = useCallback(
+    async (assetId: string) => {
+      const res = await fetch(`/api/assets/${assetId}/index`, { method: 'POST' });
+      if (!res.ok) {
+        alert('重试索引失败');
+        return;
+      }
+
+      await loadAssets();
+    },
+    [loadAssets]
   );
 
   const handleMoveAsset = useCallback(
@@ -222,6 +233,15 @@ export default function AssetLibrary({
 
   return (
     <div className="space-y-4">
+      <div className="rounded-[24px] border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm leading-6 text-amber-800">
+        <div className="flex items-start gap-2">
+          <AlertCircle size={16} className="mt-0.5 shrink-0" />
+          <p>
+            当前暂未接入云端 OCR。PDF 会优先提取内嵌文本，图片会在本机后台识别，通常比上传慢；上传成功后即可继续使用，识别完成后会自动参与检索。
+          </p>
+        </div>
+      </div>
+
       <div className="grid gap-3 rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] p-4 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(180px,0.5fr))]">
         <label className="relative">
           <Search
@@ -335,7 +355,11 @@ export default function AssetLibrary({
                   <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-[#8C7A6B]">
                     {asset.collection?.name || '工作区共享'}
                   </span>
-                  {asset.extractionStatus === 'processing' ? (
+                  {asset.extractionStatus === 'queued' ? (
+                    <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] text-sky-600">
+                      排队中
+                    </span>
+                  ) : asset.extractionStatus === 'processing' ? (
                     <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] text-amber-600">
                       索引中
                     </span>
@@ -355,8 +379,12 @@ export default function AssetLibrary({
                 </div>
 
                 <p className="mt-2 line-clamp-3 text-[13px] leading-6 text-[#746556]">
-                  {asset.extractionStatus === 'processing'
-                    ? '文件已上传，正在提取文本并建立检索索引。处理完成后会自动刷新。'
+                  {asset.extractionStatus === 'queued'
+                    ? '文件已上传，正在等待后台索引。你可以先离开当前页面，完成后会自动参与检索。'
+                    : asset.extractionStatus === 'processing'
+                    ? asset.assetType === 'pdf'
+                      ? 'PDF 已上传，正在提取文本并建立检索索引。'
+                      : '图片已上传，正在进行本机 OCR 识别。这个过程通常会比上传更慢。'
                     : asset.extractionStatus === 'failed'
                     ? asset.extractionError || '这份资料已保存，但暂时未能抽取文本。'
                     : asset.extractedText || '资料已保存，暂未抽取到可检索文本。'}
@@ -399,6 +427,19 @@ export default function AssetLibrary({
                     删除
                   </span>
                 </button>
+
+                {asset.extractionStatus === 'failed' ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleRetryAsset(asset.id)}
+                    className="rounded-lg px-2 py-1.5 text-xs text-[#7C6B5C] transition-colors hover:bg-[#F1EBE3] hover:text-[#5C4D42]"
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      <RefreshCw size={12} />
+                      重试索引
+                    </span>
+                  </button>
+                ) : null}
               </div>
             </div>
           ))}

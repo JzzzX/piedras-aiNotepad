@@ -73,7 +73,7 @@ model WorkspaceAsset {
   fileSize         Int
   storageKey       String
   extractedText    String     @default("")
-  extractionStatus String     @default("processing")
+  extractionStatus String     @default("queued")
   extractionError  String     @default("")
   workspaceId      String
   collectionId     String?
