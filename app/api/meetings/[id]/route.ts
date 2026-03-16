@@ -103,13 +103,13 @@ export async function PUT(
     await prisma.chatMessage.deleteMany({ where: { meetingId: id } });
     await prisma.chatMessage.createMany({
       data: chatMessages.map(
-        (m: { id: string; role: string; content: string; timestamp: number; templateId?: string }) => ({
+        (m: { id: string; role: string; content: string; timestamp: number; recipeId?: string; templateId?: string }) => ({
           id: m.id,
           meetingId: id,
           role: m.role,
           content: m.content,
           timestamp: m.timestamp,
-          templateId: m.templateId || null,
+          templateId: m.recipeId || m.templateId || null,
         })
       ),
     });

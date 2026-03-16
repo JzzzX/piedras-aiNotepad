@@ -11,6 +11,7 @@ export async function POST(
     role?: 'user' | 'assistant';
     content?: string;
     timestamp?: number;
+    recipeId?: string;
     templateId?: string;
   };
 
@@ -41,7 +42,7 @@ export async function POST(
         role,
         content,
         timestamp,
-        templateId: body.templateId || null,
+        templateId: body.recipeId || body.templateId || null,
       },
     });
 
@@ -63,6 +64,7 @@ export async function POST(
     role: message.role,
     content: message.content,
     timestamp: message.timestamp,
+    recipeId: message.templateId || undefined,
     templateId: message.templateId || undefined,
   });
 }

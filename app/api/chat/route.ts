@@ -33,7 +33,7 @@ function normalizePromptOptions(input: PromptOptionsInput): PromptOptions {
 
 function buildChatSystemPrompt(
   options: PromptOptions,
-  templatePrompt?: string
+  recipePrompt?: string
 ): string {
   const styleMap: Record<PromptOptions['outputStyle'], string> = {
     简洁: '回答尽量精炼，优先给出结论。',
@@ -56,8 +56,8 @@ function buildChatSystemPrompt(
 3. 使用中文回答，不要臆造会议中不存在的信息。`;
 
   const sections = [basePrompt];
-  if (templatePrompt) {
-    sections.push(`当前任务模板指令：${templatePrompt.trim()}`);
+  if (recipePrompt) {
+    sections.push(`当前任务 Recipe 指令：${recipePrompt.trim()}`);
   }
 
   return sections.join('\n\n');
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
       enhancedNotes,
       chatHistory,
       question,
+      recipePrompt,
       templatePrompt,
       promptOptions,
       llmRuntimeConfig,
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
     }
 
     const options = normalizePromptOptions(promptOptions);
-    const systemPrompt = buildChatSystemPrompt(options, templatePrompt);
+    const systemPrompt = buildChatSystemPrompt(options, recipePrompt || templatePrompt);
 
     const contextMessage = `--- 会议转写记录 ---
 ${transcript || '（无）'}

@@ -1,84 +1,98 @@
-import type { GlobalChatFilters, GlobalChatScope, Template } from './types';
+import type { GlobalChatFilters, GlobalChatScope, Recipe } from './types';
 
 export const GLOBAL_CHAT_DRAFT_KEY = 'piedras_globalChatDraft';
 
 export interface GlobalChatDraft {
   displayText: string;
   question: string;
-  templatePrompt?: string;
-  templateId?: string;
+  recipePrompt?: string;
+  recipeId?: string;
   scope: GlobalChatScope;
   workspaceId?: string | null;
   filters: GlobalChatFilters;
-}
-
-export interface GlobalChatRecipe {
-  id: string;
-  title: string;
-  description: string;
-  prompt: string;
-  command: string;
-  scope: GlobalChatScope;
-  accent: 'lime' | 'amber' | 'sky' | 'violet';
 }
 
 export interface GlobalChatCatalogItem {
   id: string;
   label: string;
   description: string;
-  type: 'recipe' | 'template';
-  group: 'recipes' | 'templates';
+  type: 'recipe';
   accent: 'lime' | 'amber' | 'sky' | 'violet';
   command: string;
-  recipe?: GlobalChatRecipe;
-  template?: Template;
+  sourceLabel: '系统' | '自定义';
+  recipe: Recipe;
 }
 
-export const GLOBAL_CHAT_RECIPES: GlobalChatRecipe[] = [
+export const GLOBAL_CHAT_RECIPES: Recipe[] = [
   {
     id: 'recent-todos',
-    title: '列出最近待办',
+    name: '列出最近待办',
+    icon: '✅',
     description: '汇总最近会议里提到的待办、负责人和截止时间。',
     prompt: '请帮我汇总最近会议里提到的待办事项、负责人和截止时间。',
     command: '/todos',
     scope: 'my_notes',
     accent: 'lime',
+    category: '快捷分析',
+    kind: 'quick',
+    isSystem: true,
+    sortOrder: 0,
   },
   {
     id: 'weekly-recap',
-    title: '生成本周回顾',
+    name: '生成本周回顾',
+    icon: '🗓️',
     description: '概览这周的重要进展、风险和下一步。',
     prompt: '请基于本周的会议，生成一份周回顾，包含进展、风险和下一步。',
     command: '/weekly-recap',
     scope: 'my_notes',
     accent: 'amber',
+    category: '快捷分析',
+    kind: 'quick',
+    isSystem: true,
+    sortOrder: 1,
   },
   {
     id: 'calendar-conflicts',
-    title: '梳理日程冲突',
+    name: '梳理日程冲突',
+    icon: '📅',
     description: '找出最近会议里提到的排期冲突、延期与依赖。',
     prompt: '请帮我梳理最近会议里提到的排期冲突、延期风险和关键依赖。',
     command: '/schedule-conflicts',
     scope: 'all_meetings',
     accent: 'sky',
+    category: '快捷分析',
+    kind: 'quick',
+    isSystem: true,
+    sortOrder: 2,
   },
   {
     id: 'blind-spots',
-    title: '发现盲点',
+    name: '发现盲点',
+    icon: '🧭',
     description: '识别反复出现但尚未解决的问题。',
     prompt: '请帮我识别最近会议中反复出现但仍未解决的问题和潜在盲点。',
     command: '/blind-spots',
     scope: 'all_meetings',
     accent: 'lime',
+    category: '快捷分析',
+    kind: 'quick',
+    isSystem: true,
+    sortOrder: 3,
   },
   {
     id: 'decision-scan',
-    title: '扫描关键决策',
+    name: '扫描关键决策',
+    icon: '🔍',
     description: '找出最近几场会议里做出的关键决定。',
     prompt: '请帮我整理最近几场会议里做出的关键决策，以及各自依据。',
     command: '/decisions',
     scope: 'all_meetings',
     accent: 'violet',
+    category: '快捷分析',
+    kind: 'quick',
+    isSystem: true,
+    sortOrder: 4,
   },
 ];
 
@@ -137,31 +151,19 @@ export function getFeaturedGlobalChatRecipes() {
   return GLOBAL_CHAT_RECIPES.slice(0, 5);
 }
 
-export function buildGlobalChatCatalogItems(templates: Template[]): GlobalChatCatalogItem[] {
-  return [
-    ...GLOBAL_CHAT_RECIPES.map((recipe) => ({
-      id: recipe.id,
-      label: recipe.title,
-      description: recipe.description,
-      type: 'recipe' as const,
-      group: 'recipes' as const,
-      accent: recipe.accent,
-      command: recipe.command,
-      recipe,
-    })),
-    ...templates.map((template) => ({
-      id: template.id,
-      label: template.name,
-      description: template.description,
-      type: 'template' as const,
-      group: 'templates' as const,
-      accent: 'amber' as const,
-      command: template.command,
-      template,
-    })),
-  ];
+export function buildGlobalChatCatalogItems(recipes: Recipe[]): GlobalChatCatalogItem[] {
+  return recipes.map((recipe) => ({
+    id: recipe.id,
+    label: recipe.name,
+    description: recipe.description,
+    type: 'recipe' as const,
+    accent: recipe.accent || 'amber',
+    command: recipe.command,
+    sourceLabel: recipe.isSystem ? '系统' : '自定义',
+    recipe,
+  }));
 }
 
-export function buildRecipeCommandItems(templates: Template[]) {
-  return buildGlobalChatCatalogItems(templates);
+export function buildRecipeCommandItems(recipes: Recipe[]) {
+  return buildGlobalChatCatalogItems(recipes);
 }

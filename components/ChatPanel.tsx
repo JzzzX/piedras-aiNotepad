@@ -20,7 +20,7 @@ import { useMeetingStore } from '@/lib/store';
 import { chatAcrossMeetings, chatWithMeeting } from '@/lib/llm';
 import { filterTemplates } from '@/lib/templates';
 import { v4 as uuidv4 } from 'uuid';
-import type { ChatMessage, Template } from '@/lib/types';
+import type { ChatMessage, Recipe } from '@/lib/types';
 import TemplateManager from './TemplateManager';
 import TooltipIconButton from './TooltipIconButton';
 import PromptSettings from './PromptSettings';
@@ -53,7 +53,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
   const [globalMessages, setGlobalMessages] = useState<ChatMessage[]>([]);
   const [isGlobalChatLoading, setIsGlobalChatLoading] = useState(false);
   const [input, setInput] = useState('');
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<Recipe[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(true);
   const [templatesError, setTemplatesError] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
@@ -81,15 +81,15 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
   const loadTemplates = useCallback(async () => {
     setTemplatesError('');
     try {
-      const res = await fetch('/api/templates');
+      const res = await fetch('/api/recipes');
       const data = await res.json().catch(() => []);
       if (!res.ok) {
-        throw new Error(data.error || '加载模板失败');
+        throw new Error(data.error || '加载 Recipe 失败');
       }
-      setTemplates(data as Template[]);
+      setTemplates((data as Recipe[]).filter((recipe) => recipe.kind === 'prompt'));
     } catch (e) {
       setTemplates([]);
-      setTemplatesError(e instanceof Error ? e.message : '加载模板失败');
+      setTemplatesError(e instanceof Error ? e.message : '加载 Recipe 失败');
     } finally {
       setTemplatesLoading(false);
     }
@@ -286,7 +286,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
     }
   };
 
-  const selectTemplate = (template: Template) => {
+  const selectTemplate = (template: Recipe) => {
     setShowTemplates(false);
     setInput('');
     resetInputHeight();
@@ -436,7 +436,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
               </TooltipIconButton>
               <TooltipIconButton
                 onClick={() => setShowTemplateManager(true)}
-                label="模板管理"
+                label="Recipe 管理"
                 tooltipSide="bottom"
                 className="rounded-xl p-2 text-stone-400 transition-colors hover:bg-[#F9F8F6] hover:text-stone-600"
               >
@@ -628,7 +628,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
         <div className="absolute bottom-[88px] left-4 right-4 z-20 overflow-hidden rounded-2xl border border-white/40 bg-white/80 shadow-2xl backdrop-blur-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-bottom-2 duration-200 sm:bottom-[84px] sm:left-6 sm:right-6">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-black/[0.04] bg-[#F9F8F6]/50">
             <Sparkles size={14} className="text-sky-400" />
-            <span className="text-[11px] font-medium text-stone-500 tracking-widest uppercase">选择助手技能</span>
+            <span className="text-[11px] font-medium text-stone-500 tracking-widest uppercase">选择 Recipe</span>
           </div>
           <div className="max-h-[240px] overflow-y-auto p-2">
             {templatesLoading && (

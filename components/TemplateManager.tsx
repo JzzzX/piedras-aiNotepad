@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronUp, ChevronDown, Plus, Trash2, X } from 'lucide-react';
-import type { Template } from '@/lib/types';
+import type { Recipe as Template } from '@/lib/types';
 import { TEMPLATE_CATEGORIES } from '@/lib/templates';
 
 interface TemplateForm {
@@ -111,19 +111,19 @@ export default function TemplateManager({
     setIsBusy(true);
     setError('');
     try {
-      const res = await fetch('/api/templates', {
+      const res = await fetch('/api/recipes', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderedIds }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || '模板排序失败');
+        throw new Error(data.error || 'Recipe 排序失败');
       }
       await onSaved();
       setSelectedId(templateId);
     } catch (e) {
-      setError(e instanceof Error ? e.message : '模板排序失败');
+      setError(e instanceof Error ? e.message : 'Recipe 排序失败');
     } finally {
       setIsBusy(false);
     }
@@ -134,7 +134,7 @@ export default function TemplateManager({
     setError('');
     try {
       const isUpdate = !!selectedTemplate && !selectedTemplate.isSystem;
-      const url = isUpdate ? `/api/templates/${selectedTemplate.id}` : '/api/templates';
+      const url = isUpdate ? `/api/recipes/${selectedTemplate.id}` : '/api/recipes';
       const method = isUpdate ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -143,13 +143,13 @@ export default function TemplateManager({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || '保存模板失败');
+        throw new Error(data.error || '保存 Recipe 失败');
       }
       await onSaved();
       setIsCreating(false);
       setSelectedId(data.id || selectedId);
     } catch (e) {
-      setError(e instanceof Error ? e.message : '保存模板失败');
+      setError(e instanceof Error ? e.message : '保存 Recipe 失败');
     } finally {
       setIsBusy(false);
     }
@@ -157,25 +157,25 @@ export default function TemplateManager({
 
   const handleDelete = async () => {
     if (!selectedTemplate || selectedTemplate.isSystem) return;
-    const confirmed = window.confirm(`确认删除模板「${selectedTemplate.name}」？`);
+    const confirmed = window.confirm(`确认删除 Recipe「${selectedTemplate.name}」？`);
     if (!confirmed) return;
 
     setIsBusy(true);
     setError('');
     try {
-      const res = await fetch(`/api/templates/${selectedTemplate.id}`, {
+      const res = await fetch(`/api/recipes/${selectedTemplate.id}`, {
         method: 'DELETE',
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || '删除模板失败');
+        throw new Error(data.error || '删除 Recipe 失败');
       }
       await onSaved();
       setIsCreating(false);
       setSelectedId(null);
       setForm(DEFAULT_FORM);
     } catch (e) {
-      setError(e instanceof Error ? e.message : '删除模板失败');
+      setError(e instanceof Error ? e.message : '删除 Recipe 失败');
     } finally {
       setIsBusy(false);
     }
@@ -194,7 +194,7 @@ export default function TemplateManager({
         {/* Header */}
         <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-zinc-100 bg-white px-5 py-4">
           <div>
-            <h3 className="font-song text-[16px] font-semibold text-zinc-800">模板管理</h3>
+            <h3 className="font-song text-[16px] font-semibold text-zinc-800">Recipe 管理</h3>
             <p className="mt-0.5 text-[12px] text-zinc-500">创建、编辑、删除与排序</p>
           </div>
           <button
@@ -215,7 +215,7 @@ export default function TemplateManager({
                 className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 bg-white px-3 py-2.5 text-[13px] font-medium text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-800 shadow-sm"
               >
                 <Plus size={15} />
-                新建模板
+                新建 Recipe
               </button>
             </div>
 
@@ -289,7 +289,7 @@ export default function TemplateManager({
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
                   </span>
-                  正在创建用户模板
+                  正在创建自定义 Recipe
                 </div>
               )}
 
@@ -363,7 +363,7 @@ export default function TemplateManager({
               {isReadOnly && (
                 <div className="mt-5 flex items-center gap-2 rounded-xl bg-zinc-50 px-4 py-3 text-[12px] text-zinc-500 border border-zinc-100">
                   <span className="text-zinc-400">ℹ️</span>
-                  系统模板只读，如需改造请点击左侧「新建模板」。
+                  系统 Recipe 只读，如需改造请点击左侧「新建 Recipe」。
                 </div>
               )}
             </div>
@@ -386,10 +386,10 @@ export default function TemplateManager({
                 className="rounded-xl bg-zinc-900 px-6 py-2 text-[13px] font-medium text-white shadow-sm transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
               >
                 {isCreating
-                  ? '创建模板'
+                  ? '创建 Recipe'
                   : selectedTemplate && !selectedTemplate.isSystem
                     ? '保存修改'
-                    : '创建模板'}
+                    : '创建 Recipe'}
               </button>
             </div>
           </div>

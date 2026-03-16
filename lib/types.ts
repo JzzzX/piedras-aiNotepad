@@ -12,6 +12,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  recipeId?: string;
   templateId?: string;
 }
 
@@ -135,7 +136,9 @@ export interface WorkspaceAsset {
   updatedAt: string;
 }
 
-export interface Template {
+export type RecipeKind = 'quick' | 'prompt';
+
+export interface Recipe {
   id: string;
   name: string;
   command: string;
@@ -143,9 +146,14 @@ export interface Template {
   description: string;
   prompt: string;
   category: string;
+  kind: RecipeKind;
+  scope?: GlobalChatScope;
+  accent?: 'lime' | 'amber' | 'sky' | 'violet';
   isSystem?: boolean;
   sortOrder?: number;
 }
+
+export type Template = Recipe;
 
 export type GlobalChatScope = 'my_notes' | 'all_meetings';
 

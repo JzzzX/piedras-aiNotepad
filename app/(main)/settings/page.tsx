@@ -12,12 +12,12 @@ import AiRuntimeSettings from '@/components/AiRuntimeSettings';
 import TemplateManagerInline from '@/components/settings/TemplateManagerInline';
 import McpSettingsInline from '@/components/settings/McpSettingsInline';
 
-type SettingsTab = 'recorder' | 'ai' | 'templates' | 'mcp';
+type SettingsTab = 'recorder' | 'ai' | 'recipes' | 'mcp';
 
 const TABS: { id: SettingsTab; label: string; icon: typeof Mic }[] = [
   { id: 'recorder', label: '录音与 ASR', icon: Mic },
   { id: 'ai', label: 'AI 模型', icon: Sparkles },
-  { id: 'templates', label: '模板', icon: FileText },
+  { id: 'recipes', label: 'Recipes', icon: FileText },
   { id: 'mcp', label: '生态接入', icon: Workflow },
 ];
 
@@ -55,7 +55,7 @@ export default function SettingsPage() {
         <div className="mx-auto max-w-4xl">
           {activeTab === 'recorder' && <RecorderSettingsInline />}
           {activeTab === 'ai' && <AiRuntimeSettings />}
-          {activeTab === 'templates' && <TemplateManagerInline />}
+          {activeTab === 'recipes' && <TemplateManagerInline />}
           {activeTab === 'mcp' && <McpSettingsInline />}
         </div>
       </div>

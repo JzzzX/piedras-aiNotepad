@@ -19,7 +19,7 @@ import type {
   Collection,
   GlobalChatFilters,
   GlobalChatSessionSummary,
-  Template,
+  Recipe,
 } from '@/lib/types';
 
 function formatRelativeTime(value: string) {
@@ -50,7 +50,7 @@ export default function ChatHomePage() {
     loadWorkspaces,
   } = useMeetingStore();
 
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [sessions, setSessions] = useState<GlobalChatSessionSummary[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [input, setInput] = useState('');
@@ -77,15 +77,15 @@ export default function ChatHomePage() {
 
     const bootstrap = async () => {
       try {
-        const [templatesRes, sessionsRes] = await Promise.all([
-          fetch('/api/templates'),
+        const [recipesRes, sessionsRes] = await Promise.all([
+          fetch('/api/recipes'),
           fetch('/api/chat/sessions?limit=5'),
         ]);
 
         if (!active) return;
 
-        if (templatesRes.ok) {
-          setTemplates((await templatesRes.json()) as Template[]);
+        if (recipesRes.ok) {
+          setRecipes((await recipesRes.json()) as Recipe[]);
         }
 
         if (sessionsRes.ok) {
@@ -150,8 +150,8 @@ export default function ChatHomePage() {
       const draft: GlobalChatDraft = {
         displayText: payload?.displayText || nextQuestion,
         question: nextQuestion,
-        templatePrompt: payload?.templatePrompt,
-        templateId: payload?.templateId,
+        recipePrompt: payload?.recipePrompt,
+        recipeId: payload?.recipeId,
         scope: nextScope,
         workspaceId: nextScope === 'my_notes' ? nextWorkspaceId : null,
         filters,
@@ -179,7 +179,7 @@ export default function ChatHomePage() {
               Ask anything
             </h1>
             <p className="mt-3 max-w-[560px] text-[15px] leading-7 text-[#7C6B5C]">
-              直接问会议、笔记和行动项。支持 recipes、模板命令和跨工作区检索。
+              直接问会议、笔记和行动项。支持 recipes 命令和跨工作区检索。
             </p>
 
             <div className="mt-8">
@@ -193,7 +193,7 @@ export default function ChatHomePage() {
                 workspaces={workspaces}
                 filters={filters}
                 onFiltersChange={setFilters}
-                templates={templates}
+                templates={recipes}
                 collections={collections}
                 loading={isLaunching}
                 placeholder="问昨天聊了什么、哪些决定还没落地，或者输入 / 命令"
@@ -225,7 +225,7 @@ export default function ChatHomePage() {
                   type="button"
                   onClick={() =>
                     void handleLaunch({
-                      displayText: recipe.title,
+                      displayText: recipe.name,
                       question: recipe.prompt,
                       nextScope: recipe.scope,
                       workspaceId:
@@ -250,7 +250,7 @@ export default function ChatHomePage() {
                     />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <div className="text-[15px] font-semibold text-[#3A2E25]">{recipe.title}</div>
+                        <div className="text-[15px] font-semibold text-[#3A2E25]">{recipe.name}</div>
                         <code className="rounded-md bg-[#F7F3EE] px-1.5 py-0.5 text-[10px] text-[#8C7A6B]">
                           {recipe.command}
                         </code>

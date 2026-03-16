@@ -16,6 +16,7 @@ interface ChatMessagePayload {
   role: string;
   content: string;
   timestamp: number;
+  recipeId?: string;
   templateId?: string;
 }
 
@@ -197,7 +198,7 @@ export async function POST(req: NextRequest) {
           role: m.role,
           content: m.content,
           timestamp: m.timestamp,
-          templateId: m.templateId || null,
+          templateId: m.recipeId || m.templateId || null,
         })),
       });
     }

@@ -11,7 +11,7 @@ import {
   type GlobalChatDraft,
 } from '@/lib/global-chat-ui';
 import { useMeetingStore } from '@/lib/store';
-import type { Template } from '@/lib/types';
+import type { Recipe } from '@/lib/types';
 
 function accentClass(accent: 'lime' | 'amber' | 'sky' | 'violet') {
   if (accent === 'lime') return 'bg-lime-400';
@@ -23,7 +23,7 @@ function accentClass(accent: 'lime' | 'amber' | 'sky' | 'violet') {
 export default function ChatRecipesPage() {
   const router = useRouter();
   const { currentWorkspaceId, workspaces, loadWorkspaces } = useMeetingStore();
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [query, setQuery] = useState('');
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,11 +43,11 @@ export default function ChatRecipesPage() {
   useEffect(() => {
     let active = true;
 
-    const loadTemplates = async () => {
+    const loadRecipes = async () => {
       try {
-        const res = await fetch('/api/templates');
+        const res = await fetch('/api/recipes');
         if (!res.ok || !active) return;
-        setTemplates((await res.json()) as Template[]);
+        setRecipes((await res.json()) as Recipe[]);
       } catch (error) {
         console.error('Load chat recipes failed:', error);
       } finally {
@@ -57,14 +57,14 @@ export default function ChatRecipesPage() {
       }
     };
 
-    void loadTemplates();
+    void loadRecipes();
     return () => {
       active = false;
     };
   }, []);
 
   const items = useMemo(() => {
-    const raw = buildGlobalChatCatalogItems(templates);
+    const raw = buildGlobalChatCatalogItems(recipes);
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return raw;
 
@@ -73,44 +73,37 @@ export default function ChatRecipesPage() {
         .filter(Boolean)
         .some((value) => value.toLowerCase().includes(normalizedQuery))
     );
-  }, [query, templates]);
-
-  const groupedItems = useMemo(
-    () => ({
-      recipes: items.filter((item) => item.group === 'recipes'),
-      templates: items.filter((item) => item.group === 'templates'),
-    }),
-    [items]
-  );
+  }, [query, recipes]);
 
   const launchItem = (item: (typeof items)[number]) => {
+    const recipe = item.recipe;
     const workspaceId =
-      item.type === 'recipe'
-        ? item.recipe?.scope === 'my_notes'
+      recipe.kind === 'quick'
+        ? recipe.scope === 'my_notes'
           ? selectedWorkspaceId || currentWorkspaceId || workspaces[0]?.id || null
           : null
         : selectedWorkspaceId;
     const scope =
-      item.type === 'recipe'
-        ? item.recipe?.scope === 'my_notes' && workspaceId
+      recipe.kind === 'quick'
+        ? recipe.scope === 'my_notes' && workspaceId
           ? 'my_notes'
           : 'all_meetings'
         : resolveGlobalChatScope(workspaceId);
 
     const draft: GlobalChatDraft =
-      item.type === 'recipe' && item.recipe
+      recipe.kind === 'quick'
         ? {
-            displayText: item.recipe.title,
-            question: item.recipe.prompt,
+            displayText: recipe.name,
+            question: recipe.prompt,
             scope,
             workspaceId,
             filters: {},
           }
         : {
-            displayText: item.template?.name || item.label,
-            question: item.template?.name || item.label,
-            templatePrompt: item.template?.prompt,
-            templateId: item.template?.id,
+            displayText: recipe.name,
+            question: recipe.name,
+            recipePrompt: recipe.prompt,
+            recipeId: recipe.id,
             scope,
             workspaceId,
             filters: {},
@@ -166,7 +159,7 @@ export default function ChatRecipesPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="搜索 recipe、模板命令或用途"
+              placeholder="搜索 recipe、命令或用途"
               className="flex-1 bg-transparent text-sm text-[#3A2E25] placeholder:text-[#B4A79A] focus:outline-none"
             />
           </div>
@@ -174,56 +167,58 @@ export default function ChatRecipesPage() {
           {isLoading ? (
             <div className="py-14 text-center text-sm text-[#8C7A6B]">正在加载目录...</div>
           ) : (
-            <div className="mt-6 space-y-8">
-              {([
-                ['recipes', 'Recipes'],
-                ['templates', 'Templates'],
-              ] as const).map(([group, label]) => {
-                const groupItems = groupedItems[group];
-                if (groupItems.length === 0) return null;
+            <div className="mt-6">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-song text-[24px] text-[#3A2E25]">Recipes</h2>
+                  <p className="mt-1 text-sm text-[#8C7A6B]">
+                    系统 recipes 和自定义 recipes 统一在这里查看与调用。
+                  </p>
+                </div>
+                <div className="rounded-full bg-[#F7F3EE] px-3 py-1.5 text-[12px] text-[#8C7A6B]">
+                  {items.length} 项
+                </div>
+              </div>
 
-                return (
-                  <section key={group}>
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <div>
-                        <h2 className="font-song text-[24px] text-[#3A2E25]">{label}</h2>
-                        <p className="mt-1 text-sm text-[#8C7A6B]">
-                          {group === 'recipes' ? '系统精选问题，一键发起分析。' : '用户与系统模板，可通过命令调用。'}
-                        </p>
-                      </div>
-                      <div className="rounded-full bg-[#F7F3EE] px-3 py-1.5 text-[12px] text-[#8C7A6B]">
-                        {groupItems.length} 项
-                      </div>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                      {groupItems.map((item) => (
-                        <button
-                          key={`${item.type}-${item.id}`}
-                          type="button"
-                          onClick={() => launchItem(item)}
-                          className="rounded-[24px] border border-[#E9E1D7] bg-[#FCFAF7] p-5 text-left transition-all hover:-translate-y-0.5 hover:border-[#D8CEC4] hover:shadow-[0_16px_32px_rgba(58,46,37,0.08)]"
-                        >
-                          <div className="flex items-start gap-3">
-                            <span className={`mt-1 h-10 w-2 rounded-full ${accentClass(item.accent)}`} />
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <div className="text-[16px] font-semibold text-[#3A2E25]">{item.label}</div>
-                                {item.command ? (
-                                  <code className="rounded-md bg-[#F1EBE3] px-1.5 py-0.5 text-[10px] text-[#8C7A6B]">
-                                    {item.command}
-                                  </code>
-                                ) : null}
-                              </div>
-                              <p className="mt-2 text-[13px] leading-6 text-[#8C7A6B]">{item.description}</p>
-                            </div>
+              {items.length === 0 ? (
+                <div className="rounded-[24px] border border-dashed border-[#DDD2C7] bg-[#FCFAF7] px-4 py-10 text-center text-sm text-[#9A8877]">
+                  没有找到匹配的 recipes。
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {items.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => launchItem(item)}
+                      className="rounded-[24px] border border-[#E9E1D7] bg-[#FCFAF7] p-5 text-left transition-all hover:-translate-y-0.5 hover:border-[#D8CEC4] hover:shadow-[0_16px_32px_rgba(58,46,37,0.08)]"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className={`mt-1 h-10 w-2 rounded-full ${accentClass(item.accent)}`} />
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="text-[16px] font-semibold text-[#3A2E25]">{item.label}</div>
+                            <span className="rounded-full bg-[#F1EBE3] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
+                              {item.sourceLabel}
+                            </span>
+                            {item.recipe.kind === 'quick' ? (
+                              <span className="rounded-full bg-[#FFF5DF] px-2 py-0.5 text-[10px] text-[#AD7A1C]">
+                                快捷
+                              </span>
+                            ) : null}
+                            {item.command ? (
+                              <code className="rounded-md bg-[#F1EBE3] px-1.5 py-0.5 text-[10px] text-[#8C7A6B]">
+                                {item.command}
+                              </code>
+                            ) : null}
                           </div>
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
+                          <p className="mt-2 text-[13px] leading-6 text-[#8C7A6B]">{item.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </section>

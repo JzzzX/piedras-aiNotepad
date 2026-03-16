@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Loader2, Mic, Send, SlidersHorizontal } from 'lucide-react';
-import { buildGlobalChatCatalogItems, type GlobalChatRecipe } from '@/lib/global-chat-ui';
-import type { Collection, GlobalChatFilters, GlobalChatScope, Template, Workspace } from '@/lib/types';
+import { buildGlobalChatCatalogItems } from '@/lib/global-chat-ui';
+import type { Collection, GlobalChatFilters, GlobalChatScope, Recipe, Workspace } from '@/lib/types';
 
 export interface GlobalChatSubmitPayload {
   displayText?: string;
   question?: string;
+  recipePrompt?: string;
+  recipeId?: string;
   templatePrompt?: string;
   templateId?: string;
   nextScope?: GlobalChatScope;
@@ -25,7 +27,7 @@ interface GlobalChatComposerProps {
   workspaces: Workspace[];
   filters: GlobalChatFilters;
   onFiltersChange: (filters: GlobalChatFilters) => void;
-  templates: Template[];
+  templates: Recipe[];
   collections: Collection[];
   disabled?: boolean;
   loading?: boolean;
@@ -50,7 +52,7 @@ export default function GlobalChatComposer({
   workspaces,
   filters,
   onFiltersChange,
-  templates,
+  templates: recipes,
   collections,
   disabled = false,
   loading = false,
@@ -69,7 +71,7 @@ export default function GlobalChatComposer({
   const commandQuery = input.startsWith('/') ? input.slice(1) : '';
   const showCommands = input.startsWith('/') && !commandsDismissed;
   const commandItems = useMemo(() => {
-    const merged = buildGlobalChatCatalogItems(templates);
+    const merged = buildGlobalChatCatalogItems(recipes);
     const q = commandQuery.trim().toLowerCase();
     if (!q) return merged;
     return merged.filter((item) =>
@@ -77,14 +79,7 @@ export default function GlobalChatComposer({
         .filter(Boolean)
         .some((value) => value.toLowerCase().includes(q))
     );
-  }, [commandQuery, templates]);
-  const groupedCommandItems = useMemo(
-    () => ({
-      recipes: commandItems.filter((item) => item.group === 'recipes'),
-      templates: commandItems.filter((item) => item.group === 'templates'),
-    }),
-    [commandItems]
-  );
+  }, [commandQuery, recipes]);
 
   useEffect(() => {
     return () => {
@@ -205,33 +200,31 @@ export default function GlobalChatComposer({
     onInputChange(value);
   };
 
-  const selectRecipe = async (recipe: GlobalChatRecipe) => {
+  const selectRecipe = async (recipe: Recipe) => {
     const recipeWorkspaceId =
-      recipe.scope === 'my_notes'
+      recipe.kind === 'quick' && recipe.scope === 'my_notes'
         ? selectedWorkspaceId || preferredWorkspaceId || workspaces[0]?.id || null
-        : null;
+        : recipe.kind === 'quick'
+          ? null
+          : selectedWorkspaceId;
 
-    onSelectedWorkspaceChange(recipeWorkspaceId);
     onInputChange('');
     setCommandsDismissed(false);
+    onSelectedWorkspaceChange(recipe.kind === 'quick' ? recipeWorkspaceId : selectedWorkspaceId);
     await onSubmit({
-      displayText: recipe.title,
-      question: recipe.prompt,
-      nextScope: recipeWorkspaceId ? recipe.scope : 'all_meetings',
-      workspaceId: recipeWorkspaceId,
-    });
-  };
-
-  const selectTemplate = async (template: Template) => {
-    onInputChange('');
-    setCommandsDismissed(false);
-    await onSubmit({
-      displayText: template.name,
-      question: template.name,
-      templatePrompt: template.prompt,
-      templateId: template.id,
-      nextScope: selectedWorkspaceId ? 'my_notes' : 'all_meetings',
-      workspaceId: selectedWorkspaceId,
+      displayText: recipe.name,
+      question: recipe.kind === 'quick' ? recipe.prompt : recipe.name,
+      recipePrompt: recipe.kind === 'prompt' ? recipe.prompt : undefined,
+      recipeId: recipe.kind === 'prompt' ? recipe.id : undefined,
+      nextScope:
+        recipe.kind === 'quick'
+          ? recipeWorkspaceId
+            ? recipe.scope
+            : 'all_meetings'
+          : selectedWorkspaceId
+            ? 'my_notes'
+            : 'all_meetings',
+      workspaceId: recipe.kind === 'quick' ? recipeWorkspaceId : selectedWorkspaceId,
     });
   };
 
@@ -253,11 +246,7 @@ export default function GlobalChatComposer({
         event.preventDefault();
         const selected = commandItems[Math.min(selectedIdx, Math.max(commandItems.length - 1, 0))];
         if (!selected) return;
-        if (selected.type === 'recipe' && selected.recipe) {
-          await selectRecipe(selected.recipe);
-        } else if (selected.template) {
-          await selectTemplate(selected.template);
-        }
+        await selectRecipe(selected.recipe);
         return;
       }
 
@@ -436,74 +425,50 @@ export default function GlobalChatComposer({
       {showCommands ? (
         <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-30 overflow-hidden rounded-[24px] border border-[#E3D9CE] bg-white shadow-[0_24px_60px_rgba(58,46,37,0.16)]">
           <div className="border-b border-[#EFE7DE] px-4 py-3 text-[11px] uppercase tracking-[0.2em] text-[#A69B8F]">
-            Recipes & Templates
+            Recipes
           </div>
           <div className="max-h-[360px] overflow-y-auto p-2">
             {commandItems.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-[#A69B8F]">没有匹配的技能</div>
+              <div className="px-4 py-6 text-sm text-[#A69B8F]">没有匹配的 recipes</div>
             ) : (
-              <div className="space-y-3">
-                {([
-                  ['recipes', 'Recipes'],
-                  ['templates', 'Templates'],
-                ] as const).map(([group, label]) => {
-                  const items = groupedCommandItems[group];
-                  if (items.length === 0) return null;
-
-                  return (
-                    <div key={group}>
-                      <div className="px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-[#B4A79A]">
-                        {label}
+              <div className="space-y-1">
+                {commandItems.map((item, index) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      void selectRecipe(item.recipe);
+                    }}
+                    className={`flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-left transition-all ${
+                      index === activeCommandIdx ? 'bg-[#F7F3EE]' : 'hover:bg-[#FBF8F4]'
+                    }`}
+                  >
+                    <div className={`mt-0.5 h-8 w-1.5 rounded-full ${accentClass(item.accent)}`} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[14px] font-semibold text-[#3A2E25]">
+                          {item.label}
+                        </span>
+                        {item.command ? (
+                          <code className="rounded-md bg-[#F7F3EE] px-1.5 py-0.5 text-[10px] text-[#8C7A6B]">
+                            {item.command}
+                          </code>
+                        ) : null}
+                        <span className="rounded-full bg-[#F1EBE3] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
+                          {item.sourceLabel}
+                        </span>
+                        {item.recipe.kind === 'quick' ? (
+                          <span className="rounded-full bg-[#FFF5DF] px-2 py-0.5 text-[10px] text-[#AD7A1C]">
+                            快捷
+                          </span>
+                        ) : null}
                       </div>
-                      <div className="space-y-1">
-                        {items.map((item) => {
-                          const index = commandItems.findIndex(
-                            (candidate) => candidate.type === item.type && candidate.id === item.id
-                          );
-
-                          return (
-                            <button
-                              key={`${item.type}-${item.id}`}
-                              type="button"
-                              onClick={() => {
-                                void (item.type === 'recipe' && item.recipe
-                                  ? selectRecipe(item.recipe)
-                                  : item.template
-                                    ? selectTemplate(item.template)
-                                    : Promise.resolve());
-                              }}
-                              className={`flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-left transition-all ${
-                                index === activeCommandIdx ? 'bg-[#F7F3EE]' : 'hover:bg-[#FBF8F4]'
-                              }`}
-                            >
-                              <div
-                                className={`mt-0.5 h-8 w-1.5 rounded-full ${accentClass(item.accent)}`}
-                              />
-                              <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span className="text-[14px] font-semibold text-[#3A2E25]">
-                                    {item.label}
-                                  </span>
-                                  {item.command ? (
-                                    <code className="rounded-md bg-[#F7F3EE] px-1.5 py-0.5 text-[10px] text-[#8C7A6B]">
-                                      {item.command}
-                                    </code>
-                                  ) : null}
-                                  <span className="rounded-full bg-[#F1EBE3] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
-                                    {item.type === 'recipe' ? 'Recipe' : '模板'}
-                                  </span>
-                                </div>
-                                <p className="mt-1 text-[12px] leading-5 text-[#8C7A6B]">
-                                  {item.description}
-                                </p>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <p className="mt-1 text-[12px] leading-5 text-[#8C7A6B]">
+                        {item.description}
+                      </p>
                     </div>
-                  );
-                })}
+                  </button>
+                ))}
               </div>
             )}
           </div>

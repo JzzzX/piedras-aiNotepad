@@ -8,6 +8,7 @@ export const SYSTEM_TEMPLATE_PRESETS: Template[] = [
     icon: '💰',
     description: '分析客户态度、异议点和下一步跟进计划',
     category: '复盘',
+    kind: 'prompt',
     prompt: `你是一位资深销售教练。请根据以下会议转写和用户笔记，生成一份销售复盘报告：
 
 ## 客户态度分析
@@ -37,6 +38,7 @@ export const SYSTEM_TEMPLATE_PRESETS: Template[] = [
     icon: '🎯',
     description: '提取用户需求、痛点，并引用原话作为证据',
     category: '记录',
+    kind: 'prompt',
     prompt: `你是一位用户研究专家。请根据以下访谈转写和用户笔记，生成结构化的访谈洞察报告：
 
 ## 用户画像速写
@@ -66,6 +68,7 @@ export const SYSTEM_TEMPLATE_PRESETS: Template[] = [
     icon: '📋',
     description: '提取每人的进度、阻塞项和计划',
     category: '记录',
+    kind: 'prompt',
     prompt: `你是一位项目管理助手。请根据以下会议转写和用户笔记，按参会人生成站会/周会纪要：
 
 对每位参会者整理：
@@ -95,6 +98,7 @@ export const SYSTEM_TEMPLATE_PRESETS: Template[] = [
     icon: '🤝',
     description: '整理反馈、成长建议和行动承诺',
     category: '记录',
+    kind: 'prompt',
     prompt: `你是一位管理教练。请根据以下 1:1 会议转写和用户笔记，生成结构化的 1:1 纪要：
 
 ## 讨论要点
@@ -125,6 +129,7 @@ export const SYSTEM_TEMPLATE_PRESETS: Template[] = [
     icon: '💡',
     description: '归类创意、评估可行性',
     category: '分析',
+    kind: 'prompt',
     prompt: `你是一位创新顾问。请根据以下脑暴会议转写和用户笔记，整理出结构化的创意报告：
 
 ## 创意汇总（按主题分类）
@@ -152,6 +157,7 @@ export const SYSTEM_TEMPLATE_PRESETS: Template[] = [
     icon: '🎓',
     description: '分析你的表达能力，给出改进建议',
     category: '分析',
+    kind: 'prompt',
     prompt: `你是一位沟通教练。请根据以下会议转写，**专门分析"我"（麦克风录入的说话人）的沟通表现**：
 
 ## 沟通评分（1-10）
@@ -183,6 +189,7 @@ export const SYSTEM_TEMPLATE_PRESETS: Template[] = [
     icon: '🌐',
     description: '将会议笔记中英互译',
     category: '工具',
+    kind: 'prompt',
     prompt: `请将以下会议纪要翻译为另一种语言：
 - 如果原文是中文，翻译为英文
 - 如果原文是英文，翻译为中文

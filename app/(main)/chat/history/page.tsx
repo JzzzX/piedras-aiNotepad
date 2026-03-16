@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Clock3, MessageSquareText, Search } from 'lucide-react';
+import { ArrowLeft, Clock3, MessageSquareText, Search, Trash2 } from 'lucide-react';
 import { getGlobalChatScopeLabel } from '@/lib/global-chat-ui';
 import type { GlobalChatSessionSummary } from '@/lib/types';
 
@@ -32,6 +32,7 @@ export default function ChatHistoryPage() {
   const [sessions, setSessions] = useState<GlobalChatSessionSummary[]>([]);
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -105,30 +106,58 @@ export default function ChatHistoryPage() {
               </div>
             ) : (
               sessions.map((session) => (
-                <button
+                <div
                   key={session.id}
-                  type="button"
-                  onClick={() => router.push(`/chat/${session.id}`)}
-                  className="w-full rounded-[24px] border border-[#E9E1D7] bg-[#FCFAF7] px-5 py-4 text-left transition-all hover:border-[#D8CEC4] hover:bg-white hover:shadow-[0_14px_30px_rgba(58,46,37,0.08)]"
+                  className="flex items-start justify-between gap-4 rounded-[24px] border border-[#E9E1D7] bg-[#FCFAF7] px-5 py-4 transition-all hover:border-[#D8CEC4] hover:bg-white hover:shadow-[0_14px_30px_rgba(58,46,37,0.08)]"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="line-clamp-1 text-[16px] font-semibold text-[#3A2E25]">
-                        {session.title}
-                      </div>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-[#8C7A6B]">
-                        <span className="rounded-full bg-[#F1EBE3] px-2.5 py-1">
-                          {getGlobalChatScopeLabel(session.scope, session.workspace?.name)}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Clock3 size={12} />
-                          {formatRelativeTime(session.updatedAt)}
-                        </span>
-                      </div>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/chat/${session.id}`)}
+                    className="min-w-0 flex-1 text-left"
+                  >
+                    <div className="line-clamp-1 text-[16px] font-semibold text-[#3A2E25]">
+                      {session.title}
                     </div>
-                    <MessageSquareText size={18} className="shrink-0 text-[#B9A999]" />
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-[#8C7A6B]">
+                      <span className="rounded-full bg-[#F1EBE3] px-2.5 py-1">
+                        {getGlobalChatScopeLabel(session.scope, session.workspace?.name)}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Clock3 size={12} />
+                        {formatRelativeTime(session.updatedAt)}
+                      </span>
+                    </div>
+                  </button>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (deletingId) return;
+                        if (!window.confirm(`确认删除对话「${session.title}」？`)) return;
+                        setDeletingId(session.id);
+                        try {
+                          const res = await fetch(`/api/chat/sessions/${session.id}`, { method: 'DELETE' });
+                          if (!res.ok) {
+                            const data = await res.json().catch(() => null);
+                            throw new Error(data?.error || '删除聊天失败');
+                          }
+                          setSessions((current) => current.filter((item) => item.id !== session.id));
+                        } catch (error) {
+                          console.error('Delete chat session failed:', error);
+                          alert(error instanceof Error ? error.message : '删除聊天失败');
+                        } finally {
+                          setDeletingId(null);
+                        }
+                      }}
+                      disabled={deletingId === session.id}
+                      className="rounded-full p-2 text-[#B9A999] transition-colors hover:bg-[#F3ECE4] hover:text-rose-500 disabled:opacity-50"
+                      aria-label={`删除对话 ${session.title}`}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                    <MessageSquareText size={18} className="text-[#B9A999]" />
                   </div>
-                </button>
+                </div>
               ))
             )}
           </div>

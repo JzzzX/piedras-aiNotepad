@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Bot, Loader2, MessageSquareText, Plus, User } from 'lucide-react';
+import { ArrowLeft, Bot, Loader2, MessageSquareText, Plus, Trash2, User } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import GlobalChatComposer, {
   type GlobalChatSubmitPayload,
@@ -22,7 +22,7 @@ import type {
   Collection,
   GlobalChatFilters,
   GlobalChatSessionDetail,
-  Template,
+  Recipe,
 } from '@/lib/types';
 
 export default function GlobalChatSessionPage() {
@@ -37,7 +37,7 @@ export default function GlobalChatSessionPage() {
     loadWorkspaces,
   } = useMeetingStore();
 
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(routeSessionId === 'new' ? null : routeSessionId);
   const [title, setTitle] = useState('新对话');
   const [filters, setFilters] = useState<GlobalChatFilters>({});
@@ -48,6 +48,7 @@ export default function GlobalChatSessionPage() {
   const [error, setError] = useState('');
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<GlobalChatDraft | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const initialDraftTriggeredRef = useRef(false);
@@ -66,17 +67,17 @@ export default function GlobalChatSessionPage() {
   useEffect(() => {
     let active = true;
 
-    const loadTemplates = async () => {
+    const loadRecipes = async () => {
       try {
-        const res = await fetch('/api/templates');
+        const res = await fetch('/api/recipes');
         if (!res.ok || !active) return;
-        setTemplates((await res.json()) as Template[]);
+        setRecipes((await res.json()) as Recipe[]);
       } catch (loadError) {
-        console.error('Load chat templates failed:', loadError);
+        console.error('Load chat recipes failed:', loadError);
       }
     };
 
-    void loadTemplates();
+    void loadRecipes();
     return () => {
       active = false;
     };
@@ -145,7 +146,11 @@ export default function GlobalChatSessionPage() {
         try {
           const draft = JSON.parse(raw) as GlobalChatDraft;
           if (!active) return;
-          setPendingDraft(draft);
+          setPendingDraft({
+            ...draft,
+            recipePrompt: draft.recipePrompt || (draft as GlobalChatDraft & { templatePrompt?: string }).templatePrompt,
+            recipeId: draft.recipeId || (draft as GlobalChatDraft & { templateId?: string }).templateId,
+          });
           setSessionId(null);
           setMessages([]);
           setInput('');
@@ -236,6 +241,7 @@ export default function GlobalChatSessionPage() {
         role: 'user' | 'assistant';
         content: string;
         timestamp: number;
+        recipeId?: string;
         templateId?: string;
       }
     ) => {
@@ -249,6 +255,8 @@ export default function GlobalChatSessionPage() {
         const detail = await res.text();
         throw new Error(detail || '消息保存失败');
       }
+
+      return (await res.json()) as ChatMessage;
     },
     []
   );
@@ -301,7 +309,8 @@ export default function GlobalChatSessionPage() {
         role: 'user',
         content: question,
         timestamp,
-        templateId: payload?.templateId,
+        recipeId: payload?.recipeId,
+        templateId: payload?.recipeId,
       };
 
       const historyWithUser = [...messages, userMessage];
@@ -318,7 +327,7 @@ export default function GlobalChatSessionPage() {
           role: 'user',
           content: question,
           timestamp,
-          templateId: payload?.templateId,
+          recipeId: payload?.recipeId,
         });
 
         const assistantId = uuidv4();
@@ -337,7 +346,7 @@ export default function GlobalChatSessionPage() {
           }),
           promptOptions,
           llmSettings,
-          payload?.templatePrompt
+          payload?.recipePrompt || payload?.templatePrompt
         );
 
         if (!stream) {
@@ -401,8 +410,8 @@ export default function GlobalChatSessionPage() {
     void handleSubmit({
       displayText: pendingDraft.displayText,
       question: pendingDraft.question,
-      templatePrompt: pendingDraft.templatePrompt,
-      templateId: pendingDraft.templateId,
+      recipePrompt: pendingDraft.recipePrompt,
+      recipeId: pendingDraft.recipeId,
       nextScope: pendingDraft.scope,
       workspaceId: pendingDraft.workspaceId || null,
     });
@@ -413,6 +422,25 @@ export default function GlobalChatSessionPage() {
     () => getGlobalChatScopeLabel(resolveGlobalChatScope(selectedWorkspaceId), currentWorkspaceName),
     [currentWorkspaceName, selectedWorkspaceId]
   );
+
+  const handleDeleteSession = useCallback(async () => {
+    if (!sessionId || isDeleting) return;
+    if (!window.confirm(`确认删除对话「${title}」？`)) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/chat/sessions/${sessionId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || '删除聊天失败');
+      }
+      router.replace('/chat/history');
+    } catch (deleteError) {
+      console.error('Delete global chat failed:', deleteError);
+      alert(deleteError instanceof Error ? deleteError.message : '删除聊天失败');
+      setIsDeleting(false);
+    }
+  }, [isDeleting, router, sessionId, title]);
 
   return (
     <div className="min-h-full bg-[#F6F2EB]">
@@ -434,14 +462,27 @@ export default function GlobalChatSessionPage() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => router.push('/chat')}
-            className="inline-flex items-center gap-2 rounded-full bg-[#3A2E25] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2B2420]"
-          >
-            <Plus size={16} />
-            New chat
-          </button>
+          <div className="flex items-center gap-3">
+            {sessionId ? (
+              <button
+                type="button"
+                onClick={() => void handleDeleteSession()}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-2 rounded-full border border-[#E6D8CB] bg-white px-4 py-2.5 text-sm font-medium text-[#7A5B57] transition-colors hover:bg-[#FBF8F4] disabled:opacity-60"
+              >
+                <Trash2 size={15} />
+                删除对话
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => router.push('/chat')}
+              className="inline-flex items-center gap-2 rounded-full bg-[#3A2E25] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2B2420]"
+            >
+              <Plus size={16} />
+              New chat
+            </button>
+          </div>
         </header>
 
         <div className="flex min-h-[540px] flex-1 flex-col overflow-hidden rounded-[32px] border border-[#DED4C9] bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(249,245,239,0.94))] shadow-[0_20px_64px_rgba(58,46,37,0.08)]">
@@ -471,7 +512,7 @@ export default function GlobalChatSessionPage() {
                 </div>
                 <h2 className="mt-5 font-song text-[28px] text-[#3A2E25]">新对话已准备好</h2>
                 <p className="mt-3 text-[15px] leading-7 text-[#857364]">
-                  用下方输入框继续追问会议细节，也可以输入 <code>/</code> 调用 recipe 或模板。
+                  用下方输入框继续追问会议细节，也可以输入 <code>/</code> 调用 recipe。
                 </p>
               </div>
             ) : null}
@@ -536,7 +577,7 @@ export default function GlobalChatSessionPage() {
                 workspaces={workspaces}
                 filters={filters}
                 onFiltersChange={setFilters}
-                templates={templates}
+                templates={recipes}
                 collections={collections}
                 disabled={isLoadingSession}
                 loading={isSending}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { Template } from '@/lib/types';
+import type { Recipe } from '@/lib/types';
 import { TEMPLATE_CATEGORIES } from '@/lib/templates';
 import { ChevronUp, ChevronDown, Plus, Trash2 } from 'lucide-react';
 
@@ -23,7 +23,7 @@ const DEFAULT_FORM: TemplateForm = {
   category: '记录',
 };
 
-function toForm(template: Template): TemplateForm {
+function toForm(template: Recipe): TemplateForm {
   return {
     name: template.name,
     command: template.command,
@@ -35,7 +35,7 @@ function toForm(template: Template): TemplateForm {
 }
 
 export default function TemplateManagerInline() {
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<Recipe[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState<TemplateForm>(DEFAULT_FORM);
@@ -44,7 +44,7 @@ export default function TemplateManagerInline() {
 
   const loadTemplates = async () => {
     try {
-      const res = await fetch('/api/templates');
+      const res = await fetch('/api/recipes');
       if (res.ok) {
         const data = await res.json();
         setTemplates(data);
@@ -57,7 +57,7 @@ export default function TemplateManagerInline() {
   const selected = templates.find((t) => t.id === selectedId);
   const isReadOnly = Boolean(selected?.isSystem && !isCreating);
 
-  const handleSelect = (t: Template) => {
+  const handleSelect = (t: Recipe) => {
     setSelectedId(t.id);
     setForm(toForm(t));
     setIsCreating(false);
@@ -79,7 +79,7 @@ export default function TemplateManagerInline() {
     try {
       const isUpdate = Boolean(selectedId && selected && !selected.isSystem && !isCreating);
       const method = isUpdate ? 'PUT' : 'POST';
-      const url = isUpdate ? `/api/templates/${selectedId}` : '/api/templates';
+      const url = isUpdate ? `/api/recipes/${selectedId}` : '/api/recipes';
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -87,7 +87,7 @@ export default function TemplateManagerInline() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || '保存失败');
+        throw new Error(data.error || '保存 Recipe 失败');
       }
       await loadTemplates();
       if (isCreating) {
@@ -96,17 +96,17 @@ export default function TemplateManagerInline() {
         setIsCreating(false);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '保存失败');
+      setError(e instanceof Error ? e.message : '保存 Recipe 失败');
     } finally {
       setIsBusy(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!selectedId || !window.confirm('确定删除这个模板？')) return;
+    if (!selectedId || !window.confirm('确定删除这个 Recipe？')) return;
     setIsBusy(true);
     try {
-      await fetch(`/api/templates/${selectedId}`, { method: 'DELETE' });
+      await fetch(`/api/recipes/${selectedId}`, { method: 'DELETE' });
       setSelectedId(null);
       setForm(DEFAULT_FORM);
       setIsCreating(false);
@@ -124,7 +124,7 @@ export default function TemplateManagerInline() {
     const ordered = [...templates];
     [ordered[idx], ordered[swapIdx]] = [ordered[swapIdx], ordered[idx]];
     setTemplates(ordered);
-    await fetch('/api/templates', {
+    await fetch('/api/recipes', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderedIds: ordered.map((t) => t.id) }),
@@ -148,8 +148,12 @@ export default function TemplateManagerInline() {
                 <span className="truncate">{t.name}</span>
               </button>
               <span className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
-                <button onClick={() => reorder(t.id, 'up')} className="rounded-md p-0.5 text-[#8C7A6B] hover:bg-[#EFE9E2]"><ChevronUp size={13} /></button>
-                <button onClick={() => reorder(t.id, 'down')} className="rounded-md p-0.5 text-[#8C7A6B] hover:bg-[#EFE9E2]"><ChevronDown size={13} /></button>
+                {!t.isSystem ? (
+                  <>
+                    <button onClick={() => reorder(t.id, 'up')} className="rounded-md p-0.5 text-[#8C7A6B] hover:bg-[#EFE9E2]"><ChevronUp size={13} /></button>
+                    <button onClick={() => reorder(t.id, 'down')} className="rounded-md p-0.5 text-[#8C7A6B] hover:bg-[#EFE9E2]"><ChevronDown size={13} /></button>
+                  </>
+                ) : null}
               </span>
             </div>
           ))}
@@ -160,7 +164,7 @@ export default function TemplateManagerInline() {
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#D8CEC4] bg-white px-3 py-2 text-[13px] font-medium text-[#8C7A6B] hover:border-[#BFAE9E] hover:text-[#5C4D42] transition-colors"
           >
             <Plus size={14} />
-            新建模板
+            新建 Recipe
           </button>
         </div>
       </div>
@@ -169,7 +173,7 @@ export default function TemplateManagerInline() {
       <div className="flex-1 overflow-y-auto bg-white p-6 custom-scrollbar">
         {!selectedId && !isCreating ? (
           <div className="flex h-full items-center justify-center text-sm text-[#A69B8F]">
-            选择或新建一个模板
+            选择或新建一个 Recipe
           </div>
         ) : (
           <div className="space-y-5">
@@ -242,7 +246,7 @@ export default function TemplateManagerInline() {
             
             {isReadOnly && (
               <div className="rounded-xl border border-[#E3D9CE] bg-[#FCFAF8] px-4 py-3 text-[12px] leading-relaxed text-[#8C7A6B]">
-                系统模板只读，如需修改请点击左侧“新建模板”后复制一份再编辑。
+                系统 Recipe 只读，如需修改请点击左侧“新建 Recipe”后复制一份再编辑。
               </div>
             )}
             

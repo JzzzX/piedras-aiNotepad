@@ -588,6 +588,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
             role: m.role,
             content: m.content,
             timestamp: m.timestamp,
+            recipeId: m.recipeId || m.templateId,
             templateId: m.templateId,
           })),
           currentPartial: '',

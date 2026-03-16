@@ -51,6 +51,7 @@ export async function GET(
       role: message.role,
       content: message.content,
       timestamp: message.timestamp,
+      recipeId: message.templateId || undefined,
       templateId: message.templateId || undefined,
     })),
   });
@@ -101,4 +102,23 @@ export async function PATCH(
     updatedAt: updated.updatedAt.toISOString(),
     createdAt: updated.createdAt.toISOString(),
   });
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const existing = await prisma.globalChatSession.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ error: '聊天会话不存在' }, { status: 404 });
+  }
+
+  await prisma.globalChatSession.delete({ where: { id } });
+  return NextResponse.json({ success: true });
 }
