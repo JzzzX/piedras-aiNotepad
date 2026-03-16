@@ -209,6 +209,7 @@ export default function Sidebar() {
     description: string;
     color: string;
     icon: string;
+    workflowMode: 'general' | 'interview';
   }) => {
     if (workspaceModalState?.mode === 'edit' && workspaceModalState.workspaceId) {
       await updateWorkspace(workspaceModalState.workspaceId, input);

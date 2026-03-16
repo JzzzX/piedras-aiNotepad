@@ -15,6 +15,7 @@ import FloatingTranscript from '@/components/FloatingTranscript';
 import FloatingChat from '@/components/FloatingChat';
 import FloatingKnowledgeBase from '@/components/FloatingKnowledgeBase';
 import MeetingNotesWorkspace from '@/components/MeetingNotesWorkspace';
+import { INTERVIEW_RECOMMENDATION_OPTIONS } from '@/lib/interview';
 import { useMeetingStore } from '@/lib/store';
 import { generateMeetingTitle } from '@/lib/llm';
 
@@ -37,11 +38,18 @@ export default function MeetingPage() {
     loadMeeting,
     loadMeetingList,
     meetingId,
+    workspaces,
+    loadWorkspaces,
     currentWorkspaceId,
     currentCollectionId,
     userNotes,
     enhancedNotes,
     chatMessages,
+    roundLabel,
+    interviewerName,
+    recommendation,
+    handoffNote,
+    setInterviewMeta,
   } = useMeetingStore();
 
   const prevStatusRef = useRef(status);
@@ -53,6 +61,10 @@ export default function MeetingPage() {
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isKnowledgeBaseOpen, setIsKnowledgeBaseOpen] = useState(false);
+
+  useEffect(() => {
+    void loadWorkspaces();
+  }, [loadWorkspaces]);
 
   const returnTo = searchParams.get('returnTo');
   const resolvedReturnTo =
@@ -199,6 +211,9 @@ export default function MeetingPage() {
   }, [loadMeetingList, reset, resolvedReturnTo, router, saveMeeting]);
 
   const hasContent = segments.length > 0;
+  const currentWorkspace =
+    workspaces.find((workspace) => workspace.id === currentWorkspaceId) || null;
+  const isInterviewMode = currentWorkspace?.workflowMode === 'interview';
   const saveLabel = isSaving
     ? '保存中'
     : meetingDirty
@@ -265,6 +280,66 @@ export default function MeetingPage() {
       {/* Editor */}
       <main className="flex-1 overflow-y-auto pb-32 custom-scrollbar">
         <div className="mx-auto flex min-h-full max-w-4xl flex-col px-2 py-6 sm:my-6 sm:px-0 sm:py-2">
+          {isInterviewMode ? (
+            <section className="mb-5 rounded-[28px] border border-[#E3D9CE] bg-white/88 p-5 shadow-[0_16px_36px_rgba(58,46,37,0.06)]">
+              <div className="mb-4">
+                <h2 className="font-song text-[24px] text-[#3A2E25]">本轮面试信息</h2>
+                <p className="mt-1 text-sm text-[#8B796A]">
+                  这些字段会进入候选人时间线和交接摘要，建议在每轮结束后补齐。
+                </p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-[#5C4D42]">轮次</span>
+                  <input
+                    value={roundLabel}
+                    onChange={(event) => setInterviewMeta({ roundLabel: event.target.value })}
+                    placeholder="例如：一面 / 技术面 / HR 面"
+                    className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-[#5C4D42]">面试官</span>
+                  <input
+                    value={interviewerName}
+                    onChange={(event) =>
+                      setInterviewMeta({ interviewerName: event.target.value })
+                    }
+                    placeholder="例如：技术负责人 / 招聘经理"
+                    className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none"
+                  />
+                </label>
+                <label className="block md:col-span-2">
+                  <span className="mb-2 block text-sm font-medium text-[#5C4D42]">推荐结论</span>
+                  <select
+                    value={recommendation}
+                    onChange={(event) =>
+                      setInterviewMeta({
+                        recommendation: event.target.value as typeof recommendation,
+                      })
+                    }
+                    className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] focus:border-[#C2B3A4] focus:outline-none"
+                  >
+                    {INTERVIEW_RECOMMENDATION_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block md:col-span-2">
+                  <span className="mb-2 block text-sm font-medium text-[#5C4D42]">交接备注</span>
+                  <textarea
+                    value={handoffNote}
+                    onChange={(event) => setInterviewMeta({ handoffNote: event.target.value })}
+                    rows={4}
+                    placeholder="告诉下一位面试官：重点追问什么、风险点在哪里、需要继续验证哪些信息。"
+                    className="w-full resize-none rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm leading-6 text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none"
+                  />
+                </label>
+              </div>
+            </section>
+          ) : null}
           <MeetingNotesWorkspace />
         </div>
       </main>

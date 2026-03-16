@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Calendar, Mic, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, Calendar, Plus, Sparkles } from 'lucide-react';
 import WorkspaceIconBadge from '@/components/WorkspaceIconBadge';
 import WorkspaceModal from '@/components/WorkspaceModal';
 import { useMeetingStore } from '@/lib/store';
@@ -66,7 +66,13 @@ export default function WorkspaceOverviewPage() {
   );
 
   const handleCreateWorkspace = useCallback(
-    async (input: { name: string; description: string; color: string; icon: string }) => {
+    async (input: {
+      name: string;
+      description: string;
+      color: string;
+      icon: string;
+      workflowMode: 'general' | 'interview';
+    }) => {
       const workspace = await createWorkspace(input);
       setCurrentWorkspaceId(workspace.id);
       await loadOverview();
@@ -74,13 +80,6 @@ export default function WorkspaceOverviewPage() {
     },
     [createWorkspace, loadOverview, router, setCurrentWorkspaceId]
   );
-
-  const handleNewMeeting = useCallback(() => {
-    const { reset } = useMeetingStore.getState();
-    reset();
-    const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}?returnTo=${encodeURIComponent('/workspace')}`);
-  }, [router]);
 
   return (
     <div className="min-h-full bg-[#F6F2EB]">
@@ -111,14 +110,6 @@ export default function WorkspaceOverviewPage() {
                   进入当前工作区
                 </button>
               ) : null}
-              <button
-                type="button"
-                onClick={handleNewMeeting}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
-              >
-                <Mic size={16} />
-                开始录音
-              </button>
               <button
                 type="button"
                 onClick={() => setShowCreateModal(true)}
@@ -185,6 +176,9 @@ export default function WorkspaceOverviewPage() {
                         <div className="truncate text-lg font-semibold text-[#3A2E25]">{workspace.name}</div>
                         <div className="mt-1 text-xs text-[#A09082]">
                           {workspace.id === currentWorkspaceId ? '当前工作区' : '点击进入管理'}
+                        </div>
+                        <div className="mt-2 text-[11px] text-[#9D8B7B]">
+                          {workspace.workflowMode === 'interview' ? '面试模式' : '通用模式'}
                         </div>
                       </div>
                     </div>

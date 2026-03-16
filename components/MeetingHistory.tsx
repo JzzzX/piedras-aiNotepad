@@ -161,6 +161,12 @@ export default function MeetingHistory({
           >
             {meeting.title || '无标题记录'}
           </p>
+          {(meeting.roundLabel || meeting.interviewerName) && (
+            <div className="mt-1 text-xs text-[#A09082]">
+              {meeting.roundLabel || '未命名轮次'}
+              {meeting.interviewerName ? ` · ${meeting.interviewerName}` : ''}
+            </div>
+          )}
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-400">
             <span>{formatDate(meeting.date)}</span>
             {meeting.duration > 0 && (

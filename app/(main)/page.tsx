@@ -1,65 +1,85 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FileAudio, MessageSquare, Mic, Plus } from 'lucide-react';
+import { ArrowRight, Clock3, Sparkles } from 'lucide-react';
 import WorkspaceModal from '@/components/WorkspaceModal';
-import { useMeetingStore } from '@/lib/store';
+import GlobalChatComposer, {
+  type GlobalChatSubmitPayload,
+} from '@/components/chat/GlobalChatComposer';
+import {
+  GLOBAL_CHAT_DRAFT_KEY,
+  resolveGlobalChatScope,
+  type GlobalChatDraft,
+} from '@/lib/global-chat-ui';
+import { useMeetingStore, type MeetingListItem } from '@/lib/store';
+import type {
+  Collection,
+  GlobalChatFilters,
+  GlobalChatSessionSummary,
+  Template,
+  Workspace,
+} from '@/lib/types';
 
-function DashboardHeader() {
-  const [time, setTime] = useState(() => new Date());
+function formatRelativeTime(value: string) {
+  const date = new Date(value);
+  const diff = Date.now() - date.getTime();
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+
+  if (diff < hour) return `${Math.max(1, Math.round(diff / minute))} 分钟前`;
+  if (diff < day) return `${Math.round(diff / hour)} 小时前`;
+  if (diff < day * 7) return `${Math.round(diff / day)} 天前`;
+  return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+}
+
+function formatMeetingDate(value: string) {
+  return new Date(value).toLocaleString('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function formatDuration(seconds: number) {
+  if (seconds <= 0) return '未结束';
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return `${minutes}m${rest > 0 ? `${rest}s` : ''}`;
+}
+
+function GreetingHeader() {
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
+    const timer = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(timer);
   }, []);
 
-  const hours = time.getHours().toString().padStart(2, '0');
-  const minutes = time.getMinutes().toString().padStart(2, '0');
-  const day = time.getDate();
-  const month = time.toLocaleDateString('en-US', { month: 'short' });
-  const weekday = time.toLocaleDateString('en-US', { weekday: 'short' });
-
-  const hourNum = time.getHours();
-  let greeting = '晚上好';
-  if (hourNum < 6) greeting = '夜深了';
-  else if (hourNum < 11) greeting = '早上好';
-  else if (hourNum < 14) greeting = '中午好';
-  else if (hourNum < 18) greeting = '下午好';
-
-  const showColon = time.getSeconds() % 2 === 0;
+  const hour = now.getHours();
+  const greeting =
+    hour < 6 ? '夜深了' : hour < 11 ? '早上好' : hour < 14 ? '中午好' : hour < 18 ? '下午好' : '晚上好';
 
   return (
-    <div className="flex justify-center transition-opacity duration-500">
-      <div className="inline-flex items-center gap-6 rounded-2xl border border-[#E3D9CE]/60 bg-white/60 px-6 py-4 shadow-sm backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <span className="font-song text-[42px] leading-none tracking-tight text-[#3A2E25]">
-            {day}
-          </span>
-          <div className="flex flex-col text-[12px] font-medium leading-tight text-[#8C7A6B]">
-            <span className="uppercase tracking-wider">{month}</span>
-            <span>{weekday}</span>
-          </div>
-        </div>
-
-        <div className="h-8 w-px bg-[#E3D9CE]" />
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-baseline gap-2">
-            <span className="font-song text-[32px] leading-none text-[#5C4D42]">
-              {hours}
-              <span className={`inline-block w-3 text-center transition-opacity duration-300 ${showColon ? 'opacity-100' : 'opacity-30'}`}>:</span>
-              {minutes}
-            </span>
-          </div>
-          <div className="flex flex-col items-start gap-1">
-            <span className="text-[14px] font-semibold text-[#4A3C31]">{greeting}</span>
-            <span className="text-[11px] text-[#8C7A6B]">记录此刻灵感</span>
-          </div>
-        </div>
+    <div>
+      <div className="text-[12px] uppercase tracking-[0.26em] text-[#B29F8B]">
+        {now.toLocaleDateString('zh-CN', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long',
+        })}
       </div>
+      <h1 className="mt-3 font-song text-[34px] leading-tight text-[#3A2E25] sm:text-[44px]">
+        {greeting}
+      </h1>
+      <p className="mt-3 max-w-[620px] text-[15px] leading-7 text-[#7C6B5C]">
+        先选工作区，再继续问 AI、查看最近会议，或者进入对应的工作区继续推进。
+      </p>
     </div>
   );
 }
@@ -67,109 +87,328 @@ function DashboardHeader() {
 export default function HomePage() {
   const router = useRouter();
   const {
-    workspaces,
     currentWorkspaceId,
+    setCurrentWorkspaceId,
+    workspaces,
     loadWorkspaces,
     createWorkspace,
-    setCurrentWorkspaceId,
-    loadCollections,
   } = useMeetingStore();
 
+  const [selectedWorkspaceOverride, setSelectedWorkspaceOverride] = useState<string | null | undefined>(
+    undefined
+  );
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [sessions, setSessions] = useState<GlobalChatSessionSummary[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [recentMeetings, setRecentMeetings] = useState<MeetingListItem[]>([]);
+  const [input, setInput] = useState('');
+  const [filters, setFilters] = useState<GlobalChatFilters>({});
+  const [isLaunching, setIsLaunching] = useState(false);
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
-
   useEffect(() => {
     void loadWorkspaces();
   }, [loadWorkspaces]);
 
-  const currentWorkspace = useMemo(
-    () => workspaces.find((workspace) => workspace.id === currentWorkspaceId) || null,
-    [currentWorkspaceId, workspaces]
+  const selectedWorkspaceId =
+    selectedWorkspaceOverride !== undefined
+      ? selectedWorkspaceOverride
+      : currentWorkspaceId || workspaces[0]?.id || null;
+
+  useEffect(() => {
+    let active = true;
+    const bootstrap = async () => {
+      try {
+        const [templatesRes, sessionsRes] = await Promise.all([
+          fetch('/api/templates'),
+          fetch('/api/chat/sessions?limit=5'),
+        ]);
+
+        if (!active) return;
+        if (templatesRes.ok) setTemplates((await templatesRes.json()) as Template[]);
+        if (sessionsRes.ok) setSessions((await sessionsRes.json()) as GlobalChatSessionSummary[]);
+      } catch (error) {
+        console.error('加载首页数据失败:', error);
+      }
+    };
+
+    void bootstrap();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadScopedData = async () => {
+      if (!selectedWorkspaceId) {
+        setCollections([]);
+        setRecentMeetings([]);
+        setFilters((prev) => (prev.collectionId ? { ...prev, collectionId: '' } : prev));
+        return;
+      }
+
+      try {
+        const [collectionsRes, meetingsRes] = await Promise.all([
+          fetch(`/api/collections?workspaceId=${selectedWorkspaceId}`),
+          fetch(`/api/meetings?workspaceId=${selectedWorkspaceId}`),
+        ]);
+
+        if (!active) return;
+        if (collectionsRes.ok) {
+          const nextCollections = (await collectionsRes.json()) as Collection[];
+          setCollections(nextCollections);
+          setFilters((prev) =>
+            prev.collectionId && !nextCollections.some((item) => item.id === prev.collectionId)
+              ? { ...prev, collectionId: '' }
+              : prev
+          );
+        }
+        if (meetingsRes.ok) {
+          const meetings = (await meetingsRes.json()) as MeetingListItem[];
+          setRecentMeetings(meetings.slice(0, 6));
+        }
+      } catch (error) {
+        console.error('加载工作区首页数据失败:', error);
+      }
+    };
+
+    void loadScopedData();
+    return () => {
+      active = false;
+    };
+  }, [selectedWorkspaceId]);
+
+  const selectedWorkspace = useMemo(
+    () => workspaces.find((workspace) => workspace.id === selectedWorkspaceId) || null,
+    [selectedWorkspaceId, workspaces]
   );
 
-  const handleNewMeeting = useCallback(() => {
-    const { reset } = useMeetingStore.getState();
-    reset();
-    const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}?returnTo=${encodeURIComponent('/')}`);
-  }, [router]);
+  const handleSelectWorkspace = useCallback(
+    (workspaceId: string | null) => {
+      setSelectedWorkspaceOverride(workspaceId);
+      if (workspaceId) {
+        setCurrentWorkspaceId(workspaceId);
+      }
+    },
+    [setCurrentWorkspaceId]
+  );
 
-  const handleImportAudio = useCallback(() => {
-    const { reset } = useMeetingStore.getState();
-    reset();
-    const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}?intent=upload&returnTo=${encodeURIComponent('/')}`);
-  }, [router]);
-
-  const handleSaveWorkspace = useCallback(
-    async (input: { name: string; description: string; color: string; icon: string }) => {
+  const handleCreateWorkspace = useCallback(
+    async (input: {
+      name: string;
+      description: string;
+      color: string;
+      icon: string;
+      workflowMode: Workspace['workflowMode'];
+    }) => {
       const workspace = await createWorkspace(input);
       setCurrentWorkspaceId(workspace.id);
-      await loadCollections();
+      setSelectedWorkspaceOverride(workspace.id);
       setShowCreateWorkspace(false);
       router.push(`/workspace/${workspace.id}`);
     },
-    [createWorkspace, loadCollections, router, setCurrentWorkspaceId]
+    [createWorkspace, router, setCurrentWorkspaceId]
   );
 
-  const handleOpenWorkspace = useCallback(() => {
-    if (currentWorkspace) {
-      router.push(`/workspace/${currentWorkspace.id}`);
-      return;
-    }
-    setShowCreateWorkspace(true);
-  }, [currentWorkspace, router]);
+  const handleLaunch = useCallback(
+    async (payload?: GlobalChatSubmitPayload) => {
+      const nextQuestion = (payload?.question || input).trim();
+      if (!nextQuestion || isLaunching) return;
 
-  const shortcuts = [
-    {
-      title: '开始录音',
-      description: '新建一场会议并立刻进入记录。',
-      icon: Mic,
-      onClick: handleNewMeeting,
+      setIsLaunching(true);
+      const nextWorkspaceId =
+        payload?.workspaceId !== undefined ? payload.workspaceId : selectedWorkspaceId;
+      const nextScope = payload?.nextScope || resolveGlobalChatScope(nextWorkspaceId);
+      const draft: GlobalChatDraft = {
+        displayText: payload?.displayText || nextQuestion,
+        question: nextQuestion,
+        templatePrompt: payload?.templatePrompt,
+        templateId: payload?.templateId,
+        scope: nextScope,
+        workspaceId: nextScope === 'my_notes' ? nextWorkspaceId : null,
+        filters,
+      };
+
+      sessionStorage.setItem(GLOBAL_CHAT_DRAFT_KEY, JSON.stringify(draft));
+      setInput('');
+      router.push('/chat/new');
     },
-    {
-      title: '导入音频',
-      description: '上传已有录音并直接转写。',
-      icon: FileAudio,
-      onClick: handleImportAudio,
-    },
-    {
-      title: 'AI 对话',
-      description: '围绕历史会议发起全局提问。',
-      icon: MessageSquare,
-      onClick: () => router.push('/chat'),
-    },
-    {
-      title: currentWorkspace ? '进入当前工作区' : '创建工作区',
-      description: currentWorkspace
-        ? `继续管理 ${currentWorkspace.name} 下的会议与笔记历史。`
-        : '先创建一个工作区，再开始沉淀会议资料。',
-      icon: currentWorkspace ? Plus : Plus,
-      onClick: handleOpenWorkspace,
-    },
-  ];
+    [filters, input, isLaunching, router, selectedWorkspaceId]
+  );
 
   return (
     <div className="min-h-full bg-[#F6F2EB]">
-      <div className="mx-auto flex max-w-[980px] flex-col gap-8 px-6 pb-12 pt-12 sm:px-8 lg:px-10">
-        <section className="rounded-[34px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(249,244,237,0.98)_58%,_rgba(239,231,221,1))] px-6 py-8 text-center shadow-[0_24px_72px_rgba(58,46,37,0.08)] sm:px-10 sm:py-10">
-          <DashboardHeader />
+      <div className="mx-auto flex max-w-[1100px] flex-col gap-8 px-6 pb-12 pt-10 sm:px-8 lg:px-10">
+        <section className="rounded-[34px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(249,244,237,0.98)_58%,_rgba(239,231,221,1))] px-6 py-8 shadow-[0_24px_72px_rgba(58,46,37,0.08)] sm:px-8 sm:py-9">
+          <GreetingHeader />
+
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            {workspaces.map((workspace) => {
+              const active = workspace.id === selectedWorkspaceId;
+              return (
+                <button
+                  key={workspace.id}
+                  type="button"
+                  onClick={() => handleSelectWorkspace(workspace.id)}
+                  className={`rounded-2xl border px-4 py-3 text-left transition-all ${
+                    active
+                      ? 'border-[#D4C1AA] bg-white shadow-sm ring-2 ring-[#EFE1D0]'
+                      : 'border-[#E7DDD2] bg-white/70 hover:border-[#D9CBBB] hover:bg-white'
+                  }`}
+                >
+                  <div className="text-sm font-semibold text-[#3A2E25]">{workspace.name}</div>
+                  <div className="mt-1 text-xs text-[#9D8B7B]">
+                    {workspace.workflowMode === 'interview' ? '面试模式' : '通用模式'}
+                  </div>
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={() => setShowCreateWorkspace(true)}
+              className="rounded-2xl border border-dashed border-[#D8CEC4] bg-white/70 px-4 py-3 text-sm font-medium text-[#6B5C50] transition-colors hover:bg-white"
+            >
+              创建工作区
+            </button>
+          </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {shortcuts.map((item) => (
-            <button
-              key={item.title}
-              type="button"
-              onClick={item.onClick}
-              className="rounded-[26px] border border-[#E7DDD2] bg-white/90 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-[#D9CCBF] hover:shadow-[0_16px_32px_rgba(58,46,37,0.08)]"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F5EEE5] text-[#5E4E43]">
-                <item.icon size={19} />
+        <section className="rounded-[34px] border border-[#DED4C9] bg-white/88 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)] sm:p-7">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#F7F2EB] px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-[#A08C79]">
+                <Sparkles size={12} />
+                AI 对话
               </div>
-              <div className="mt-4 text-[16px] font-semibold text-[#3A2E25]">{item.title}</div>
-              <div className="mt-1 text-sm leading-6 text-[#8B796A]">{item.description}</div>
-            </button>
-          ))}
+              <h2 className="mt-3 font-song text-[30px] text-[#3A2E25]">继续当前工作区</h2>
+              <p className="mt-2 text-sm leading-6 text-[#8B796A]">
+                {selectedWorkspace
+                  ? `当前默认作用域：${selectedWorkspace.name}。`
+                  : '先选择工作区，再围绕该工作区继续提问。'}
+              </p>
+            </div>
+            {selectedWorkspace ? (
+              <Link
+                href={`/workspace/${selectedWorkspace.id}`}
+                className="inline-flex items-center gap-1 rounded-full border border-[#D8CEC4] bg-[#FBF8F4] px-3 py-2 text-sm text-[#6B5C50] transition-colors hover:bg-white"
+              >
+                进入工作区
+                <ArrowRight size={14} />
+              </Link>
+            ) : null}
+          </div>
+
+          <GlobalChatComposer
+            input={input}
+            onInputChange={setInput}
+            onSubmit={handleLaunch}
+            selectedWorkspaceId={selectedWorkspaceId}
+            onSelectedWorkspaceChange={handleSelectWorkspace}
+            preferredWorkspaceId={selectedWorkspaceId}
+            workspaces={workspaces}
+            filters={filters}
+            onFiltersChange={setFilters}
+            templates={templates}
+            collections={collections}
+            loading={isLaunching}
+            placeholder="问候选人上轮卡点、项目进展、最近决策，或输入 / 调模板"
+          />
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
+          <div className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="font-song text-[24px] text-[#3A2E25]">最近会议</h2>
+                <p className="mt-1 text-sm text-[#8C7A6B]">
+                  {selectedWorkspace ? `只看 ${selectedWorkspace.name} 下最近继续过的记录。` : '请选择工作区。'}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {recentMeetings.length === 0 ? (
+                <div className="rounded-[24px] border border-dashed border-[#D8CEC4] bg-[#FCFAF7] px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-[#5C4D42]">这个工作区还没有会议</p>
+                  <p className="mt-2 text-sm leading-6 text-[#8B796A]">
+                    进入工作区后，再开始录音或导入音频，会更清楚地归档到正确上下文。
+                  </p>
+                </div>
+              ) : (
+                recentMeetings.map((meeting) => (
+                  <button
+                    key={meeting.id}
+                    type="button"
+                    onClick={() => router.push(`/meeting/${meeting.id}?returnTo=${encodeURIComponent('/')}`)}
+                    className="w-full rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] p-4 text-left transition-all hover:border-[#D8CEC4] hover:shadow-[0_12px_24px_rgba(58,46,37,0.06)]"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="line-clamp-1 text-[15px] font-semibold text-[#3A2E25]">
+                          {meeting.title || '无标题记录'}
+                        </div>
+                        {meeting.roundLabel ? (
+                          <div className="mt-1 text-xs text-[#A09082]">
+                            {meeting.roundLabel}
+                            {meeting.interviewerName ? ` · ${meeting.interviewerName}` : ''}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="text-xs text-[#A09082]">{formatDuration(meeting.duration)}</div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 text-xs text-[#8B796A]">
+                      <Clock3 size={12} />
+                      {formatMeetingDate(meeting.date)}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="font-song text-[24px] text-[#3A2E25]">最近对话</h2>
+                <p className="mt-1 text-sm text-[#8C7A6B]">从最近的 AI 对话继续，不用重复描述上下文。</p>
+              </div>
+              <Link
+                href="/chat/history"
+                className="inline-flex items-center gap-1 rounded-full border border-[#D8CEC4] bg-[#FBF8F4] px-3 py-2 text-sm text-[#6B5C50] transition-colors hover:bg-white"
+              >
+                查看全部
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {sessions.length === 0 ? (
+                <div className="rounded-[24px] border border-dashed border-[#D8CEC4] bg-[#FCFAF7] px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-[#5C4D42]">还没有历史对话</p>
+                  <p className="mt-2 text-sm leading-6 text-[#8B796A]">从上面的输入框发起一次问题，之后就会出现在这里。</p>
+                </div>
+              ) : (
+                sessions.map((session) => (
+                  <button
+                    key={session.id}
+                    type="button"
+                    onClick={() => router.push(`/chat/${session.id}`)}
+                    className="w-full rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] p-4 text-left transition-all hover:border-[#D8CEC4] hover:shadow-[0_12px_24px_rgba(58,46,37,0.06)]"
+                  >
+                    <div className="line-clamp-1 text-[15px] font-semibold text-[#3A2E25]">{session.title}</div>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#8B796A]">
+                      <span className="rounded-full bg-white px-2.5 py-1">
+                        {session.workspace?.name || '全部工作区'}
+                      </span>
+                      <span>{formatRelativeTime(session.updatedAt)}</span>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
         </section>
       </div>
 
@@ -177,7 +416,7 @@ export default function HomePage() {
         open={showCreateWorkspace}
         mode="create"
         onClose={() => setShowCreateWorkspace(false)}
-        onSubmit={handleSaveWorkspace}
+        onSubmit={handleCreateWorkspace}
       />
     </div>
   );

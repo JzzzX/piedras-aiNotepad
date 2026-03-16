@@ -24,6 +24,7 @@ export async function GET() {
       description: workspace.description,
       icon: workspace.icon,
       color: workspace.color,
+      workflowMode: workspace.workflowMode as 'general' | 'interview',
       sortOrder: workspace.sortOrder,
       meetingCount: workspace._count.meetings,
       latestMeetingAt: workspace.meetings[0]?.date.toISOString() ?? null,

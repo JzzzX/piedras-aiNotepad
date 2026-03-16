@@ -10,7 +10,8 @@ import {
   WORKSPACE_ICON_OPTIONS,
   type WorkspaceIconKey,
 } from '@/lib/workspace-icons';
-import type { Collection } from '@/lib/types';
+import { CANDIDATE_STATUS_OPTIONS } from '@/lib/interview';
+import type { CandidateStatus, Collection, WorkspaceWorkflowMode } from '@/lib/types';
 
 const PRESET_COLORS = ['#94a3b8', '#f87171', '#fb923c', '#fbbf24', '#4ade80', '#38bdf8', '#a78bfa', '#f472b6'];
 const DEFAULT_COLOR = PRESET_COLORS[0];
@@ -20,6 +21,9 @@ interface CollectionDraft {
   description: string;
   color: string;
   icon: WorkspaceIconKey;
+  candidateStatus: CandidateStatus;
+  nextInterviewer: string;
+  nextFocus: string;
 }
 
 type CollectionModalMode = 'create' | 'edit';
@@ -28,6 +32,7 @@ interface CollectionModalProps {
   open: boolean;
   mode: CollectionModalMode;
   collection?: Collection | null;
+  workflowMode?: WorkspaceWorkflowMode;
   onClose: () => void;
   onSubmit: (input: CollectionDraft) => Promise<void>;
 }
@@ -37,6 +42,9 @@ const DEFAULT_DRAFT: CollectionDraft = {
   description: '',
   color: DEFAULT_COLOR,
   icon: getDefaultWorkspaceIconKey(),
+  candidateStatus: 'new',
+  nextInterviewer: '',
+  nextFocus: '',
 };
 
 function normalizeIcon(icon?: string | null): WorkspaceIconKey {
@@ -54,6 +62,9 @@ function toDraft(collection?: Collection | null): CollectionDraft {
     description: collection.description || '',
     color: collection.color,
     icon: normalizeIcon(collection.icon),
+    candidateStatus: collection.candidateStatus || 'new',
+    nextInterviewer: collection.nextInterviewer || '',
+    nextFocus: collection.nextFocus || '',
   };
 }
 
@@ -61,6 +72,7 @@ export default function CollectionModal({
   open,
   mode,
   collection,
+  workflowMode = 'general',
   onClose,
   onSubmit,
 }: CollectionModalProps) {
@@ -109,8 +121,16 @@ export default function CollectionModal({
   }, [isSubmitting, onClose, open]);
 
   const previewName = useMemo(
-    () => draft.name.trim() || (mode === 'create' ? '新 Collection' : 'Collection 名称'),
-    [draft.name, mode]
+    () =>
+      draft.name.trim() ||
+      (mode === 'create'
+        ? workflowMode === 'interview'
+          ? '新候选人'
+          : '新 Collection'
+        : workflowMode === 'interview'
+          ? '候选人名称'
+          : 'Collection 名称'),
+    [draft.name, mode, workflowMode]
   );
   const previewDescription = useMemo(
     () => draft.description.trim() || '用来承接这组会议与笔记',
@@ -135,6 +155,9 @@ export default function CollectionModal({
         description: draft.description.trim(),
         color: draft.color,
         icon: draft.icon,
+        candidateStatus: draft.candidateStatus,
+        nextInterviewer: draft.nextInterviewer.trim(),
+        nextFocus: draft.nextFocus.trim(),
       });
       onClose();
     } catch (submitError) {
@@ -144,8 +167,16 @@ export default function CollectionModal({
     }
   };
 
-  const title = mode === 'create' ? '创建 Collection' : '编辑 Collection';
-  const subtitle = mode === 'create' ? '把同类会议收进一个二级空间' : '更新名称、图标和颜色';
+  const noun = workflowMode === 'interview' ? '候选人' : 'Collection';
+  const title = mode === 'create' ? `创建${noun}` : `编辑${noun}`;
+  const subtitle =
+    workflowMode === 'interview'
+      ? mode === 'create'
+        ? '为这个候选人建立多轮面试与交接档案'
+        : '更新候选人信息和交接上下文'
+      : mode === 'create'
+        ? '把同类会议收进一个二级空间'
+        : '更新名称、图标和颜色';
   const submitLabel = mode === 'create' ? '创建' : '保存';
 
   return createPortal(
@@ -160,7 +191,9 @@ export default function CollectionModal({
       <div className="relative z-10 flex w-full max-h-[90vh] max-w-[720px] flex-col overflow-hidden rounded-[32px] border border-[#E3D9CE]/70 bg-[#FCF9F5] shadow-[0_30px_80px_rgba(58,46,37,0.18)]">
         <div className="shrink-0 flex items-start justify-between border-b border-[#E8DED3] px-6 py-5 sm:px-7">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#B29F8B]">Collection</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#B29F8B]">
+              {workflowMode === 'interview' ? 'Candidate' : 'Collection'}
+            </p>
             <h2 className="mt-2 font-song text-[24px] font-semibold text-[#3A2E25]">{title}</h2>
             <p className="mt-2 text-sm text-[#7B6A5B]">{subtitle}</p>
           </div>
@@ -189,7 +222,7 @@ export default function CollectionModal({
                       void handleSubmit();
                     }
                   }}
-                  placeholder="例如：销售、候选人、政策研究"
+                  placeholder={workflowMode === 'interview' ? '例如：王小明' : '例如：销售、政策研究'}
                   className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
                 />
               </label>
@@ -204,6 +237,55 @@ export default function CollectionModal({
                   className="w-full resize-none rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm leading-6 text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
                 />
               </label>
+
+              {workflowMode === 'interview' ? (
+                <>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-[#5C4D42]">当前状态</span>
+                    <select
+                      value={draft.candidateStatus}
+                      onChange={(event) =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          candidateStatus: event.target.value as CandidateStatus,
+                        }))
+                      }
+                      className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                    >
+                      {CANDIDATE_STATUS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-[#5C4D42]">下一位面试官</span>
+                    <input
+                      value={draft.nextInterviewer}
+                      onChange={(event) =>
+                        setDraft((prev) => ({ ...prev, nextInterviewer: event.target.value }))
+                      }
+                      placeholder="例如：技术负责人 / HRBP"
+                      className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-[#5C4D42]">下一轮重点</span>
+                    <textarea
+                      value={draft.nextFocus}
+                      onChange={(event) =>
+                        setDraft((prev) => ({ ...prev, nextFocus: event.target.value }))
+                      }
+                      placeholder="例如：深挖系统设计、文化匹配和沟通方式"
+                      rows={3}
+                      className="w-full resize-none rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm leading-6 text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                    />
+                  </label>
+                </>
+              ) : null}
 
               <div>
                 <div className="mb-3 flex items-center justify-between gap-3">
@@ -287,6 +369,14 @@ export default function CollectionModal({
                   </div>
                 </div>
               </div>
+
+              {workflowMode === 'interview' ? (
+                <div className="mt-4 rounded-[22px] bg-[#F7F2EB] px-4 py-4 text-sm leading-6 text-[#7B6A5B]">
+                  下一位面试官：{draft.nextInterviewer.trim() || '待定'}
+                  <br />
+                  下一轮重点：{draft.nextFocus.trim() || '待补充'}
+                </div>
+              ) : null}
 
               {mode === 'create' ? (
                 <div className="mt-4 flex items-center gap-2 text-xs text-[#9D8B7B]">

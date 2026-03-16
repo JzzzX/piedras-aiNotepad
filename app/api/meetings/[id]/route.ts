@@ -50,6 +50,10 @@ export async function PUT(
     workspaceId,
     userNotes,
     enhancedNotes,
+    roundLabel,
+    interviewerName,
+    recommendation,
+    handoffNote,
     speakers,
     segments,
     chatMessages,
@@ -64,6 +68,10 @@ export async function PUT(
   if (workspaceId !== undefined) updateData.workspaceId = workspaceId;
   if (userNotes !== undefined) updateData.userNotes = userNotes;
   if (enhancedNotes !== undefined) updateData.enhancedNotes = enhancedNotes;
+  if (roundLabel !== undefined) updateData.roundLabel = roundLabel;
+  if (interviewerName !== undefined) updateData.interviewerName = interviewerName;
+  if (recommendation !== undefined) updateData.recommendation = recommendation;
+  if (handoffNote !== undefined) updateData.handoffNote = handoffNote;
   if (speakers !== undefined) updateData.speakers = JSON.stringify(speakers);
 
   const meeting = await prisma.meeting.update({

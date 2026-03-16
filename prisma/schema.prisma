@@ -13,6 +13,7 @@ model Workspace {
   description           String                 @default("")
   icon                  String                 @default("folder")
   color                 String                 @default("#94a3b8")
+  workflowMode          String                 @default("general")
   sortOrder             Int                    @default(0)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
@@ -34,6 +35,10 @@ model Meeting {
   audioUpdatedAt DateTime?
   userNotes     String   @default("")
   enhancedNotes String   @default("")
+  roundLabel    String   @default("")
+  interviewerName String @default("")
+  recommendation String  @default("pending")
+  handoffNote   String   @default("")
   speakers      String   @default("{}")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -52,6 +57,10 @@ model Collection {
   description String    @default("")
   icon        String    @default("folder")
   color       String    @default("#94a3b8")
+  handoffSummary String @default("")
+  candidateStatus String @default("new")
+  nextInterviewer String @default("")
+  nextFocus   String    @default("")
   sortOrder   Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

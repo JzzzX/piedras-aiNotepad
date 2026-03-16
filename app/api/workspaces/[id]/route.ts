@@ -7,7 +7,13 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = (await req.json()) as { name?: string; description?: string; icon?: string; color?: string };
+    const body = (await req.json()) as {
+      name?: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+      workflowMode?: 'general' | 'interview';
+    };
 
     const workspace = await prisma.workspace.update({
       where: { id },
@@ -16,6 +22,9 @@ export async function PUT(
         ...(body.description !== undefined && { description: body.description.trim() }),
         ...(body.icon !== undefined && { icon: body.icon.trim() }),
         ...(body.color !== undefined && { color: body.color.trim() }),
+        ...(body.workflowMode !== undefined && {
+          workflowMode: body.workflowMode === 'interview' ? 'interview' : 'general',
+        }),
       },
     });
 

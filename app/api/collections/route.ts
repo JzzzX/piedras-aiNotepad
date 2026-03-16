@@ -21,6 +21,10 @@ export async function POST(req: NextRequest) {
       icon?: string;
       color?: string;
       workspaceId?: string;
+      handoffSummary?: string;
+      candidateStatus?: string;
+      nextInterviewer?: string;
+      nextFocus?: string;
     };
     const name = body.name?.trim();
 
@@ -44,6 +48,10 @@ export async function POST(req: NextRequest) {
         description: body.description?.trim() || '',
         icon: body.icon?.trim() || 'folder',
         color: body.color?.trim() || '#94a3b8',
+        handoffSummary: body.handoffSummary?.trim() || '',
+        candidateStatus: body.candidateStatus?.trim() || 'new',
+        nextInterviewer: body.nextInterviewer?.trim() || '',
+        nextFocus: body.nextFocus?.trim() || '',
         sortOrder: (lastCollection?.sortOrder || 0) + 1,
         workspaceId: body.workspaceId,
       },

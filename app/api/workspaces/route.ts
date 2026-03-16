@@ -15,7 +15,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as { name?: string; description?: string; icon?: string; color?: string };
+    const body = (await req.json()) as {
+      name?: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+      workflowMode?: 'general' | 'interview';
+    };
     const name = body.name?.trim();
 
     if (!name) {
@@ -33,6 +39,7 @@ export async function POST(req: NextRequest) {
         description: body.description?.trim() || '',
         icon: body.icon?.trim() || 'folder',
         color: body.color?.trim() || '#94a3b8',
+        workflowMode: body.workflowMode === 'interview' ? 'interview' : 'general',
         sortOrder: (lastWorkspace?.sortOrder || 0) + 1,
       },
     });

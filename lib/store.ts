@@ -9,6 +9,9 @@ import {
   Collection,
   Workspace,
   LlmSettings,
+  CandidateStatus,
+  InterviewRecommendation,
+  WorkspaceWorkflowMode,
 } from './types';
 import { DEFAULT_LLM_SETTINGS, normalizeLlmSettings } from './llm-config';
 
@@ -26,6 +29,10 @@ export interface MeetingListItem {
   workspaceId: string;
   userNotes: string;
   enhancedNotes: string;
+  roundLabel: string;
+  interviewerName: string;
+  recommendation: InterviewRecommendation;
+  handoffNote: string;
   collection?: Collection | null;
   workspace?: Pick<Workspace, 'id' | 'name' | 'icon' | 'color'> | null;
   _count: { segments: number; chatMessages: number };
@@ -75,6 +82,10 @@ interface MeetingStore {
   userNotes: string;
   enhancedNotes: string;
   isEnhancing: boolean;
+  roundLabel: string;
+  interviewerName: string;
+  recommendation: InterviewRecommendation;
+  handoffNote: string;
 
   // 说话人
   speakers: Record<string, string>;
@@ -117,6 +128,12 @@ interface MeetingStore {
   setUserNotes: (notes: string) => void;
   setEnhancedNotes: (notes: string) => void;
   setIsEnhancing: (v: boolean) => void;
+  setInterviewMeta: (patch: {
+    roundLabel?: string;
+    interviewerName?: string;
+    recommendation?: InterviewRecommendation;
+    handoffNote?: string;
+  }) => void;
   setSpeakerName: (speakerId: string, name: string) => void;
   addChatMessage: (message: ChatMessage) => void;
   setIsChatLoading: (v: boolean) => void;
@@ -149,12 +166,20 @@ interface MeetingStore {
     description?: string;
     icon?: string;
     color: string;
+    candidateStatus?: CandidateStatus;
+    nextInterviewer?: string;
+    nextFocus?: string;
+    handoffSummary?: string;
   }) => Promise<Collection | null>;
   updateCollection: (id: string, input: {
     name?: string;
     description?: string;
     icon?: string;
     color?: string;
+    candidateStatus?: CandidateStatus;
+    nextInterviewer?: string;
+    nextFocus?: string;
+    handoffSummary?: string;
   }) => Promise<Collection>;
   deleteCollection: (collectionId: string) => Promise<void>;
   updateMeetingCollection: (meetingId: string, collectionId: string | null) => Promise<void>;
@@ -163,8 +188,14 @@ interface MeetingStore {
 
   // Workspace Actions
   loadWorkspaces: () => Promise<void>;
-  createWorkspace: (input: { name: string; description?: string; icon?: string; color?: string }) => Promise<Workspace>;
-  updateWorkspace: (id: string, input: { name?: string; description?: string; icon?: string; color?: string }) => Promise<void>;
+  createWorkspace: (input: {
+    name: string;
+    description?: string;
+    icon?: string;
+    color?: string;
+    workflowMode?: WorkspaceWorkflowMode;
+  }) => Promise<Workspace>;
+  updateWorkspace: (id: string, input: { name?: string; description?: string; icon?: string; color?: string; workflowMode?: WorkspaceWorkflowMode }) => Promise<void>;
   deleteWorkspace: (id: string) => Promise<void>;
   setCurrentWorkspaceId: (id: string | null) => void;
 }
@@ -195,6 +226,10 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   userNotes: '',
   enhancedNotes: '',
   isEnhancing: false,
+  roundLabel: '',
+  interviewerName: '',
+  recommendation: 'pending',
+  handoffNote: '',
   speakers: {},
   chatMessages: [],
   isChatLoading: false,
@@ -270,6 +305,16 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   setUserNotes: (notes) => set({ userNotes: notes, meetingDirty: true }),
   setEnhancedNotes: (notes) => set({ enhancedNotes: notes, meetingDirty: true }),
   setIsEnhancing: (v) => set({ isEnhancing: v }),
+  setInterviewMeta: (patch) =>
+    set((state) => ({
+      roundLabel: patch.roundLabel !== undefined ? patch.roundLabel : state.roundLabel,
+      interviewerName:
+        patch.interviewerName !== undefined ? patch.interviewerName : state.interviewerName,
+      recommendation:
+        patch.recommendation !== undefined ? patch.recommendation : state.recommendation,
+      handoffNote: patch.handoffNote !== undefined ? patch.handoffNote : state.handoffNote,
+      meetingDirty: true,
+    })),
 
   setSpeakerName: (speakerId, name) =>
     set((state) => ({
@@ -361,6 +406,10 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
         userNotes: '',
         enhancedNotes: '',
         isEnhancing: false,
+        roundLabel: '',
+        interviewerName: '',
+        recommendation: 'pending',
+        handoffNote: '',
         speakers: {},
         chatMessages: [],
         isChatLoading: false,
@@ -409,6 +458,10 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           workspaceId: state.currentWorkspaceId,
           userNotes: state.userNotes,
           enhancedNotes: state.enhancedNotes,
+          roundLabel: state.roundLabel,
+          interviewerName: state.interviewerName,
+          recommendation: state.recommendation,
+          handoffNote: state.handoffNote,
           speakers: state.speakers,
           segments: state.segments,
           chatMessages: state.chatMessages,
@@ -499,6 +552,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           status: data.status as Meeting['status'],
           duration: data.duration,
           currentCollectionId: data.collectionId ?? null,
+          currentWorkspaceId: data.workspaceId ?? null,
           audioUrl: nextAudioUrl,
           audioBlob: null,
           audioMimeType: data.audioMimeType ?? null,
@@ -508,6 +562,10 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           audioDirty: false,
           userNotes: data.userNotes,
           enhancedNotes: data.enhancedNotes,
+          roundLabel: data.roundLabel ?? '',
+          interviewerName: data.interviewerName ?? '',
+          recommendation: (data.recommendation ?? 'pending') as InterviewRecommendation,
+          handoffNote: data.handoffNote ?? '',
           speakers: data.speakers,
           segments: data.segments.map((s: TranscriptSegment) => ({
             id: s.id,
@@ -535,6 +593,9 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           lastSavedAt: Date.now(),
         };
       });
+      if (data.workspaceId) {
+        localStorage.setItem('piedras_currentWorkspaceId', data.workspaceId);
+      }
     } catch (e) {
       console.error('加载会议失败:', e);
     }

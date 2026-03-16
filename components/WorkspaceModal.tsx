@@ -10,7 +10,7 @@ import {
   WORKSPACE_ICON_OPTIONS,
   type WorkspaceIconKey,
 } from '@/lib/workspace-icons';
-import type { Workspace } from '@/lib/types';
+import type { Workspace, WorkspaceWorkflowMode } from '@/lib/types';
 
 const PRESET_COLORS = ['#94a3b8', '#f87171', '#fb923c', '#fbbf24', '#4ade80', '#38bdf8', '#a78bfa', '#f472b6'];
 const DEFAULT_COLOR = PRESET_COLORS[0];
@@ -20,6 +20,7 @@ interface WorkspaceDraft {
   description: string;
   color: string;
   icon: WorkspaceIconKey;
+  workflowMode: WorkspaceWorkflowMode;
 }
 
 type WorkspaceModalMode = 'create' | 'edit';
@@ -37,6 +38,7 @@ const DEFAULT_DRAFT: WorkspaceDraft = {
   description: '',
   color: DEFAULT_COLOR,
   icon: getDefaultWorkspaceIconKey(),
+  workflowMode: 'general',
 };
 
 function normalizeIcon(icon?: string | null): WorkspaceIconKey {
@@ -59,6 +61,7 @@ function toDraft(workspace?: Workspace | null): WorkspaceDraft {
     description: workspace.description || '',
     color: workspace.color,
     icon: normalizeIcon(workspace.icon),
+    workflowMode: workspace.workflowMode || 'general',
   };
 }
 
@@ -141,6 +144,7 @@ export default function WorkspaceModal({
         description: draft.description.trim(),
         color: draft.color,
         icon: draft.icon,
+        workflowMode: draft.workflowMode,
       });
       onClose();
     } catch (submitError) {
@@ -183,6 +187,48 @@ export default function WorkspaceModal({
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[minmax(0,1.2fr)_280px]">
             <div className="space-y-5">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-[#5C4D42]">模式</span>
+                <div className="grid grid-cols-2 gap-2 rounded-2xl bg-[#F5EEE5] p-1.5">
+                  {[
+                    {
+                      value: 'general',
+                      label: '通用',
+                      description: '项目、客户、研究等泛用工作流',
+                    },
+                    {
+                      value: 'interview',
+                      label: '面试',
+                      description: '候选人、多轮面试和交接',
+                    },
+                  ].map((option) => {
+                    const active = draft.workflowMode === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          setDraft((prev) => ({
+                            ...prev,
+                            workflowMode: option.value as WorkspaceWorkflowMode,
+                          }))
+                        }
+                        className={`rounded-[18px] px-3 py-3 text-left transition-all ${
+                          active
+                            ? 'bg-white shadow-sm ring-1 ring-[#E3D9CE]'
+                            : 'text-[#7B6A5B] hover:bg-white/70'
+                        }`}
+                      >
+                        <div className="text-sm font-semibold text-[#3A2E25]">{option.label}</div>
+                        <div className="mt-1 text-xs leading-5 text-[#8B796A]">
+                          {option.description}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </label>
+
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-[#5C4D42]">名称</span>
                 <input
@@ -296,6 +342,12 @@ export default function WorkspaceModal({
                     <div className="mt-1 line-clamp-2 text-xs text-[#A09082]">{previewDescription}</div>
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-4 rounded-[22px] bg-[#F7F2EB] px-4 py-4 text-sm leading-6 text-[#7B6A5B]">
+                {draft.workflowMode === 'interview'
+                  ? '面试模式下，Collection 会作为候选人档案，每一场 Meeting 对应一轮面试与交接记录。'
+                  : '通用模式下，Collection 用来整理主题、客户或子项目，适合常规会议管理。'}
               </div>
 
               {mode === 'create' ? (

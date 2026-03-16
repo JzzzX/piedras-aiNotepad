@@ -12,6 +12,10 @@ export async function PUT(
       description?: string;
       icon?: string;
       color?: string;
+      handoffSummary?: string;
+      candidateStatus?: string;
+      nextInterviewer?: string;
+      nextFocus?: string;
     };
 
     if (body.name !== undefined && !body.name.trim()) {
@@ -25,6 +29,16 @@ export async function PUT(
         ...(body.description !== undefined ? { description: body.description.trim() } : {}),
         ...(body.icon !== undefined ? { icon: body.icon.trim() || 'folder' } : {}),
         ...(body.color !== undefined ? { color: body.color.trim() || '#94a3b8' } : {}),
+        ...(body.handoffSummary !== undefined
+          ? { handoffSummary: body.handoffSummary.trim() }
+          : {}),
+        ...(body.candidateStatus !== undefined
+          ? { candidateStatus: body.candidateStatus.trim() || 'new' }
+          : {}),
+        ...(body.nextInterviewer !== undefined
+          ? { nextInterviewer: body.nextInterviewer.trim() }
+          : {}),
+        ...(body.nextFocus !== undefined ? { nextFocus: body.nextFocus.trim() } : {}),
       },
     });
 

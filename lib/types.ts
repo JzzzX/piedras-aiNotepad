@@ -61,6 +61,7 @@ export interface Workspace {
   description: string;
   icon: string;
   color: string;
+  workflowMode: WorkspaceWorkflowMode;
   sortOrder: number;
 }
 
@@ -68,6 +69,21 @@ export interface WorkspaceOverviewItem extends Workspace {
   meetingCount: number;
   latestMeetingAt?: string | null;
 }
+
+export type WorkspaceWorkflowMode = 'general' | 'interview';
+export type CandidateStatus =
+  | 'new'
+  | 'screening'
+  | 'interviewing'
+  | 'offer'
+  | 'hold'
+  | 'rejected';
+export type InterviewRecommendation =
+  | 'strong_yes'
+  | 'yes'
+  | 'mixed'
+  | 'no'
+  | 'pending';
 
 export type CustomVocabularyScope = 'global' | 'workspace';
 
@@ -87,6 +103,10 @@ export interface Collection {
   description: string;
   icon: string;
   color: string;
+  handoffSummary: string;
+  candidateStatus: CandidateStatus;
+  nextInterviewer: string;
+  nextFocus: string;
   sortOrder: number;
   workspaceId?: string;
   createdAt?: string;
@@ -157,6 +177,10 @@ export interface Meeting {
   segments: TranscriptSegment[];
   userNotes: string;
   enhancedNotes: string;
+  roundLabel: string;
+  interviewerName: string;
+  recommendation: InterviewRecommendation;
+  handoffNote: string;
   speakers: Record<string, string>;
   chatMessages: ChatMessage[];
   duration: number;
