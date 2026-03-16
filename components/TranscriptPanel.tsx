@@ -310,11 +310,13 @@ export default function TranscriptPanel() {
             实时转写
           </h3>
           <div className="flex items-center gap-3">
-            {status === 'recording' && (
+            {(status === 'recording' || status === 'paused') && (
               <div className="flex items-center gap-2">
                 <div
                   className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
-                    micActive
+                    status === 'paused'
+                      ? 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
+                      : micActive
                       ? 'border border-sky-100 bg-sky-50 text-sky-600'
                       : 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
                   }`}
@@ -324,7 +326,9 @@ export default function TranscriptPanel() {
                 </div>
                 <div
                   className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
-                    systemAudioActive
+                    status === 'paused'
+                      ? 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
+                      : systemAudioActive
                       ? 'border border-teal-100 bg-teal-50 text-teal-600'
                       : 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
                   }`}
@@ -556,7 +560,9 @@ export default function TranscriptPanel() {
               {audioUrl
                 ? status === 'recording'
                   ? '可回放到当前已录进度；点任意时间戳可跳播。'
-                  : '点任意时间戳可直接跳到对应段落回放。'
+                  : status === 'paused'
+                    ? '录音已暂停；可继续查看转写并回放当前已录进度。'
+                    : '点任意时间戳可直接跳到对应段落回放。'
                 : status === 'recording'
                   ? '正在生成本地回放音频，录到首个片段后即可播放。'
                   : '当前会议还没有可回放音频。'}

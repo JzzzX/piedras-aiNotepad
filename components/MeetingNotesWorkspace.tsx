@@ -65,12 +65,16 @@ export default function MeetingNotesWorkspace() {
   }, [meetingId]);
 
   useEffect(() => {
-    if (status === 'recording') {
+    if (status === 'recording' || status === 'paused') {
       setActiveView('notes');
       setPromptDismissed(false);
     }
 
-    if (prevStatusRef.current === 'recording' && status === 'ended' && !enhancedNotes.trim()) {
+    if (
+      (prevStatusRef.current === 'recording' || prevStatusRef.current === 'paused') &&
+      status === 'ended' &&
+      !enhancedNotes.trim()
+    ) {
       setPromptDismissed(false);
     }
 

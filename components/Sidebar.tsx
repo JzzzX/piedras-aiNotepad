@@ -179,7 +179,7 @@ export default function Sidebar() {
         state.enhancedNotes.trim().length > 0 ||
         state.chatMessages.length > 0);
 
-    if (state.status === 'recording') {
+    if (state.status === 'recording' || state.status === 'paused') {
       alert('请先结束当前录音，再切换工作区');
       return;
     }

@@ -12,8 +12,6 @@ import {
 } from 'lucide-react';
 import FloatingBottomBar from '@/components/FloatingBottomBar';
 import FloatingTranscript from '@/components/FloatingTranscript';
-import FloatingChat from '@/components/FloatingChat';
-import FloatingKnowledgeBase from '@/components/FloatingKnowledgeBase';
 import MeetingNotesWorkspace from '@/components/MeetingNotesWorkspace';
 import { INTERVIEW_RECOMMENDATION_OPTIONS } from '@/lib/interview';
 import { useMeetingStore } from '@/lib/store';
@@ -59,8 +57,7 @@ export default function MeetingPage() {
   const noteAutoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isKnowledgeBaseOpen, setIsKnowledgeBaseOpen] = useState(false);
+  const isRecordingActive = status === 'recording' || status === 'paused';
 
   useEffect(() => {
     void loadWorkspaces();
@@ -123,7 +120,10 @@ export default function MeetingPage() {
   }, []);
 
   useEffect(() => {
-    if (prevStatusRef.current === 'recording' && status === 'ended') {
+    if (
+      (prevStatusRef.current === 'recording' || prevStatusRef.current === 'paused') &&
+      status === 'ended'
+    ) {
       void (async () => {
         await maybeGenerateAutoTitle();
         await saveMeeting();
@@ -135,7 +135,7 @@ export default function MeetingPage() {
 
   // Auto-save every 30s during recording
   useEffect(() => {
-    if (status === 'recording') {
+    if (isRecordingActive) {
       autoSaveTimerRef.current = setInterval(() => { saveMeeting(); }, 30000);
     } else {
       if (autoSaveTimerRef.current) {
@@ -146,7 +146,7 @@ export default function MeetingPage() {
     return () => {
       if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
     };
-  }, [status, saveMeeting]);
+  }, [isRecordingActive, saveMeeting]);
 
   useEffect(() => {
     if (!meetingDirty) {
@@ -248,7 +248,7 @@ export default function MeetingPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {hasContent && status !== 'recording' && (
+          {hasContent && !isRecordingActive && (
             <button
               onClick={handleSave}
               disabled={isSaving}
@@ -350,35 +350,9 @@ export default function MeetingPage() {
         onClose={() => setIsTranscriptOpen(false)}
       />
 
-      <FloatingChat
-        isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-      />
-
-      <FloatingKnowledgeBase
-        isOpen={isKnowledgeBaseOpen}
-        onClose={() => setIsKnowledgeBaseOpen(false)}
-      />
-
       <FloatingBottomBar
         onToggleTranscript={() => setIsTranscriptOpen(!isTranscriptOpen)}
         isTranscriptOpen={isTranscriptOpen}
-        onToggleChat={() => {
-          const next = !isChatOpen;
-          setIsChatOpen(next);
-          if (next) {
-            setIsKnowledgeBaseOpen(false);
-          }
-        }}
-        isChatOpen={isChatOpen}
-        onToggleKnowledgeBase={() => {
-          const next = !isKnowledgeBaseOpen;
-          setIsKnowledgeBaseOpen(next);
-          if (next) {
-            setIsChatOpen(false);
-          }
-        }}
-        isKnowledgeBaseOpen={isKnowledgeBaseOpen}
       />
     </div>
   );

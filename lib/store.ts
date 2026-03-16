@@ -100,6 +100,7 @@ interface MeetingStore {
 
   // 录音计时器
   recordingStartTime: number | null;
+  recordingAccumulatedMs: number;
 
   // 双通道音频状态
   micLevel: number;
@@ -120,6 +121,8 @@ interface MeetingStore {
 
   // Actions
   startMeeting: () => void;
+  pauseMeeting: () => void;
+  resumeMeeting: () => void;
   endMeeting: () => void;
   setStatus: (status: Meeting['status']) => void;
   setMeetingTitle: (title: string) => void;
@@ -255,6 +258,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   },
   llmSettings: DEFAULT_LLM_SETTINGS,
   recordingStartTime: null,
+  recordingAccumulatedMs: 0,
   micLevel: 0,
   systemLevel: 0,
   systemAudioActive: false,
@@ -274,19 +278,57 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       status: 'recording',
       meetingDate: Date.now(),
       recordingStartTime: Date.now(),
+      recordingAccumulatedMs: 0,
       meetingId: get().status === 'idle' ? uuidv4() : get().meetingId,
       meetingDirty: true,
     }),
 
-  endMeeting: () =>
-    set({
-      status: 'ended',
-      recordingStartTime: null,
-      micLevel: 0,
-      systemLevel: 0,
-      systemAudioActive: false,
-      micActive: false,
+  pauseMeeting: () =>
+    set((state) => {
+      const nextAccumulatedMs =
+        state.recordingStartTime !== null
+          ? state.recordingAccumulatedMs + (Date.now() - state.recordingStartTime)
+          : state.recordingAccumulatedMs;
+
+      return {
+        status: 'paused',
+        duration: Math.floor(nextAccumulatedMs / 1000),
+        recordingStartTime: null,
+        recordingAccumulatedMs: nextAccumulatedMs,
+        micLevel: 0,
+        systemLevel: 0,
+        systemAudioActive: false,
+        micActive: false,
+        meetingDirty: true,
+      };
+    }),
+
+  resumeMeeting: () =>
+    set((state) => ({
+      status: 'recording',
+      recordingStartTime: Date.now(),
+      recordingAccumulatedMs: state.recordingAccumulatedMs,
       meetingDirty: true,
+    })),
+
+  endMeeting: () =>
+    set((state) => {
+      const nextAccumulatedMs =
+        state.recordingStartTime !== null
+          ? state.recordingAccumulatedMs + (Date.now() - state.recordingStartTime)
+          : state.recordingAccumulatedMs;
+
+      return {
+        status: 'ended',
+        duration: Math.floor(nextAccumulatedMs / 1000),
+        recordingStartTime: null,
+        recordingAccumulatedMs: nextAccumulatedMs,
+        micLevel: 0,
+        systemLevel: 0,
+        systemAudioActive: false,
+        micActive: false,
+        meetingDirty: true,
+      };
     }),
 
   setStatus: (status) => set({ status, meetingDirty: true }),
@@ -376,10 +418,17 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     }),
 
   updateDuration: () => {
-    const { recordingStartTime } = get();
+    const { recordingStartTime, recordingAccumulatedMs } = get();
     if (recordingStartTime) {
-      set({ duration: Math.floor((Date.now() - recordingStartTime) / 1000) });
+      set({
+        duration: Math.floor(
+          (recordingAccumulatedMs + (Date.now() - recordingStartTime)) / 1000
+        ),
+      });
+      return;
     }
+
+    set({ duration: Math.floor(recordingAccumulatedMs / 1000) });
   },
 
   setAudioLevels: (mic, system) =>
@@ -434,6 +483,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
         recordingOptions: get().recordingOptions,
         llmSettings: get().llmSettings,
         recordingStartTime: null,
+        recordingAccumulatedMs: 0,
         micLevel: 0,
         systemLevel: 0,
         systemAudioActive: false,
@@ -486,7 +536,8 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       }
 
       const shouldUploadAudio =
-        options?.includeAudio ?? state.status !== 'recording';
+        options?.includeAudio ??
+        (state.status !== 'recording' && state.status !== 'paused');
 
       if (
         shouldUploadAudio &&
@@ -600,6 +651,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           })),
           currentPartial: '',
           recordingStartTime: null,
+          recordingAccumulatedMs: (data.duration ?? 0) * 1000,
           micLevel: 0,
           systemLevel: 0,
           systemAudioActive: false,
