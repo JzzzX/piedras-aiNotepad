@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   CalendarRange,
   Clock,
@@ -30,6 +30,7 @@ export default function MeetingHistory({
   emptyDescription = '可以从当前工作区开始录音或导入音频，随后再整理到合适的 Collection。',
 }: MeetingHistoryProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const {
     meetingList,
     isLoadingList,
@@ -124,7 +125,7 @@ export default function MeetingHistory({
   };
 
   const handleSelectMeeting = (id: string) => {
-    router.push(`/meeting/${id}`);
+    router.push(`/meeting/${id}?returnTo=${encodeURIComponent(pathname)}`);
     onSelectMeeting?.();
   };
 

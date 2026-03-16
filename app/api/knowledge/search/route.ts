@@ -14,7 +14,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       sources: result.sources.map((s) => ({
+        type: s.type,
         meetingId: s.meetingId,
+        assetId: s.assetId,
         title: s.title,
         date: s.date,
         score: s.score,

@@ -2,8 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowRight, Edit3, FileAudio, FolderClosed, Mic, Plus, Trash2 } from 'lucide-react';
+import {
+  ArrowRight,
+  Edit3,
+  FileAudio,
+  FileText,
+  FolderClosed,
+  LibraryBig,
+  Mic,
+  Plus,
+  Trash2,
+} from 'lucide-react';
+import AssetLibrary from '@/components/AssetLibrary';
 import CollectionModal from '@/components/CollectionModal';
+import MeetingHistory from '@/components/MeetingHistory';
 import WorkspaceIconBadge from '@/components/WorkspaceIconBadge';
 import WorkspaceModal from '@/components/WorkspaceModal';
 import { useMeetingStore } from '@/lib/store';
@@ -40,6 +52,8 @@ export default function WorkspacePage() {
   } = useMeetingStore();
 
   const [showEditWorkspace, setShowEditWorkspace] = useState(false);
+  const [activeTab, setActiveTab] = useState<'collections' | 'meetings' | 'assets'>('collections');
+  const [assetUploadSignal, setAssetUploadSignal] = useState(0);
   const [collectionModalState, setCollectionModalState] = useState<{
     mode: 'create' | 'edit';
     collectionId?: string;
@@ -106,15 +120,17 @@ export default function WorkspacePage() {
     const { reset } = useMeetingStore.getState();
     reset();
     const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}`);
-  }, [router]);
+    router.push(`/meeting/${newId}?returnTo=${encodeURIComponent(`/workspace/${workspaceId}`)}`);
+  }, [router, workspaceId]);
 
   const handleImportAudio = useCallback(() => {
     const { reset } = useMeetingStore.getState();
     reset();
     const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}?intent=upload`);
-  }, [router]);
+    router.push(
+      `/meeting/${newId}?intent=upload&returnTo=${encodeURIComponent(`/workspace/${workspaceId}`)}`
+    );
+  }, [router, workspaceId]);
 
   const handleSaveWorkspace = useCallback(
     async (input: { name: string; description: string; color: string; icon: string }) => {
@@ -217,6 +233,17 @@ export default function WorkspacePage() {
                 <Plus size={16} />
                 新建 Collection
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('assets');
+                  setAssetUploadSignal((value) => value + 1);
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+              >
+                <FileText size={16} />
+                导入资料
+              </button>
             </div>
           </div>
         </section>
@@ -224,104 +251,146 @@ export default function WorkspacePage() {
         <section className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-5 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-song text-[26px] text-[#3A2E25]">Collections</h2>
+              <h2 className="font-song text-[26px] text-[#3A2E25]">
+                {activeTab === 'collections'
+                  ? 'Collections'
+                  : activeTab === 'meetings'
+                    ? '会议记录'
+                    : '资料库'}
+              </h2>
               <p className="mt-1 text-sm text-[#8B796A]">
-                先进入某个 Collection，再查看那一组会议、笔记和后续检索范围。
+                {activeTab === 'collections'
+                  ? '先进入某个 Collection，再查看那一组会议、笔记和后续检索范围。'
+                  : activeTab === 'meetings'
+                    ? '从整个工作区查看会议历史，并按 Collection 继续整理。'
+                    : '工作区共享资料和 Collection 资料都会在这里统一管理并参与检索。'}
               </p>
             </div>
-            <div className="rounded-full bg-[#F8F4EF] px-3 py-2 text-[12px] text-[#8B796A]">
-              共 {collections.length + 1} 个入口（含未归类）
+            <div className="inline-flex rounded-2xl border border-[#E3D9CE] bg-[#F8F4EF] p-1">
+              <WorkspaceTab
+                active={activeTab === 'collections'}
+                icon={<LibraryBig size={14} />}
+                label="Collections"
+                onClick={() => setActiveTab('collections')}
+              />
+              <WorkspaceTab
+                active={activeTab === 'meetings'}
+                icon={<Mic size={14} />}
+                label="会议记录"
+                onClick={() => setActiveTab('meetings')}
+              />
+              <WorkspaceTab
+                active={activeTab === 'assets'}
+                icon={<FileText size={14} />}
+                label="资料库"
+                onClick={() => setActiveTab('assets')}
+              />
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <button
-              type="button"
-              onClick={openUngroupedRoute}
-              className="group rounded-[26px] border border-dashed border-[#D9CBBB] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,236,0.92))] p-5 text-left shadow-[0_14px_40px_rgba(58,46,37,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(58,46,37,0.1)]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#E3D9CE] bg-white text-[#8C7A6B]">
-                    <FolderClosed size={20} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="truncate text-lg font-semibold text-[#3A2E25]">未归类</div>
-                    <div className="mt-1 text-xs text-[#A09082]">尚未归入任何 Collection</div>
-                  </div>
-                </div>
-                <ArrowRight size={16} className="shrink-0 text-[#B09D8A] transition-transform group-hover:translate-x-0.5" />
-              </div>
-              <p className="mt-4 min-h-[44px] text-sm leading-6 text-[#746556]">
-                用来承接刚录完、还未整理结构的会议记录。
-              </p>
-              <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] text-[#8B796A]">
-                <span className="rounded-full bg-white px-3 py-1.5">会议 {collectionStats.ungroupedCount} 条</span>
-                <span className="rounded-full bg-white px-3 py-1.5">
-                  {formatLatestMeeting(collectionStats.ungroupedLatestMeetingAt)}
-                </span>
-              </div>
-            </button>
-
-            {collectionStats.grouped.map(({ collection, meetingCount, latestMeetingAt }) => (
-              <div
-                key={collection.id}
-                className="group rounded-[26px] border border-[#E7DDD2] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,236,0.92))] p-5 shadow-[0_14px_40px_rgba(58,46,37,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(58,46,37,0.12)]"
+          {activeTab === 'collections' ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <button
+                type="button"
+                onClick={openUngroupedRoute}
+                className="group rounded-[26px] border border-dashed border-[#D9CBBB] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,236,0.92))] p-5 text-left shadow-[0_14px_40px_rgba(58,46,37,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(58,46,37,0.1)]"
               >
                 <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#E3D9CE] bg-white text-[#8C7A6B]">
+                      <FolderClosed size={20} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="truncate text-lg font-semibold text-[#3A2E25]">未归类</div>
+                      <div className="mt-1 text-xs text-[#A09082]">尚未归入任何 Collection</div>
+                    </div>
+                  </div>
+                  <ArrowRight size={16} className="shrink-0 text-[#B09D8A] transition-transform group-hover:translate-x-0.5" />
+                </div>
+                <p className="mt-4 min-h-[44px] text-sm leading-6 text-[#746556]">
+                  用来承接刚录完、还未整理结构的会议记录。
+                </p>
+                <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] text-[#8B796A]">
+                  <span className="rounded-full bg-white px-3 py-1.5">会议 {collectionStats.ungroupedCount} 条</span>
+                  <span className="rounded-full bg-white px-3 py-1.5">
+                    {formatLatestMeeting(collectionStats.ungroupedLatestMeetingAt)}
+                  </span>
+                </div>
+              </button>
+
+              {collectionStats.grouped.map(({ collection, meetingCount, latestMeetingAt }) => (
+                <div
+                  key={collection.id}
+                  className="group rounded-[26px] border border-[#E7DDD2] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,236,0.92))] p-5 shadow-[0_14px_40px_rgba(58,46,37,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(58,46,37,0.12)]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => openCollectionRoute(collection.id)}
+                      className="flex min-w-0 flex-1 items-start gap-3 text-left"
+                    >
+                      <WorkspaceIconBadge icon={collection.icon} color={collection.color} size="lg" />
+                      <div className="min-w-0">
+                        <div className="truncate text-lg font-semibold text-[#3A2E25]">
+                          {collection.name}
+                        </div>
+                        <div className="mt-1 text-xs text-[#A09082]">点击进入管理</div>
+                      </div>
+                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCollectionModalState({ mode: 'edit', collectionId: collection.id })
+                        }
+                        className="rounded-xl p-2 text-[#A09082] transition-colors hover:bg-white hover:text-[#5C4D42]"
+                        title="编辑 Collection"
+                      >
+                        <Edit3 size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteCollection(collection)}
+                        className="rounded-xl p-2 text-[#A09082] transition-colors hover:bg-rose-50 hover:text-rose-600"
+                        title="删除 Collection"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => openCollectionRoute(collection.id)}
-                    className="flex min-w-0 flex-1 items-start gap-3 text-left"
+                    className="mt-4 block w-full text-left"
                   >
-                    <WorkspaceIconBadge icon={collection.icon} color={collection.color} size="lg" />
-                    <div className="min-w-0">
-                      <div className="truncate text-lg font-semibold text-[#3A2E25]">
-                        {collection.name}
-                      </div>
-                      <div className="mt-1 text-xs text-[#A09082]">点击进入管理</div>
+                    <p className="line-clamp-2 min-h-[44px] text-sm leading-6 text-[#746556]">
+                      {collection.description || '还没有描述，可进入后继续补充这个 Collection 的用途。'}
+                    </p>
+                    <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] text-[#8B796A]">
+                      <span className="rounded-full bg-white px-3 py-1.5">会议 {meetingCount} 条</span>
+                      <span className="rounded-full bg-white px-3 py-1.5">
+                        {formatLatestMeeting(latestMeetingAt)}
+                      </span>
                     </div>
                   </button>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setCollectionModalState({ mode: 'edit', collectionId: collection.id })
-                      }
-                      className="rounded-xl p-2 text-[#A09082] transition-colors hover:bg-white hover:text-[#5C4D42]"
-                      title="编辑 Collection"
-                    >
-                      <Edit3 size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleDeleteCollection(collection)}
-                      className="rounded-xl p-2 text-[#A09082] transition-colors hover:bg-rose-50 hover:text-rose-600"
-                      title="删除 Collection"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => openCollectionRoute(collection.id)}
-                  className="mt-4 block w-full text-left"
-                >
-                  <p className="line-clamp-2 min-h-[44px] text-sm leading-6 text-[#746556]">
-                    {collection.description || '还没有描述，可进入后继续补充这个 Collection 的用途。'}
-                  </p>
-                  <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] text-[#8B796A]">
-                    <span className="rounded-full bg-white px-3 py-1.5">会议 {meetingCount} 条</span>
-                    <span className="rounded-full bg-white px-3 py-1.5">
-                      {formatLatestMeeting(latestMeetingAt)}
-                    </span>
-                  </div>
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : activeTab === 'meetings' ? (
+            <MeetingHistory
+              hideCollectionFilter={false}
+              emptyTitle="这个工作区还没有会议"
+              emptyDescription="可以从这里开始录音、导入音频，或者进入 Collection 后继续整理。"
+            />
+          ) : (
+            <AssetLibrary
+              workspaceId={workspaceId}
+              uploadSignal={assetUploadSignal}
+              emptyTitle="这个工作区还没有资料"
+              emptyDescription="导入 PDF 或图片后，它们会作为工作区知识资产参与检索。"
+            />
+          )}
         </section>
       </div>
 
@@ -341,5 +410,32 @@ export default function WorkspacePage() {
         onSubmit={handleSaveCollection}
       />
     </div>
+  );
+}
+
+function WorkspaceTab({
+  active,
+  icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-2 rounded-[14px] px-4 py-2 text-sm font-medium transition-all ${
+        active
+          ? 'bg-[#4A3C31] text-white shadow-sm'
+          : 'text-[#8C7A6B] hover:bg-white hover:text-[#4A3C31]'
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }

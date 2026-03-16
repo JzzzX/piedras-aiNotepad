@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, FileAudio, Mic } from 'lucide-react';
+import { ChevronLeft, FileAudio, FileText, Mic } from 'lucide-react';
+import AssetLibrary from '@/components/AssetLibrary';
 import MeetingHistory from '@/components/MeetingHistory';
 import WorkspaceIconBadge from '@/components/WorkspaceIconBadge';
 import { useMeetingStore } from '@/lib/store';
@@ -13,6 +14,8 @@ export default function CollectionDetailPage() {
   const router = useRouter();
   const workspaceId = params.id as string;
   const collectionId = params.collectionId as string;
+  const [activeTab, setActiveTab] = useState<'meetings' | 'assets'>('meetings');
+  const [assetUploadSignal, setAssetUploadSignal] = useState(0);
   const {
     workspaces,
     collections,
@@ -58,7 +61,11 @@ export default function CollectionDetailPage() {
     reset();
     setCurrentCollectionId(collectionId);
     const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}`);
+    router.push(
+      `/meeting/${newId}?returnTo=${encodeURIComponent(
+        `/workspace/${workspaceId}/collections/${collectionId}`
+      )}`
+    );
   };
 
   const handleImportAudio = () => {
@@ -66,7 +73,11 @@ export default function CollectionDetailPage() {
     reset();
     setCurrentCollectionId(collectionId);
     const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}?intent=upload`);
+    router.push(
+      `/meeting/${newId}?intent=upload&returnTo=${encodeURIComponent(
+        `/workspace/${workspaceId}/collections/${collectionId}`
+      )}`
+    );
   };
 
   return (
@@ -110,25 +121,93 @@ export default function CollectionDetailPage() {
                 <FileAudio size={16} />
                 导入音频
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('assets');
+                  setAssetUploadSignal((value) => value + 1);
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+              >
+                <FileText size={16} />
+                导入资料
+              </button>
             </div>
           </div>
         </section>
 
         <section className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-5 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
-          <div className="mb-4">
-            <h2 className="font-song text-[26px] text-[#3A2E25]">会议与笔记历史</h2>
-            <p className="mt-1 text-sm text-[#8B796A]">
-              当前只显示这个 Collection 下的会议。你也可以把单条会议移动到别的 Collection。
-            </p>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-song text-[26px] text-[#3A2E25]">
+                {activeTab === 'meetings' ? '会议与笔记历史' : '资料库'}
+              </h2>
+              <p className="mt-1 text-sm text-[#8B796A]">
+                {activeTab === 'meetings'
+                  ? '当前只显示这个 Collection 下的会议。你也可以把单条会议移动到别的 Collection。'
+                  : '当前只显示这个 Collection 下的资料，它们会参与后续检索。'}
+              </p>
+            </div>
+            <div className="inline-flex rounded-2xl border border-[#E3D9CE] bg-[#F8F4EF] p-1">
+              <WorkspaceTab
+                active={activeTab === 'meetings'}
+                icon={<Mic size={14} />}
+                label="会议记录"
+                onClick={() => setActiveTab('meetings')}
+              />
+              <WorkspaceTab
+                active={activeTab === 'assets'}
+                icon={<FileText size={14} />}
+                label="资料库"
+                onClick={() => setActiveTab('assets')}
+              />
+            </div>
           </div>
-          <MeetingHistory
-            fixedCollectionId={collectionId}
-            hideCollectionFilter
-            emptyTitle="这个 Collection 里还没有会议"
-            emptyDescription="可以直接在这里开始录音或导入音频，新的会议会先落到当前 Collection。"
-          />
+          {activeTab === 'meetings' ? (
+            <MeetingHistory
+              fixedCollectionId={collectionId}
+              hideCollectionFilter
+              emptyTitle="这个 Collection 里还没有会议"
+              emptyDescription="可以直接在这里开始录音或导入音频，新的会议会先落到当前 Collection。"
+            />
+          ) : (
+            <AssetLibrary
+              workspaceId={workspaceId}
+              fixedCollectionId={collectionId}
+              uploadSignal={assetUploadSignal}
+              emptyTitle="这个 Collection 里还没有资料"
+              emptyDescription="导入 PDF 或图片后，它们会沉淀成这个 Collection 的知识资产。"
+            />
+          )}
         </section>
       </div>
     </div>
+  );
+}
+
+function WorkspaceTab({
+  active,
+  icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-2 rounded-[14px] px-4 py-2 text-sm font-medium transition-all ${
+        active
+          ? 'bg-[#4A3C31] text-white shadow-sm'
+          : 'text-[#8C7A6B] hover:bg-white hover:text-[#4A3C31]'
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }

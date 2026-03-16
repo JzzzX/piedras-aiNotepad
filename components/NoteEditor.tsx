@@ -1,12 +1,14 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useMeetingStore } from '@/lib/store';
 import { FileText, Bold, Italic, List, ListOrdered, Heading2 } from 'lucide-react';
 
 export default function NoteEditor({ embedded = false }: { embedded?: boolean }) {
-  const { status, userNotes, setUserNotes } = useMeetingStore();
+  const { meetingId, status, userNotes, setUserNotes } = useMeetingStore();
+  const syncedMeetingIdRef = useRef<string | null>(null);
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -22,6 +24,14 @@ export default function NoteEditor({ embedded = false }: { embedded?: boolean })
       setUserNotes(editor.getHTML());
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    if (syncedMeetingIdRef.current === meetingId) return;
+
+    editor.commands.setContent(userNotes || '<p></p>', { emitUpdate: false });
+    syncedMeetingIdRef.current = meetingId;
+  }, [editor, meetingId, userNotes]);
 
   if (status === 'idle') {
     return (

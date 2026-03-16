@@ -101,6 +101,8 @@ interface MeetingStore {
   isLoadingList: boolean;
   isSaving: boolean;
   isPersistedMeeting: boolean;
+  meetingDirty: boolean;
+  lastSavedAt: number | null;
   collections: Collection[];
   isLoadingCollections: boolean;
 
@@ -216,6 +218,8 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   isLoadingList: false,
   isSaving: false,
   isPersistedMeeting: false,
+  meetingDirty: false,
+  lastSavedAt: null,
   collections: [],
   isLoadingCollections: false,
 
@@ -225,6 +229,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       meetingDate: Date.now(),
       recordingStartTime: Date.now(),
       meetingId: get().status === 'idle' ? uuidv4() : get().meetingId,
+      meetingDirty: true,
     }),
 
   endMeeting: () =>
@@ -235,15 +240,17 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
       systemLevel: 0,
       systemAudioActive: false,
       micActive: false,
+      meetingDirty: true,
     }),
 
-  setStatus: (status) => set({ status }),
-  setMeetingTitle: (title) => set({ meetingTitle: title }),
+  setStatus: (status) => set({ status, meetingDirty: true }),
+  setMeetingTitle: (title) => set({ meetingTitle: title, meetingDirty: true }),
 
   addSegment: (segment) =>
     set((state) => ({
       segments: [...state.segments, segment],
       currentPartial: '',
+      meetingDirty: true,
     })),
 
   updateLastSegment: (text) =>
@@ -256,22 +263,24 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           isFinal: true,
         };
       }
-      return { segments };
+      return { segments, meetingDirty: true };
     }),
 
   setCurrentPartial: (text) => set({ currentPartial: text }),
-  setUserNotes: (notes) => set({ userNotes: notes }),
-  setEnhancedNotes: (notes) => set({ enhancedNotes: notes }),
+  setUserNotes: (notes) => set({ userNotes: notes, meetingDirty: true }),
+  setEnhancedNotes: (notes) => set({ enhancedNotes: notes, meetingDirty: true }),
   setIsEnhancing: (v) => set({ isEnhancing: v }),
 
   setSpeakerName: (speakerId, name) =>
     set((state) => ({
       speakers: { ...state.speakers, [speakerId]: name },
+      meetingDirty: true,
     })),
 
   addChatMessage: (message) =>
     set((state) => ({
       chatMessages: [...state.chatMessages, message],
+      meetingDirty: true,
     })),
 
   setIsChatLoading: (v) => set({ isChatLoading: v }),
@@ -287,7 +296,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
     set((state) => ({
       llmSettings: normalizeLlmSettings({ ...state.llmSettings, ...patch }),
     })),
-  setCurrentCollectionId: (collectionId) => set({ currentCollectionId: collectionId }),
+  setCurrentCollectionId: (collectionId) => set({ currentCollectionId: collectionId, meetingDirty: true }),
   setMeetingAudio: (input) =>
     set((state) => {
       const nextUrl = input.url !== undefined ? input.url : state.audioUrl;
@@ -327,6 +336,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
   removeSegment: (segmentId) =>
     set((state) => ({
       segments: state.segments.filter((segment) => segment.id !== segmentId),
+      meetingDirty: true,
     })),
 
   reset: () =>
@@ -367,6 +377,8 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
         systemAudioActive: false,
         micActive: false,
         isPersistedMeeting: false,
+        meetingDirty: false,
+        lastSavedAt: null,
       };
     }),
 
@@ -439,6 +451,8 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
 
           return {
             isPersistedMeeting: true,
+            meetingDirty: false,
+            lastSavedAt: Date.now(),
             audioUrl: nextAudioUrl,
             audioMimeType:
               (audioData as { audioMimeType?: string | null }).audioMimeType ||
@@ -454,7 +468,7 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           };
         });
       } else {
-        set({ isPersistedMeeting: true });
+        set({ isPersistedMeeting: true, meetingDirty: false, lastSavedAt: Date.now() });
       }
 
       return true;
@@ -517,6 +531,8 @@ export const useMeetingStore = create<MeetingStore>((set, get) => ({
           systemAudioActive: false,
           micActive: false,
           isPersistedMeeting: true,
+          meetingDirty: false,
+          lastSavedAt: Date.now(),
         };
       });
     } catch (e) {

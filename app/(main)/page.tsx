@@ -90,14 +90,14 @@ export default function HomePage() {
     const { reset } = useMeetingStore.getState();
     reset();
     const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}`);
+    router.push(`/meeting/${newId}?returnTo=${encodeURIComponent('/')}`);
   }, [router]);
 
   const handleImportAudio = useCallback(() => {
     const { reset } = useMeetingStore.getState();
     reset();
     const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}?intent=upload`);
+    router.push(`/meeting/${newId}?intent=upload&returnTo=${encodeURIComponent('/')}`);
   }, [router]);
 
   const handleSaveWorkspace = useCallback(

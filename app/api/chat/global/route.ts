@@ -44,23 +44,25 @@ function buildGlobalChatSystemPrompt(options: PromptOptions): string {
     ? '当问题涉及执行安排时，尽量提炼行动项。'
     : '除非用户明确要求，不主动输出行动项。';
 
-  const basePrompt = `你是一位跨会议知识助手。你会收到多场历史会议的检索结果（带来源编号 M1/M2/...）。
+  const basePrompt = `你是一位跨工作区知识助手。你会收到历史会议与资料的检索结果（带来源编号 S1/S2/...）。
 
 回答要求：
 1. 只能使用提供的检索内容回答，不要臆造未出现的信息。
 2. ${styleMap[options.outputStyle]}
 3. ${actionRule}
-4. 回答中尽量在关键结论后标注来源编号（例如：[M1]、[M2]）。
+4. 回答中尽量在关键结论后标注来源编号（例如：[S1]、[S2]）。
 5. 使用中文回答。`;
 
   return basePrompt;
 }
 
-function formatSources(sources: Array<{ ref: string; title: string; date: string }>): string {
+function formatSources(
+  sources: Array<{ ref: string; type: 'meeting' | 'asset'; title: string; date: string }>
+) {
   if (sources.length === 0) return '参考来源：无';
   const lines = sources.map((s) => {
     const dateText = new Date(s.date).toLocaleString('zh-CN', { hour12: false });
-    return `- [${s.ref}] ${s.title}（${dateText}）`;
+    return `- [${s.ref}] ${s.type === 'meeting' ? '会议' : '资料'}：${s.title}（${dateText}）`;
   });
   return `参考来源：\n${lines.join('\n')}`;
 }
@@ -78,9 +80,9 @@ function buildNoResultMessage(filters: GlobalChatFilters): string {
   }
 
   if (conditions.length === 0) {
-    return '未检索到可用历史会议。请先保存会议记录后再进行跨会议提问。';
+      return '未检索到可用会议或资料。请先保存会议记录或导入资料后再提问。';
   }
-  return `在当前筛选条件下未检索到会议：${conditions.join('，')}。请调整筛选条件后重试。`;
+  return `在当前筛选条件下未检索到会议或资料：${conditions.join('，')}。请调整筛选条件后重试。`;
 }
 
 export async function POST(req: NextRequest) {

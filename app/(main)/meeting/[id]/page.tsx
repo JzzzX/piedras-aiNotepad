@@ -8,6 +8,7 @@ import {
   Check,
   PenLine,
   RotateCcw,
+  CircleDot,
 } from 'lucide-react';
 import FloatingBottomBar from '@/components/FloatingBottomBar';
 import FloatingTranscript from '@/components/FloatingTranscript';
@@ -30,20 +31,38 @@ export default function MeetingPage() {
     reset,
     segments,
     isSaving,
+    meetingDirty,
+    lastSavedAt,
     saveMeeting,
     loadMeeting,
     loadMeetingList,
     meetingId,
+    currentWorkspaceId,
+    currentCollectionId,
+    userNotes,
+    enhancedNotes,
+    chatMessages,
   } = useMeetingStore();
 
   const prevStatusRef = useRef(status);
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasLoadedRef = useRef(false);
   const uploadIntentHandledRef = useRef(false);
+  const noteAutoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isKnowledgeBaseOpen, setIsKnowledgeBaseOpen] = useState(false);
+
+  const returnTo = searchParams.get('returnTo');
+  const resolvedReturnTo =
+    returnTo && returnTo.startsWith('/')
+      ? returnTo
+      : currentCollectionId && currentWorkspaceId
+        ? `/workspace/${currentWorkspaceId}/collections/${currentCollectionId}`
+        : currentWorkspaceId
+          ? `/workspace/${currentWorkspaceId}`
+          : '/workspace';
 
   // Load meeting from URL param
   useEffect(() => {
@@ -65,11 +84,13 @@ export default function MeetingPage() {
     uploadIntentHandledRef.current = true;
     const timer = window.setTimeout(() => {
       window.dispatchEvent(new CustomEvent('piedras:triggerUploadAudio'));
-      router.replace(`/meeting/${id}`);
+      router.replace(
+        `/meeting/${id}?returnTo=${encodeURIComponent(resolvedReturnTo)}`
+      );
     }, 240);
 
     return () => window.clearTimeout(timer);
-  }, [id, router, searchParams]);
+  }, [id, resolvedReturnTo, router, searchParams]);
 
   // Auto-generate title when recording ends
   const maybeGenerateAutoTitle = useCallback(async () => {
@@ -115,6 +136,52 @@ export default function MeetingPage() {
     };
   }, [status, saveMeeting]);
 
+  useEffect(() => {
+    if (!meetingDirty) {
+      if (noteAutoSaveTimerRef.current) {
+        clearTimeout(noteAutoSaveTimerRef.current);
+        noteAutoSaveTimerRef.current = null;
+      }
+      return;
+    }
+
+    noteAutoSaveTimerRef.current = setTimeout(() => {
+      void saveMeeting({ includeAudio: false });
+    }, 1400);
+
+    return () => {
+      if (noteAutoSaveTimerRef.current) {
+        clearTimeout(noteAutoSaveTimerRef.current);
+        noteAutoSaveTimerRef.current = null;
+      }
+    };
+  }, [
+    chatMessages.length,
+    currentCollectionId,
+    enhancedNotes,
+    meetingDirty,
+    meetingTitle,
+    saveMeeting,
+    segments.length,
+    status,
+    userNotes,
+  ]);
+
+  useEffect(() => {
+    const persistOnLeave = () => {
+      if (!useMeetingStore.getState().meetingDirty) return;
+      void useMeetingStore.getState().saveMeeting({ includeAudio: false });
+    };
+
+    window.addEventListener('pagehide', persistOnLeave);
+    window.addEventListener('beforeunload', persistOnLeave);
+    return () => {
+      window.removeEventListener('pagehide', persistOnLeave);
+      window.removeEventListener('beforeunload', persistOnLeave);
+      persistOnLeave();
+    };
+  }, []);
+
   const handleSave = useCallback(async () => {
     await saveMeeting();
     await loadMeetingList();
@@ -128,10 +195,17 @@ export default function MeetingPage() {
     reset();
     const newId = useMeetingStore.getState().meetingId;
     await loadMeetingList();
-    router.push(`/meeting/${newId}`);
-  }, [saveMeeting, reset, loadMeetingList, router]);
+    router.push(`/meeting/${newId}?returnTo=${encodeURIComponent(resolvedReturnTo)}`);
+  }, [loadMeetingList, reset, resolvedReturnTo, router, saveMeeting]);
 
   const hasContent = segments.length > 0;
+  const saveLabel = isSaving
+    ? '保存中'
+    : meetingDirty
+      ? '未保存'
+      : lastSavedAt
+        ? '已保存'
+        : '待保存';
 
   return (
     <div className="relative flex h-full flex-col">
@@ -139,9 +213,9 @@ export default function MeetingPage() {
       <header className="sticky top-0 z-30 flex items-center justify-between bg-[#F9F9F8]/80 px-4 py-3 backdrop-blur-sm sm:px-6 sm:py-4">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push(resolvedReturnTo)}
             className="flex h-8 w-8 items-center justify-center rounded-xl text-[#8C7A6B] transition-colors hover:bg-[#F0EBE6] md:flex"
-            title="返回首页"
+            title="返回上一级"
           >
             <ArrowLeft size={16} />
           </button>
@@ -167,10 +241,12 @@ export default function MeetingPage() {
             >
               {isSaving ? (
                 <Save size={14} className="animate-pulse text-sky-500" />
+              ) : meetingDirty ? (
+                <CircleDot size={14} className="text-amber-500" />
               ) : (
                 <Check size={14} className="text-[#6D8A67]" />
               )}
-              {isSaving ? '保存中' : '已保存'}
+              {saveLabel}
             </button>
           )}
 

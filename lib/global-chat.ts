@@ -8,9 +8,11 @@ export interface GlobalChatFilters {
   workspaceId?: string;
 }
 
-export interface GlobalMeetingSource {
+export interface GlobalKnowledgeSource {
   ref: string;
-  meetingId: string;
+  type: 'meeting' | 'asset';
+  meetingId?: string;
+  assetId?: string;
   title: string;
   date: string;
   score: number;
@@ -18,7 +20,7 @@ export interface GlobalMeetingSource {
 }
 
 export interface GlobalRetrievalResult {
-  sources: GlobalMeetingSource[];
+  sources: GlobalKnowledgeSource[];
   context: string;
 }
 
@@ -29,6 +31,15 @@ interface MeetingCandidate {
   userNotes: string;
   enhancedNotes: string;
   segmentsText: string;
+}
+
+interface AssetCandidate {
+  assetId: string;
+  title: string;
+  date: string;
+  assetType: string;
+  extractedText: string;
+  collectionName: string;
 }
 
 const STOP_WORDS = new Set([
@@ -169,6 +180,12 @@ function buildSearchableText(candidate: MeetingCandidate): string {
     .join('\n');
 }
 
+function buildAssetSearchableText(candidate: AssetCandidate): string {
+  return [candidate.title, candidate.collectionName, candidate.extractedText]
+    .filter(Boolean)
+    .join('\n');
+}
+
 function scoreByKeywords(candidate: MeetingCandidate, keywords: string[]): number {
   if (keywords.length === 0) return 0;
 
@@ -189,6 +206,25 @@ function scoreByKeywords(candidate: MeetingCandidate, keywords: string[]): numbe
   }
 
   return total / (keywords.length * maxPerKeyword);
+}
+
+function scoreAssetByKeywords(candidate: AssetCandidate, keywords: string[]): number {
+  if (keywords.length === 0) return 0;
+
+  const titleText = candidate.title.toLowerCase();
+  const bodyText = candidate.extractedText.toLowerCase();
+  const collectionText = candidate.collectionName.toLowerCase();
+
+  let total = 0;
+  for (const kw of keywords) {
+    let kwScore = 0;
+    if (titleText.includes(kw)) kwScore += 0.8;
+    if (collectionText.includes(kw)) kwScore += 0.35;
+    if (bodyText.includes(kw)) kwScore += 0.55;
+    total += Math.min(kwScore, 1.6);
+  }
+
+  return total / (keywords.length * 1.6);
 }
 
 function pickSnippets(
@@ -233,6 +269,38 @@ function pickSnippets(
   return fallback.slice(0, 2);
 }
 
+function pickAssetSnippets(
+  candidate: AssetCandidate,
+  queryVector: Float32Array,
+  keywords: string[]
+): string[] {
+  const lines = candidate.extractedText
+    .split(/\r?\n|[。！？]/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 80);
+
+  const byKeyword = lines
+    .filter((line) => keywords.some((kw) => line.toLowerCase().includes(kw)))
+    .slice(0, 3)
+    .map((line) => compactText(line));
+
+  if (byKeyword.length > 0) return byKeyword;
+
+  const rankedByVector = lines
+    .map((line) => ({
+      line,
+      score: cosineSimilarity(queryVector, vectorizeText(line)),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((item) => compactText(item.line));
+
+  if (rankedByVector.length > 0) return rankedByVector;
+
+  return [compactText(candidate.extractedText, 180)].filter(Boolean);
+}
+
 function buildWhere(filters: GlobalChatFilters): Prisma.MeetingWhereInput {
   const where: Prisma.MeetingWhereInput = {};
 
@@ -256,16 +324,40 @@ function buildWhere(filters: GlobalChatFilters): Prisma.MeetingWhereInput {
   return where;
 }
 
+function buildAssetWhere(filters: GlobalChatFilters): Prisma.WorkspaceAssetWhereInput {
+  const where: Prisma.WorkspaceAssetWhereInput = {};
+
+  const from = parseDateBoundary(filters.dateFrom, false);
+  const to = parseDateBoundary(filters.dateTo, true);
+  if (from || to) {
+    const createdAtFilter: Prisma.DateTimeFilter = {};
+    if (from) createdAtFilter.gte = from;
+    if (to) createdAtFilter.lte = to;
+    where.createdAt = createdAtFilter;
+  }
+
+  if (filters.collectionId) {
+    where.collectionId = filters.collectionId === '__ungrouped' ? null : filters.collectionId;
+  }
+
+  if (filters.workspaceId) {
+    where.workspaceId = filters.workspaceId;
+  }
+
+  return where;
+}
+
 export async function retrieveGlobalMeetingContext(
   question: string,
   filters: GlobalChatFilters
 ): Promise<GlobalRetrievalResult> {
   const q = question.trim();
   const keywords = splitKeywords(q);
-  const where = buildWhere(filters);
+  const meetingWhere = buildWhere(filters);
+  const assetWhere = buildAssetWhere(filters);
 
   const meetings = await prisma.meeting.findMany({
-    where,
+    where: meetingWhere,
     orderBy: { date: 'desc' },
     take: 80,
     select: {
@@ -281,9 +373,25 @@ export async function retrieveGlobalMeetingContext(
     },
   });
 
+  const assets = await prisma.workspaceAsset.findMany({
+    where: assetWhere,
+    orderBy: { updatedAt: 'desc' },
+    take: 80,
+    select: {
+      id: true,
+      name: true,
+      assetType: true,
+      extractedText: true,
+      createdAt: true,
+      collection: {
+        select: { name: true },
+      },
+    },
+  });
+
   const queryVector = vectorizeText(q);
 
-  const ranked = meetings
+  const rankedMeetings = meetings
     .map((meeting) => {
       const candidate: MeetingCandidate = {
         meetingId: meeting.id,
@@ -307,6 +415,7 @@ export async function retrieveGlobalMeetingContext(
       const snippets = pickSnippets(candidate, queryVector, keywords);
 
       return {
+        type: 'meeting' as const,
         meetingId: candidate.meetingId,
         title: candidate.title,
         date: candidate.date,
@@ -318,13 +427,50 @@ export async function retrieveGlobalMeetingContext(
     })
     .sort((a, b) => b.score - a.score || b.date.localeCompare(a.date));
 
+  const rankedAssets = assets
+    .map((asset) => {
+      const candidate: AssetCandidate = {
+        assetId: asset.id,
+        title: (asset.name || '').trim() || '未命名资料',
+        date: asset.createdAt.toISOString(),
+        assetType: asset.assetType,
+        extractedText: (asset.extractedText || '').trim(),
+        collectionName: asset.collection?.name || '工作区共享',
+      };
+
+      const searchableText = buildAssetSearchableText(candidate);
+      const vectorScore = cosineSimilarity(queryVector, vectorizeText(searchableText));
+      const keywordScore = scoreAssetByKeywords(candidate, keywords);
+      const hybridScore =
+        keywords.length > 0 ? vectorScore * 0.45 + keywordScore * 0.55 : vectorScore;
+      const snippets = pickAssetSnippets(candidate, queryVector, keywords);
+
+      return {
+        type: 'asset' as const,
+        assetId: candidate.assetId,
+        title: candidate.title,
+        date: candidate.date,
+        score: Number(hybridScore.toFixed(6)),
+        vectorScore,
+        keywordScore,
+        snippets,
+      };
+    })
+    .filter((asset) => asset.snippets.length > 0)
+    .sort((a, b) => b.score - a.score || b.date.localeCompare(a.date));
+
+  const ranked = [...rankedMeetings, ...rankedAssets].sort(
+    (a, b) => b.score - a.score || b.date.localeCompare(a.date)
+  );
+
   const selected = ranked.filter((m) => m.score > 0.15).slice(0, 5);
   const fallback = ranked.slice(0, 3);
   const used = selected.length > 0 ? selected : fallback;
 
-  const sources: GlobalMeetingSource[] = used.map((m, idx) => ({
-    ref: `M${idx + 1}`,
-    meetingId: m.meetingId,
+  const sources: GlobalKnowledgeSource[] = used.map((m, idx) => ({
+    ref: `S${idx + 1}`,
+    type: m.type,
+    ...(m.type === 'meeting' ? { meetingId: m.meetingId } : { assetId: m.assetId }),
     title: m.title,
     date: m.date,
     score: m.score,
@@ -335,7 +481,8 @@ export async function retrieveGlobalMeetingContext(
     .map((s) => {
       const dateText = new Date(s.date).toLocaleString('zh-CN', { hour12: false });
       const snippetText = s.snippets.map((line) => `- ${line}`).join('\n');
-      return `[${s.ref}] ${s.title}（${dateText}）\n${snippetText}`;
+      const typeLabel = s.type === 'meeting' ? '会议' : '资料';
+      return `[${s.ref}] ${typeLabel}：${s.title}（${dateText}）\n${snippetText}`;
     })
     .join('\n\n');
 

@@ -20,7 +20,9 @@ import type { ChatMessage } from '@/lib/types';
 type KBTab = 'search' | 'qa';
 
 interface SearchResult {
-  meetingId: string;
+  type: 'meeting' | 'asset';
+  meetingId?: string;
+  assetId?: string;
   title: string;
   date: string;
   score: number;
@@ -95,8 +97,13 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
     }
   }, [searchQuery, isSearching, searchScope, currentWorkspaceId, searchDateFrom, searchDateTo, searchCollectionId]);
 
-  const handleResultClick = async (meetingId: string) => {
-    await loadMeeting(meetingId);
+  const handleResultClick = async (result: SearchResult) => {
+    if (result.type === 'asset' && result.assetId) {
+      window.open(`/api/assets/${result.assetId}/file`, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (!result.meetingId) return;
+    await loadMeeting(result.meetingId);
     onClose();
   };
 
@@ -332,17 +339,20 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
                 <div className="space-y-3">
                   {searchResults.map((result) => (
                     <button
-                      key={result.meetingId}
-                      onClick={() => handleResultClick(result.meetingId)}
+                      key={`${result.type}-${result.meetingId || result.assetId}`}
+                      onClick={() => handleResultClick(result)}
                       className="group w-full rounded-2xl border border-stone-200/80 bg-white p-4 text-left transition-all hover:border-[#D8CEC4] hover:shadow-md"
                     >
                       <div className="mb-2 flex items-start justify-between">
                         <h4 className="text-sm font-semibold text-stone-800 group-hover:text-[#4A3C31]">
-                          {result.title || '未命名会议'}
+                          {result.title || (result.type === 'meeting' ? '未命名会议' : '未命名资料')}
                         </h4>
                         <ExternalLink size={12} className="mt-0.5 shrink-0 text-stone-300 group-hover:text-[#8C7A6B]" />
                       </div>
                       <p className="mb-2 text-[11px] text-stone-400">
+                        <span className="mr-2 rounded-full bg-[#F7F3EE] px-1.5 py-0.5 text-[10px] text-[#8C7A6B]">
+                          {result.type === 'meeting' ? '会议' : '资料'}
+                        </span>
                         {new Date(result.date).toLocaleString('zh-CN', { hour12: false })}
                         {result.score > 0 && (
                           <span className="ml-2 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-600">

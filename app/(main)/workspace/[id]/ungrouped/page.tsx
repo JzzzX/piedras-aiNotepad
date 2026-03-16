@@ -39,7 +39,9 @@ export default function UngroupedMeetingPage() {
     reset();
     setCurrentCollectionId(null);
     const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}`);
+    router.push(
+      `/meeting/${newId}?returnTo=${encodeURIComponent(`/workspace/${workspaceId}/ungrouped`)}`
+    );
   };
 
   const handleImportAudio = () => {
@@ -47,7 +49,11 @@ export default function UngroupedMeetingPage() {
     reset();
     setCurrentCollectionId(null);
     const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}?intent=upload`);
+    router.push(
+      `/meeting/${newId}?intent=upload&returnTo=${encodeURIComponent(
+        `/workspace/${workspaceId}/ungrouped`
+      )}`
+    );
   };
 
   return (

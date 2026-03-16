@@ -79,7 +79,7 @@ export default function WorkspaceOverviewPage() {
     const { reset } = useMeetingStore.getState();
     reset();
     const newId = useMeetingStore.getState().meetingId;
-    router.push(`/meeting/${newId}`);
+    router.push(`/meeting/${newId}?returnTo=${encodeURIComponent('/workspace')}`);
   }, [router]);
 
   return (

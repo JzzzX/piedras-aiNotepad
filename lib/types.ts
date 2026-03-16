@@ -93,6 +93,27 @@ export interface Collection {
   updatedAt?: string;
 }
 
+export type WorkspaceAssetType = 'pdf' | 'image';
+export type WorkspaceAssetExtractionStatus = 'ready' | 'failed';
+
+export interface WorkspaceAsset {
+  id: string;
+  name: string;
+  originalName: string;
+  assetType: WorkspaceAssetType;
+  mimeType: string;
+  fileSize: number;
+  storageKey: string;
+  extractedText: string;
+  extractionStatus: WorkspaceAssetExtractionStatus;
+  extractionError: string;
+  workspaceId: string;
+  collectionId?: string | null;
+  collection?: Pick<Collection, 'id' | 'name' | 'icon' | 'color'> | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Template {
   id: string;
   name: string;
