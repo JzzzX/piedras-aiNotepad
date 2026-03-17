@@ -7,19 +7,46 @@ type PromptOptionsInput = Partial<PromptOptions> | undefined;
 
 function createTextStream(text: string): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
+  let interval: ReturnType<typeof setInterval> | null = null;
+  let isClosed = false;
+
+  const cleanup = () => {
+    isClosed = true;
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+    }
+  };
+
   return new ReadableStream({
     start(controller) {
       const chars = text.split('');
       let i = 0;
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
+        if (isClosed) {
+          cleanup();
+          return;
+        }
+
         if (i < chars.length) {
-          controller.enqueue(encoder.encode(chars[i]));
-          i++;
+          try {
+            controller.enqueue(encoder.encode(chars[i]));
+            i++;
+          } catch {
+            cleanup();
+          }
         } else {
-          clearInterval(interval);
-          controller.close();
+          cleanup();
+          try {
+            controller.close();
+          } catch {
+            cleanup();
+          }
         }
       }, 8);
+    },
+    cancel() {
+      cleanup();
     },
   });
 }
