@@ -93,7 +93,7 @@ export type CustomVocabularyScope = 'global' | 'workspace';
 
 export interface AsrVocabularySyncStatus {
   supported: boolean;
-  mode: 'browser' | 'aliyun';
+  mode: 'browser' | 'aliyun' | 'doubao';
   ready: boolean;
   remoteVocabularyId: string | null;
   lastSyncedAt: string | null;

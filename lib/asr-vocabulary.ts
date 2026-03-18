@@ -31,6 +31,13 @@ function hasAliyunAkSk() {
 function getVocabularyCapabilityMessage() {
   const status = getAsrStatus();
 
+  if (status.mode === 'doubao') {
+    return {
+      supported: false,
+      message: '当前使用豆包 ASR 代理；词汇会保存在本地，后续再接入热词同步。',
+    };
+  }
+
   if (status.mode !== 'aliyun') {
     return {
       supported: false,

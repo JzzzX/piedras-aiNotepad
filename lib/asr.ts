@@ -1,8 +1,8 @@
-export type AsrMode = 'browser' | 'aliyun';
+export type AsrMode = 'browser' | 'aliyun' | 'doubao';
 
 export interface AsrStatus {
   mode: AsrMode;
-  provider: 'web-speech' | 'aliyun';
+  provider: 'web-speech' | 'aliyun' | 'doubao-proxy';
   ready: boolean;
   missing: string[];
   message: string;
@@ -10,7 +10,9 @@ export interface AsrStatus {
 
 export function getAsrMode(): AsrMode {
   const mode = process.env.ASR_MODE?.toLowerCase();
-  return mode === 'aliyun' ? 'aliyun' : 'browser';
+  if (mode === 'aliyun') return 'aliyun';
+  if (mode === 'doubao') return 'doubao';
+  return 'browser';
 }
 
 export function getAsrStatus(): AsrStatus {
@@ -23,6 +25,37 @@ export function getAsrStatus(): AsrStatus {
       ready: true,
       missing: [],
       message: '使用浏览器 Web Speech API（Demo 模式）',
+    };
+  }
+
+  if (mode === 'doubao') {
+    const hasAppId = Boolean(process.env.DOUBAO_ASR_APP_ID);
+    const hasAccessToken = Boolean(process.env.DOUBAO_ASR_ACCESS_TOKEN);
+    const hasResourceId = Boolean(process.env.DOUBAO_ASR_RESOURCE_ID);
+    const hasProxySecret = Boolean(process.env.ASR_PROXY_SESSION_SECRET);
+
+    const missing: string[] = [];
+    if (!hasAppId) {
+      missing.push('DOUBAO_ASR_APP_ID');
+    }
+    if (!hasAccessToken) {
+      missing.push('DOUBAO_ASR_ACCESS_TOKEN');
+    }
+    if (!hasResourceId) {
+      missing.push('DOUBAO_ASR_RESOURCE_ID');
+    }
+    if (!hasProxySecret) {
+      missing.push('ASR_PROXY_SESSION_SECRET');
+    }
+
+    const ready = missing.length == 0;
+
+    return {
+      mode,
+      provider: 'doubao-proxy',
+      ready,
+      missing,
+      message: ready ? '豆包 ASR 代理已就绪' : '豆包 ASR 配置不完整，暂不可用',
     };
   }
 
