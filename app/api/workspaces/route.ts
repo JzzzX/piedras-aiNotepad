@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { ensureDefaultWorkspace } from '@/lib/default-workspace';
 
 export async function GET() {
   try {
-    const workspaces = await prisma.workspace.findMany({
+    let workspaces = await prisma.workspace.findMany({
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
+
+    if (workspaces.length === 0) {
+      workspaces = [await ensureDefaultWorkspace()];
+    }
+
     return NextResponse.json(workspaces);
   } catch (error) {
     const message = error instanceof Error ? error.message : '加载工作区失败';

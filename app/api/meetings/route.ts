@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { Prisma } from '@prisma/client';
+import { resolveWorkspaceId } from '@/lib/default-workspace';
 
 interface SegmentPayload {
   id: string;
@@ -130,6 +131,7 @@ export async function POST(req: NextRequest) {
   const normalizedDate = date ? new Date(date) : new Date();
   const normalizedSegments = (segments || []) as SegmentPayload[];
   const normalizedChatMessages = (chatMessages || []) as ChatMessagePayload[];
+  const resolvedWorkspaceId = await resolveWorkspaceId(workspaceId);
 
   // 每次保存都以最新状态覆盖 segments/chat，避免增量保存时出现旧数据
   const meeting = await prisma.$transaction(async (tx) => {
@@ -142,7 +144,7 @@ export async function POST(req: NextRequest) {
         status: status || 'ended',
         duration: duration || 0,
         collectionId: collectionId || null,
-        workspaceId: workspaceId,
+        workspaceId: resolvedWorkspaceId,
         userNotes: userNotes || '',
         enhancedNotes: enhancedNotes || '',
         enhanceRecipeId: enhanceRecipeId || null,
@@ -158,7 +160,7 @@ export async function POST(req: NextRequest) {
         status: status || 'ended',
         duration: duration || 0,
         collectionId: collectionId || null,
-        workspaceId: workspaceId,
+        workspaceId: resolvedWorkspaceId,
         userNotes: userNotes || '',
         enhancedNotes: enhancedNotes || '',
         enhanceRecipeId: enhanceRecipeId || null,

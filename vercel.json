@@ -1,6 +1,3 @@
 {
-  "buildCommand": "npx prisma generate && next build",
-  "env": {
-    "DATABASE_URL": "file:./dev.db"
-  }
+  "buildCommand": "npx prisma generate && next build"
 }

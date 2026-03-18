@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { deleteMeetingAudioFile, hasMeetingAudioFile } from '@/lib/meeting-audio';
+import { resolveWorkspaceId } from '@/lib/default-workspace';
 
 // GET /api/meetings/[id] — 获取单个会议详情
 export async function GET(
@@ -59,6 +60,8 @@ export async function PUT(
     segments,
     chatMessages,
   } = body;
+  const resolvedWorkspaceId =
+    workspaceId !== undefined ? await resolveWorkspaceId(workspaceId) : undefined;
 
   // 更新会议基本信息
   const updateData: Record<string, unknown> = {};
@@ -66,7 +69,7 @@ export async function PUT(
   if (status !== undefined) updateData.status = status;
   if (duration !== undefined) updateData.duration = duration;
   if (collectionId !== undefined) updateData.collectionId = collectionId || null;
-  if (workspaceId !== undefined) updateData.workspaceId = workspaceId;
+  if (resolvedWorkspaceId !== undefined) updateData.workspaceId = resolvedWorkspaceId;
   if (userNotes !== undefined) updateData.userNotes = userNotes;
   if (enhancedNotes !== undefined) updateData.enhancedNotes = enhancedNotes;
   if (enhanceRecipeId !== undefined) updateData.enhanceRecipeId = enhanceRecipeId || null;
