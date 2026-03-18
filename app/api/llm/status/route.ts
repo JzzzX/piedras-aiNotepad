@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { inferOpenAIPreset } from '@/lib/llm-config';
-import { getConfiguredProviders, hasAvailableLlm, type LlmProvider } from '@/lib/llm-provider';
+import {
+  getConfiguredProviders,
+  hasAvailableLlm,
+  probeConfiguredLlm,
+  type LlmProvider,
+} from '@/lib/llm-provider';
+import { getCachedRuntimeHealth, toErrorMessage } from '@/lib/runtime-health';
 
 function resolveModel(provider: LlmProvider): string | null {
   switch (provider) {
@@ -26,10 +32,14 @@ function resolveMessage(provider: LlmProvider, preset: string | null): string {
   }
 }
 
-export function GET() {
+export async function GET() {
   if (!hasAvailableLlm()) {
     return NextResponse.json({
+      configured: false,
+      reachable: false,
       ready: false,
+      checkedAt: null,
+      lastError: '未配置可用 LLM',
       provider: 'none',
       model: null,
       preset: null,
@@ -37,14 +47,46 @@ export function GET() {
     });
   }
 
-  const provider = getConfiguredProviders()[0] ?? 'openai';
+  const configuredProvider = getConfiguredProviders()[0] ?? 'openai';
+  const probe = await getCachedRuntimeHealth(
+    `llm:${configuredProvider}:${process.env.OPENAI_MODEL || ''}:${process.env.OPENAI_BASE_URL || ''}`,
+    60_000,
+    async (): Promise<{ reachable: boolean; checkedAt: string; lastError: string | null; provider: LlmProvider }> => {
+      const checkedAt = new Date().toISOString();
+
+      try {
+        const result = await probeConfiguredLlm();
+        return {
+          reachable: true,
+          checkedAt,
+          lastError: null,
+          provider: result.provider,
+        };
+      } catch (error) {
+        return {
+          reachable: false,
+          checkedAt,
+          lastError: toErrorMessage(error),
+          provider: configuredProvider,
+        };
+      }
+    }
+  );
+  const provider = probe.provider;
   const preset = provider === 'openai' ? inferOpenAIPreset(process.env.OPENAI_BASE_URL) : null;
+  const reachable = probe.reachable;
 
   return NextResponse.json({
-    ready: true,
+    configured: true,
+    reachable,
+    ready: reachable,
+    checkedAt: probe.checkedAt,
+    lastError: probe.lastError,
     provider,
     model: resolveModel(provider),
     preset,
-    message: resolveMessage(provider, preset),
+    message: reachable
+      ? resolveMessage(provider, preset)
+      : `LLM 已配置，但连通性检查失败${probe.lastError ? `：${probe.lastError}` : ''}`,
   });
 }

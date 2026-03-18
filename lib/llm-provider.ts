@@ -561,3 +561,38 @@ export async function generateTextWithFallback(
 
   throw new Error(`全部 Provider 调用失败：${errors.join(' | ')}`);
 }
+
+export async function probeConfiguredLlm(timeoutMs = 6_000): Promise<{ provider: LlmProvider }> {
+  const providers = resolveProviderOrder(undefined, undefined);
+  if (providers.length === 0) {
+    throw new Error('未配置可用 LLM Provider');
+  }
+
+  const probeInput: LlmGenerateInput = {
+    messages: [{ role: 'user', content: '请只回复 OK。' }],
+    temperature: 0,
+    maxTokens: 8,
+  };
+
+  const errors: string[] = [];
+
+  for (const provider of providers) {
+    try {
+      await withTimeout(
+        provider === 'gemini'
+          ? callGemini(probeInput)
+          : provider === 'minimax'
+            ? callMiniMax(probeInput)
+            : callOpenAI(probeInput),
+        timeoutMs
+      );
+
+      return { provider };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push(`${provider}: ${message}`);
+    }
+  }
+
+  throw new Error(`LLM 连通性检查失败：${errors.join(' | ')}`);
+}

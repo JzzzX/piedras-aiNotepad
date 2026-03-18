@@ -25,9 +25,13 @@ export default function RecorderSettingsPanel({ open, onClose }: RecorderSetting
         setAsrStatus({
           mode: 'browser',
           provider: 'web-speech',
+          configured: false,
+          reachable: false,
           ready: false,
           missing: [],
           message: 'ASR 状态获取失败，默认使用浏览器转写',
+          checkedAt: null,
+          lastError: 'ASR 状态获取失败',
         });
       });
   }, [open]);

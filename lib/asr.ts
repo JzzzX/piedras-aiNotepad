@@ -1,11 +1,17 @@
+import { fetchWithTimeout, getCachedRuntimeHealth, toErrorMessage } from './runtime-health';
+
 export type AsrMode = 'browser' | 'aliyun' | 'doubao';
 
 export interface AsrStatus {
   mode: AsrMode;
   provider: 'web-speech' | 'aliyun' | 'doubao-proxy';
+  configured: boolean;
+  reachable: boolean;
   ready: boolean;
   missing: string[];
   message: string;
+  checkedAt: string | null;
+  lastError: string | null;
 }
 
 export function getAsrMode(): AsrMode {
@@ -22,9 +28,13 @@ export function getAsrStatus(): AsrStatus {
     return {
       mode,
       provider: 'web-speech',
+      configured: true,
+      reachable: true,
       ready: true,
       missing: [],
       message: '使用浏览器 Web Speech API（Demo 模式）',
+      checkedAt: null,
+      lastError: null,
     };
   }
 
@@ -48,14 +58,18 @@ export function getAsrStatus(): AsrStatus {
       missing.push('ASR_PROXY_SESSION_SECRET');
     }
 
-    const ready = missing.length == 0;
+    const configured = missing.length === 0;
 
     return {
       mode,
       provider: 'doubao-proxy',
-      ready,
+      configured,
+      reachable: false,
+      ready: configured,
       missing,
-      message: ready ? '豆包 ASR 代理已就绪' : '豆包 ASR 配置不完整，暂不可用',
+      message: configured ? '豆包 ASR 代理已配置' : '豆包 ASR 配置不完整，暂不可用',
+      checkedAt: null,
+      lastError: null,
     };
   }
 
@@ -73,17 +87,117 @@ export function getAsrStatus(): AsrStatus {
     missing.push('ALICLOUD_ASR_TOKEN or (ALICLOUD_ACCESS_KEY_ID + ALICLOUD_ACCESS_KEY_SECRET)');
   }
 
-  const ready = missing.length === 0;
+  const configured = missing.length === 0;
 
   return {
     mode,
     provider: 'aliyun',
-    ready,
+    configured,
+    reachable: configured,
+    ready: configured,
     missing: [...missing],
-    message: ready
+    message: configured
       ? hasToken
         ? '已配置阿里云 ASR（直连 Token 模式）'
         : '已配置阿里云 ASR（AK/SK 自动换 Token）'
       : '阿里云 ASR 配置不完整，暂不可用',
+    checkedAt: null,
+    lastError: null,
+  };
+}
+
+export function resolveAsrProxyPublicBaseURL(
+  fallbackProtocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+): URL | null {
+  const explicitBaseURL = process.env.ASR_PROXY_PUBLIC_BASE_URL?.trim();
+  if (explicitBaseURL) {
+    try {
+      return new URL(explicitBaseURL);
+    } catch {
+      return null;
+    }
+  }
+
+  const protocol = (process.env.ASR_PROXY_PUBLIC_PROTOCOL?.trim() || fallbackProtocol)
+    .replace(/:$/, '')
+    .toLowerCase();
+  const host = process.env.ASR_PROXY_PUBLIC_HOST?.trim()
+    || (process.env.NODE_ENV == 'production' ? '' : '127.0.0.1');
+  if (!host) {
+    return null;
+  }
+  const port = process.env.ASR_PROXY_PUBLIC_PORT?.trim() || process.env.ASR_PROXY_PORT?.trim() || '';
+  const defaultPort = protocol === 'http' ? '80' : '443';
+  const authority = port && port !== defaultPort ? `${host}:${port}` : host;
+
+  try {
+    return new URL(`${protocol}://${authority}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function getAsrRuntimeStatus(): Promise<AsrStatus> {
+  const configuredStatus = getAsrStatus();
+  const checkedAt = new Date().toISOString();
+
+  if (configuredStatus.mode !== 'doubao' || !configuredStatus.configured) {
+    return {
+      ...configuredStatus,
+      reachable: configuredStatus.mode === 'browser' ? true : configuredStatus.configured,
+      ready: configuredStatus.mode === 'browser' ? true : configuredStatus.configured,
+      checkedAt,
+    };
+  }
+
+  const proxyBaseURL = resolveAsrProxyPublicBaseURL();
+  const cacheKey = `asr:${proxyBaseURL?.toString() || 'missing-proxy-base-url'}`;
+  const probe = await getCachedRuntimeHealth(
+    cacheKey,
+    30_000,
+    async (): Promise<{ reachable: boolean; checkedAt: string; lastError: string | null }> => {
+      const probeCheckedAt = new Date().toISOString();
+
+      if (!proxyBaseURL) {
+        return {
+          reachable: false,
+          checkedAt: probeCheckedAt,
+          lastError: 'ASR_PROXY_PUBLIC_BASE_URL / HOST 未配置',
+        };
+      }
+
+      const healthURL = new URL('/healthz', proxyBaseURL);
+
+      try {
+        const response = await fetchWithTimeout(healthURL, { method: 'GET' }, 3_000);
+        if (!response.ok) {
+          const detail = (await response.text()).trim();
+          throw new Error(detail ? `HTTP ${response.status}: ${detail}` : `HTTP ${response.status}`);
+        }
+
+        return {
+          reachable: true,
+          checkedAt: probeCheckedAt,
+          lastError: null,
+        };
+      } catch (error) {
+        return {
+          reachable: false,
+          checkedAt: probeCheckedAt,
+          lastError: toErrorMessage(error),
+        };
+      }
+    }
+  );
+
+  return {
+    ...configuredStatus,
+    reachable: probe.reachable,
+    ready: configuredStatus.configured && probe.reachable,
+    checkedAt: probe.checkedAt,
+    lastError: probe.lastError,
+    message: probe.reachable
+      ? '豆包 ASR 代理在线'
+      : `豆包 ASR 代理不可达${probe.lastError ? `：${probe.lastError}` : ''}`,
   };
 }

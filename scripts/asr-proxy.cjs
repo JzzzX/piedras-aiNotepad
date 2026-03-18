@@ -15,6 +15,16 @@ const DOUBAO_WS_URL =
   process.env.DOUBAO_ASR_WS_URL || 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async';
 const DEFAULT_SAMPLE_RATE = 16_000;
 const DEFAULT_CHANNELS = 1;
+const proxyStats = {
+  startedAt: new Date().toISOString(),
+  totalConnections: 0,
+  activeConnections: 0,
+  lastReadyAt: null,
+  lastPartialAt: null,
+  lastFinalAt: null,
+  lastUpstreamCloseAt: null,
+  lastError: null,
+};
 
 const VERSION_AND_HEADER = 0x11;
 const FULL_CLIENT_REQUEST = 0x10;
@@ -22,6 +32,17 @@ const AUDIO_ONLY_REQUEST = 0x21;
 const AUDIO_ONLY_LAST_REQUEST = 0x23;
 const JSON_GZIP = 0x11;
 const RAW_GZIP = 0x01;
+
+function log(event, detail = {}) {
+  console.log(
+    JSON.stringify({
+      scope: 'asr-proxy',
+      event,
+      timestamp: new Date().toISOString(),
+      ...detail,
+    })
+  );
+}
 
 function ensureEnvReady() {
   const missing = [];
@@ -357,7 +378,12 @@ async function main() {
   const server = http.createServer((req, res) => {
     if (req.url === '/healthz') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: true }));
+      res.end(
+        JSON.stringify({
+          ok: true,
+          ...proxyStats,
+        })
+      );
       return;
     }
 
@@ -378,6 +404,8 @@ async function main() {
     try {
       sessionPayload = verifySessionToken(requestURL.searchParams.get('session_token'));
     } catch (error) {
+      proxyStats.lastError = error instanceof Error ? error.message : String(error);
+      log('session_token_invalid', { error: proxyStats.lastError });
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
       return;
@@ -391,17 +419,28 @@ async function main() {
 
   wss.on('connection', (client) => {
     const sessionPayload = client.sessionPayload;
+    const connectionId = crypto.randomUUID();
     let upstreamSequence = 2;
     let hasSentLastFrame = false;
     let didSignalReady = false;
     let lastAudioEndTimeMs = 0;
     let lastPartialText = '';
 
+    proxyStats.totalConnections += 1;
+    proxyStats.activeConnections += 1;
+    log('client_connected', {
+      connectionId,
+      sampleRate: sessionPayload.sampleRate || DEFAULT_SAMPLE_RATE,
+      channels: sessionPayload.channels || DEFAULT_CHANNELS,
+    });
+
     const upstream = new WebSocket(DOUBAO_WS_URL, {
       headers: makeConnectHeaders(),
     });
 
     const finalize = (message, detail) => {
+      proxyStats.lastError = detail ? `${message}: ${detail}` : message;
+      log('connection_error', { connectionId, message, detail: detail || null });
       if (detail) {
         sendJSON(client, { type: 'error', message: `${message}: ${detail}` });
       } else {
@@ -412,6 +451,7 @@ async function main() {
     };
 
     upstream.on('open', () => {
+      log('upstream_open', { connectionId });
       try {
         upstream.send(encodeJSONFrame(FULL_CLIENT_REQUEST, makeStartPayload(sessionPayload)));
       } catch (error) {
@@ -436,6 +476,8 @@ async function main() {
 
         if (!didSignalReady) {
           didSignalReady = true;
+          proxyStats.lastReadyAt = new Date().toISOString();
+          log('upstream_ready', { connectionId });
           sendJSON(client, { type: 'ready' });
         }
 
@@ -446,6 +488,13 @@ async function main() {
 
         if (update.isFinal) {
           lastPartialText = '';
+          proxyStats.lastFinalAt = new Date().toISOString();
+          log('final', {
+            connectionId,
+            text: update.text.slice(0, 120),
+            startTimeMs: update.startTimeMs,
+            endTimeMs: update.endTimeMs,
+          });
           sendJSON(client, {
             type: 'final',
             text: update.text,
@@ -454,6 +503,11 @@ async function main() {
           });
         } else if (update.text !== lastPartialText) {
           lastPartialText = update.text;
+          proxyStats.lastPartialAt = new Date().toISOString();
+          log('partial', {
+            connectionId,
+            text: update.text.slice(0, 120),
+          });
           sendJSON(client, {
             type: 'partial',
             text: update.text,
@@ -469,6 +523,8 @@ async function main() {
     });
 
     upstream.on('close', () => {
+      proxyStats.lastUpstreamCloseAt = new Date().toISOString();
+      log('upstream_closed', { connectionId });
       sendJSON(client, { type: 'closed' });
       closePair(client, upstream);
     });
@@ -508,16 +564,20 @@ async function main() {
     });
 
     client.on('close', () => {
+      proxyStats.activeConnections = Math.max(0, proxyStats.activeConnections - 1);
+      log('client_closed', { connectionId });
       closePair(client, upstream);
     });
 
     client.on('error', () => {
+      proxyStats.activeConnections = Math.max(0, proxyStats.activeConnections - 1);
+      log('client_socket_error', { connectionId });
       closePair(client, upstream);
     });
   });
 
   server.listen(PROXY_PORT, '0.0.0.0', () => {
-    console.log(`[asr-proxy] listening on 0.0.0.0:${PROXY_PORT}`);
+    log('listening', { host: '0.0.0.0', port: PROXY_PORT });
   });
 }
 

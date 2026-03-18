@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { getAsrStatus } from '@/lib/asr';
+import { getAsrRuntimeStatus, getAsrStatus, resolveAsrProxyPublicBaseURL } from '@/lib/asr';
 import { getAliyunToken } from '@/lib/aliyun-token';
 import { syncEffectiveVocabulary } from '@/lib/asr-vocabulary';
 
@@ -39,15 +39,16 @@ function createProxySessionToken(payload: Record<string, unknown>) {
 }
 
 function resolveProxyWSURL(req: NextRequest, sessionToken: string) {
-  const requestURL = new URL(req.url);
-  const protocol = requestURL.protocol === 'https:' ? 'wss:' : 'ws:';
-  const host = process.env.ASR_PROXY_PUBLIC_HOST?.trim() || requestURL.hostname;
-  const port = process.env.ASR_PROXY_PUBLIC_PORT?.trim() || process.env.ASR_PROXY_PORT?.trim() || '3001';
-
-  return `${protocol}//${host}:${port}/ws/asr?session_token=${encodeURIComponent(sessionToken)}`;
+  const explicitBaseURL = resolveAsrProxyPublicBaseURL(
+    new URL(req.url).protocol === 'https:' ? 'https' : 'http'
+  );
+  const baseURL = explicitBaseURL ?? new URL(req.url);
+  const wsProtocol = baseURL.protocol === 'https:' ? 'wss:' : 'ws:';
+  const origin = `${wsProtocol}//${baseURL.host}`;
+  return `${origin}/ws/asr?session_token=${encodeURIComponent(sessionToken)}`;
 }
 
-function buildDoubaoSession(req: NextRequest, payload: AsrSessionRequest) {
+function buildDoubaoSession(req: NextRequest, payload: AsrSessionRequest, status: Awaited<ReturnType<typeof getAsrRuntimeStatus>>) {
   const now = Date.now();
   const sessionToken = createProxySessionToken({
     provider: 'doubao-proxy',
@@ -60,7 +61,7 @@ function buildDoubaoSession(req: NextRequest, payload: AsrSessionRequest) {
 
   return {
     provider: 'doubao-proxy',
-    status: getAsrStatus(),
+    status,
     request: {
       sampleRate: payload.sampleRate ?? 16_000,
       channels: payload.channels ?? 1,
@@ -78,22 +79,33 @@ function buildDoubaoSession(req: NextRequest, payload: AsrSessionRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const status = getAsrStatus();
+  const configuredStatus = getAsrStatus();
   const payload = (await req.json()) as AsrSessionRequest;
 
-  if (!status.ready) {
+  if (!configuredStatus.configured) {
     return NextResponse.json(
       {
-        error: `${status.provider} 配置不完整`,
-        status,
+        error: `${configuredStatus.provider} 配置不完整`,
+        status: configuredStatus,
       },
       { status: 400 }
     );
   }
 
-  if (status.mode === 'doubao') {
+  if (configuredStatus.mode === 'doubao') {
     try {
-      return NextResponse.json(buildDoubaoSession(req, payload));
+      const runtimeStatus = await getAsrRuntimeStatus();
+      if (!runtimeStatus.ready) {
+        return NextResponse.json(
+          {
+            error: runtimeStatus.message,
+            status: runtimeStatus,
+          },
+          { status: 503 }
+        );
+      }
+
+      return NextResponse.json(buildDoubaoSession(req, payload, runtimeStatus));
     } catch (error) {
       return NextResponse.json(
         {
@@ -104,11 +116,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  if (status.mode !== 'aliyun') {
+  if (configuredStatus.mode !== 'aliyun') {
     return NextResponse.json(
       {
         error: 'ASR_MODE 不是 aliyun 或 doubao，当前无需创建云端会话',
-        status,
+        status: configuredStatus,
       },
       { status: 400 }
     );
@@ -131,7 +143,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       provider: 'aliyun',
-      status,
+      status: configuredStatus,
       request: {
         sampleRate: payload.sampleRate ?? 16000,
         channels: payload.channels ?? 1,

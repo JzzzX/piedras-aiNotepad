@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAsrStatus } from '@/lib/asr';
+import { getAsrRuntimeStatus } from '@/lib/asr';
 
-export function GET() {
-  return NextResponse.json(getAsrStatus());
+export async function GET() {
+  return NextResponse.json(await getAsrRuntimeStatus());
 }
-

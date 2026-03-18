@@ -1,0 +1,31 @@
+app = "piedras-asr"
+primary_region = "hkg"
+
+[build]
+  dockerfile = "Dockerfile.asr-proxy"
+
+[env]
+  ASR_PROXY_PORT = "3001"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 3001
+  auto_start_machines = true
+  auto_stop_machines = "off"
+  min_machines_running = 1
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.http_checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/healthz"
+    protocol = "http"
