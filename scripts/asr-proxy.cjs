@@ -6,7 +6,7 @@ const url = require('node:url');
 const zlib = require('node:zlib');
 const { WebSocketServer, WebSocket } = require('ws');
 
-const PROXY_PORT = Number(process.env.ASR_PROXY_PORT || 3001);
+const PROXY_PORT = Number(process.env.PORT || process.env.ASR_PROXY_PORT || 3001);
 const SESSION_SECRET = process.env.ASR_PROXY_SESSION_SECRET || '';
 const DOUBAO_APP_ID = process.env.DOUBAO_ASR_APP_ID || '';
 const DOUBAO_ACCESS_TOKEN = process.env.DOUBAO_ASR_ACCESS_TOKEN || '';
