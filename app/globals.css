@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #EBE5DB;
-  --foreground: #4A3C31;
-  --accent-sky: #0EA5E9;
-  --panel-bg: #F5EFEB;
-  --border-subtle: #D8CEC4;
-  --font-song-stack: "Songti SC", "STSong", "Noto Serif SC",
-    "Source Han Serif SC", "Songti TC", "PMingLiU", serif;
+  --background: #EAE3D2;   /* 马尼拉纸色 */
+  --foreground: #111111;    /* 墨水黑 */
+  --surface: #F4F0E6;      /* 漂白纸色 */
+  --muted: #8A8578;        /* 褪色墨水 */
+  --accent: #D9423E;       /* 橡胶印章红 */
+  --highlight: #2B4C7E;    /* 圆珠笔蓝 */
+  --border: #111111;       /* 硬边框 */
+  --shadow: #111111;       /* 硬投影 */
 }
 
 @theme inline {
@@ -18,23 +19,129 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial,
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
+  font-family: var(--font-space-mono), 'Space Mono', monospace;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+}
+
+/* SVG 噪点叠加层 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 .font-song {
-  font-family: var(--font-song-stack);
+  font-family: var(--font-vt323), 'VT323', monospace;
+}
+
+/* ===== 复古麦金塔工具类 ===== */
+
+.retro-window {
+  border: 2px solid #111;
+  border-radius: 0;
+  background: #F4F0E6;
+  box-shadow: 4px 4px 0px #111;
+}
+
+.retro-title-bar {
+  background: repeating-linear-gradient(
+    90deg, #111 0px, #111 2px, #F4F0E6 2px, #F4F0E6 4px
+  );
+  border-bottom: 2px solid #111;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.retro-title-bar-label {
+  background: #F4F0E6;
+  padding: 1px 6px;
+  font-family: var(--font-vt323), monospace;
+  font-size: 14px;
+  color: #111;
+}
+
+.retro-close-box {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #111;
+  background: #F4F0E6;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.retro-close-box:hover {
+  background: #111;
+}
+
+.retro-btn {
+  border: 2px solid #111;
+  border-radius: 0;
+  background: #F4F0E6;
+  box-shadow: 4px 4px 0px #111;
+  font-family: var(--font-vt323), monospace;
+  cursor: pointer;
+  transition: transform 0ms, box-shadow 0ms;
+}
+.retro-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+.retro-stamp {
+  border: 2px solid #D9423E;
+  color: #D9423E;
+  font-family: var(--font-vt323), monospace;
+  padding: 2px 8px;
+  transform: rotate(-5deg);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: bold;
+}
+
+.retro-checkerboard-progress {
+  background: repeating-conic-gradient(#111 0% 25%, #F4F0E6 0% 50%) 0 0 / 8px 8px;
+  height: 16px;
+  border: 2px solid #111;
+}
+
+.retro-invert-hover:hover {
+  background: #111 !important;
+  color: #F4F0E6 !important;
+}
+
+.retro-tab-active {
+  background: #111;
+  color: #F4F0E6;
+}
+
+.retro-tab-inactive {
+  background: #F4F0E6;
+  color: #111;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.retro-blink {
+  animation: blink 1s step-end infinite;
 }
 
 /* Tiptap 编辑器样式 */
 .tiptap {
   outline: none;
-  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-family: var(--font-space-mono), 'Space Mono', monospace;
   font-size: 1.05rem;
   line-height: 1.7;
-  color: #2D2C2A;
+  color: #111;
 }
 
 .tiptap p {
@@ -44,10 +151,10 @@ body {
 .tiptap h1,
 .tiptap h2,
 .tiptap h3 {
-  color: #1A1917;
+  color: #111;
   font-weight: 600;
   margin: 1.5em 0 0.5em;
-  font-family: var(--font-song-stack);
+  font-family: var(--font-vt323), 'VT323', monospace;
 }
 
 .tiptap h1 { font-size: 1.8em; }
@@ -74,7 +181,7 @@ body {
 
 .tiptap strong {
   font-weight: 700;
-  color: #1A1917;
+  color: #111;
 }
 
 .tiptap em {
@@ -82,28 +189,30 @@ body {
 }
 
 .tiptap p.is-editor-empty:first-child::before {
-  color: #A8A29E;
+  color: #8A8578;
   content: "在这里记录你的要点...";
   float: left;
   height: 0;
   pointer-events: none;
-  font-family: -apple-system, sans-serif;
+  font-family: var(--font-space-mono), monospace;
 }
 
-/* 自定义滚动条 */
+/* 自定义滚动条 — 复古方形 */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #EAE3D2;
+  border-left: 2px solid #111;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E7E5E4;
-  border-radius: 10px;
+  background: #8A8578;
+  border: 2px solid #111;
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D6D3D1;
+  background: #6B665B;
 }

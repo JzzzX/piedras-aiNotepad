@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import { VT323, Space_Mono } from 'next/font/google';
 import "./globals.css";
+
+const vt323 = VT323({ weight: '400', subsets: ['latin'], variable: '--font-vt323' });
+const spaceMono = Space_Mono({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  variable: '--font-space-mono',
+});
 
 export const metadata: Metadata = {
   title: "Piedras - 智能会议记录",
@@ -13,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className="antialiased">
+      <body className={`${vt323.variable} ${spaceMono.variable}`}>
         {children}
       </body>
     </html>
