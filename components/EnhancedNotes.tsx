@@ -180,14 +180,14 @@ export default function EnhancedNotes({
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-8 text-center">
         {embedded && (
-          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-100/60 bg-sky-50 shadow-sm">
-            <Sparkles size={20} className="text-sky-500" />
+          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111]">
+            <Sparkles size={20} className="text-[#D9423E]" />
           </div>
         )}
         {embedded && (
           <>
-            <p className="font-song text-[18px] font-semibold text-stone-700">AI 总结</p>
-            <p className="max-w-[360px] text-[13px] leading-6 text-stone-400">
+            <p className="font-[family-name:var(--font-vt323)] text-[18px] font-semibold text-[#111]">AI 总结</p>
+            <p className="max-w-[360px] text-[13px] leading-6 text-[#8A8578]">
               录音结束后，可以把转写和用户笔记融合成结构化总结。
             </p>
           </>
@@ -195,13 +195,13 @@ export default function EnhancedNotes({
         <button
           onClick={triggerGenerate}
           disabled={!canGenerate}
-          className="flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3 text-[15px] font-semibold text-white shadow-sm transition-all hover:bg-sky-400 hover:shadow-md active:scale-95 disabled:opacity-40 disabled:hover:bg-sky-500 disabled:shadow-none"
+          className="flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#D9423E] px-6 py-3 text-[15px] font-semibold text-white shadow-[4px_4px_0px_#111] transition-all hover:brightness-110 active:scale-95 active:shadow-none disabled:opacity-40 disabled:shadow-none"
         >
           <Sparkles size={16} />
           AI 生成结构化笔记
         </button>
         {!canGenerate && (
-          <p className="text-xs text-stone-400 font-medium">录音结束后可生成 AI 笔记</p>
+          <p className="text-xs text-[#8A8578] font-medium">录音结束后可生成 AI 笔记</p>
         )}
       </div>
     );
@@ -211,24 +211,36 @@ export default function EnhancedNotes({
     <div className="flex h-full flex-col">
       {isEnhancing ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center">
-          <Loader2 size={24} className="animate-spin text-sky-400 mb-3" />
-          <p className="text-[14px] font-semibold text-stone-600">AI 正在融合转写与笔记...</p>
-          <p className="text-[12px] text-stone-400 mt-1">
-            将你的要点与转写内容结合，生成结构化纪要
-          </p>
+          <div className="w-72 rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111]">
+            <div className="retro-title-bar flex items-center gap-2 border-b-2 border-[#111] bg-gradient-to-r from-[#111] to-[#555] px-3 py-1.5">
+              <span className="font-[family-name:var(--font-vt323)] text-[13px] font-bold text-white">处理中...</span>
+            </div>
+            <div className="p-4">
+              <p className="font-[family-name:var(--font-vt323)] text-[14px] font-semibold text-[#111]">AI 正在融合转写与笔记...</p>
+              <p className="font-[family-name:var(--font-vt323)] text-[12px] text-[#8A8578] mt-1">
+                将你的要点与转写内容结合，生成结构化纪要
+              </p>
+              <div className="mt-3 h-4 w-full rounded-none border-2 border-[#111] bg-white overflow-hidden">
+                <div className="retro-checkerboard-progress h-full" style={{ width: '60%' }} />
+              </div>
+              <div className="mt-2 text-center">
+                <span className="retro-blink font-[family-name:var(--font-vt323)] text-[#111]">█</span>
+              </div>
+            </div>
+          </div>
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between border-b border-black/[0.04] px-5 py-4 sm:px-6">
+          <div className="flex items-center justify-between border-b-2 border-[#111] px-5 py-4 sm:px-6">
             <div>
-              <h4 className="font-song flex items-center gap-1.5 text-[15px] font-semibold text-stone-800">
-                <Sparkles size={16} className="text-sky-500" />
+              <h4 className="font-[family-name:var(--font-vt323)] flex items-center gap-1.5 text-[15px] font-semibold text-[#111]">
+                <Sparkles size={16} className="text-[#D9423E]" />
                 AI 会议纪要
               </h4>
               {embedded && (
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-stone-400">
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#8A8578]">
                   <span>结构化总结会基于转写和用户笔记共同生成。</span>
-                  <span className="rounded-full bg-[#F5EEE6] px-2.5 py-1 text-[11px] text-[#8C7A6B]">
+                  <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2.5 py-1 text-[11px] text-[#8A8578]">
                     {recipeName}
                   </span>
                 </div>
@@ -237,14 +249,14 @@ export default function EnhancedNotes({
             <div className="flex items-center gap-1">
               <button
                 onClick={handleCopy}
-                className="rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-white hover:text-stone-700 hover:shadow-sm"
+                className="rounded-none p-1.5 text-[#8A8578] transition-colors hover:border hover:border-[#111] hover:bg-[#F4F0E6] hover:text-[#111]"
                 title="复制"
               >
                 {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
               </button>
               <button
                 onClick={handleExportMarkdown}
-                className="rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-white hover:text-stone-700 hover:shadow-sm"
+                className="rounded-none p-1.5 text-[#8A8578] transition-colors hover:border hover:border-[#111] hover:bg-[#F4F0E6] hover:text-[#111]"
                 title="导出 Markdown"
               >
                 <FileDown size={14} />
@@ -252,7 +264,7 @@ export default function EnhancedNotes({
               <button
                 onClick={handleExportDocx}
                 disabled={isExportingDocx}
-                className="rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-white hover:text-stone-700 hover:shadow-sm disabled:opacity-40"
+                className="rounded-none p-1.5 text-[#8A8578] transition-colors hover:border hover:border-[#111] hover:bg-[#F4F0E6] hover:text-[#111] disabled:opacity-40"
                 title="导出 Docx"
               >
                 {isExportingDocx ? (
@@ -263,14 +275,14 @@ export default function EnhancedNotes({
               </button>
               <button
                 onClick={() => setShowShareDialog(true)}
-                className="rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-white hover:text-stone-700 hover:shadow-sm"
+                className="rounded-none p-1.5 text-[#8A8578] transition-colors hover:border hover:border-[#111] hover:bg-[#F4F0E6] hover:text-[#111]"
                 title="分享至飞书/企业微信"
               >
                 <Share2 size={14} />
               </button>
               <button
                 onClick={triggerGenerate}
-                className="rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-white hover:text-stone-700 hover:shadow-sm"
+                className="rounded-none p-1.5 text-[#8A8578] transition-colors hover:border hover:border-[#111] hover:bg-[#F4F0E6] hover:text-[#111]"
                 title="重新生成"
               >
                 <Sparkles size={14} />
@@ -284,9 +296,9 @@ export default function EnhancedNotes({
                 {sections.map((section) => (
                   <section
                     key={section.title}
-                    className="rounded-[24px] border border-black/[0.04] bg-white p-6 shadow-sm"
+                    className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-6 shadow-[4px_4px_0px_#111]"
                   >
-                    <h5 className="font-song text-[18px] font-semibold text-stone-800">
+                    <h5 className="font-[family-name:var(--font-vt323)] text-[18px] font-semibold text-[#111]">
                       {section.title}
                     </h5>
                     <div className="mt-4 space-y-3">
@@ -296,17 +308,17 @@ export default function EnhancedNotes({
                           return <div key={`${section.title}-${index}`} className="h-1" />;
                         }
 
-                        if (/^[-*+]\s+/.test(trimmed) || /^\d+[\.\)、]\s+/.test(trimmed)) {
+                        if (/^[-*+]\s+/.test(trimmed) || /^\d+[\.)\、]\s+/.test(trimmed)) {
                           return (
                             <div
                               key={`${section.title}-${index}`}
-                              className="flex items-start gap-3 text-[15px] leading-7 text-stone-700"
+                              className="flex items-start gap-3 text-[15px] leading-7 text-[#111]"
                             >
-                              <span className="mt-[10px] h-1.5 w-1.5 rounded-full bg-[#B79E84]" />
+                              <span className="mt-[10px] w-1.5 h-1.5 bg-[#111] rounded-none" />
                               <span>
                                 {trimmed
                                   .replace(/^[-*+]\s+/, '')
-                                  .replace(/^\d+[\.\)、]\s+/, '')}
+                                  .replace(/^\d+[\.)\、]\s+/, '')}
                               </span>
                             </div>
                           );
@@ -315,7 +327,7 @@ export default function EnhancedNotes({
                         return (
                           <p
                             key={`${section.title}-${index}`}
-                            className="text-[15px] leading-7 text-stone-700"
+                            className="text-[15px] leading-7 text-[#111]"
                           >
                             {trimmed}
                           </p>
@@ -326,15 +338,15 @@ export default function EnhancedNotes({
                 ))}
               </div>
             ) : (
-              <div className="rounded-[24px] border border-black/[0.04] bg-white p-6 shadow-sm">
-                <p className="text-[15px] leading-7 text-stone-700">
+              <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-6 shadow-[4px_4px_0px_#111]">
+                <p className="text-[15px] leading-7 text-[#111]">
                   暂时无法结构化解析当前内容，请重新生成，或复制后在外部查看原始 Markdown。
                 </p>
               </div>
             )}
 
             {feedback && (
-              <p className="mt-4 text-[12px] font-medium text-stone-500">{feedback}</p>
+              <p className="mt-4 text-[12px] font-medium text-[#8A8578]">{feedback}</p>
             )}
           </div>
         </>
@@ -342,17 +354,17 @@ export default function EnhancedNotes({
 
       {showShareDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4">
-          <div className="w-full max-w-2xl rounded-3xl border border-stone-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-stone-100 px-6 py-4">
+          <div className="w-full max-w-2xl rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111]">
+            <div className="retro-title-bar flex items-center justify-between border-b-2 border-[#111] bg-gradient-to-r from-[#111] to-[#555] px-6 py-3">
               <div>
-                <h4 className="text-base font-semibold text-stone-900">分享会议纪要</h4>
-                <p className="mt-1 text-xs text-stone-400">
+                <h4 className="font-[family-name:var(--font-vt323)] text-base font-semibold text-white">分享会议纪要</h4>
+                <p className="mt-1 font-[family-name:var(--font-vt323)] text-xs text-white/70">
                   配置 Webhook 后可直接推送到飞书或企业微信
                 </p>
               </div>
               <button
                 onClick={() => setShowShareDialog(false)}
-                className="rounded-lg p-2 text-stone-400 transition-colors hover:bg-stone-50 hover:text-stone-600"
+                className="rounded-none border-2 border-white/40 p-1.5 text-white transition-colors hover:bg-white/20"
                 title="关闭"
               >
                 <X size={16} />
@@ -363,27 +375,27 @@ export default function EnhancedNotes({
               <div className="flex gap-2">
                 <button
                   onClick={() => setShareChannel('feishu')}
-                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`rounded-none border-2 border-[#111] px-4 py-2 font-[family-name:var(--font-vt323)] text-sm font-medium transition-colors ${
                     shareChannel === 'feishu'
-                      ? 'bg-sky-500 text-white'
-                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                      ? 'bg-[#111] text-white'
+                      : 'bg-[#F4F0E6] text-[#111] hover:bg-[#e8e4da]'
                   }`}
                 >
                   飞书
                 </button>
                 <button
                   onClick={() => setShareChannel('wecom')}
-                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`rounded-none border-2 border-[#111] px-4 py-2 font-[family-name:var(--font-vt323)] text-sm font-medium transition-colors ${
                     shareChannel === 'wecom'
-                      ? 'bg-sky-500 text-white'
-                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                      ? 'bg-[#111] text-white'
+                      : 'bg-[#F4F0E6] text-[#111] hover:bg-[#e8e4da]'
                   }`}
                 >
                   企业微信
                 </button>
               </div>
 
-              <label className="block text-xs text-stone-500">
+              <label className="block font-[family-name:var(--font-vt323)] text-xs text-[#8A8578]">
                 Webhook URL
                 <input
                   value={webhookUrls[shareChannel]}
@@ -398,16 +410,16 @@ export default function EnhancedNotes({
                       ? 'https://open.feishu.cn/open-apis/bot/v2/hook/...'
                       : 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?...'
                   }
-                  className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
+                  className="mt-1 w-full rounded-none border-2 border-[#111] bg-white px-3 py-2 font-[family-name:var(--font-vt323)] text-sm text-[#111] focus:outline-none focus:shadow-[2px_2px_0px_#111]"
                 />
               </label>
 
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs text-stone-500">发送预览</span>
+                  <span className="font-[family-name:var(--font-vt323)] text-xs text-[#8A8578]">发送预览</span>
                   <button
                     onClick={handleCopy}
-                    className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2.5 py-1 text-xs text-stone-500 transition-colors hover:bg-stone-50"
+                    className="inline-flex items-center gap-1 rounded-none border-2 border-[#111] px-2.5 py-1 font-[family-name:var(--font-vt323)] text-xs text-[#111] transition-colors hover:bg-[#111] hover:text-white"
                   >
                     {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                     复制预览
@@ -416,22 +428,22 @@ export default function EnhancedNotes({
                 <textarea
                   readOnly
                   value={sharePreview}
-                  className="h-64 w-full rounded-2xl border border-stone-200 bg-stone-50 px-3 py-3 text-xs leading-relaxed text-stone-700 focus:outline-none"
+                  className="h-64 w-full rounded-none border-2 border-[#111] bg-white px-3 py-3 font-[family-name:var(--font-vt323)] text-xs leading-relaxed text-[#111] focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-stone-100 px-6 py-4">
+            <div className="flex items-center justify-end gap-3 border-t-2 border-[#111] px-6 py-4">
               <button
                 onClick={() => setShowShareDialog(false)}
-                className="rounded-xl border border-stone-200 px-4 py-2 text-sm text-stone-600 transition-colors hover:bg-stone-50"
+                className="rounded-none border-2 border-[#111] px-4 py-2 font-[family-name:var(--font-vt323)] text-sm text-[#111] transition-colors hover:bg-[#111] hover:text-white"
               >
                 取消
               </button>
               <button
                 onClick={handleShare}
                 disabled={isSharing || !enhancedNotes.trim()}
-                className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-black disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#111] px-4 py-2 font-[family-name:var(--font-vt323)] text-sm font-semibold text-white shadow-[4px_4px_0px_#555] transition-colors hover:bg-black disabled:opacity-40"
               >
                 {isSharing ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                 发送

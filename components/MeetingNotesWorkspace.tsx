@@ -133,18 +133,18 @@ export default function MeetingNotesWorkspace() {
     !promptDismissed;
 
   return (
-    <section className="overflow-hidden rounded-[28px] border border-black/[0.05] bg-[#FCFAF8] shadow-sm">
-      <div className="border-b border-black/[0.05] px-4 py-4 sm:px-6">
+    <section className="retro-window overflow-hidden rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111]">
+      <div className="border-b-2 border-[#111] px-4 py-4 sm:px-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#A69B8F]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#8A8578]">
               Notes Workspace
             </p>
-            <h3 className="mt-1 font-song text-[18px] font-semibold text-[#3A2E25]">
+            <h3 className="mt-1 font-[family-name:var(--font-vt323)] text-[18px] font-semibold text-[#111]">
               笔记工作台
             </h3>
           </div>
-          <div className="inline-flex rounded-2xl border border-[#E3D9CE] bg-white p-1 shadow-sm">
+          <div className="inline-flex rounded-none border-2 border-[#111] bg-[#F4F0E6] p-0 shadow-none">
             <WorkspaceTab
               active={activeView === 'notes'}
               icon={<FileText size={14} />}
@@ -161,7 +161,7 @@ export default function MeetingNotesWorkspace() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#A69B8F]">
+          <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#8A8578]">
             Recipe
           </span>
           <select
@@ -169,7 +169,7 @@ export default function MeetingNotesWorkspace() {
             onChange={(event) =>
               setEnhanceRecipeId(event.target.value === '__auto__' ? null : event.target.value)
             }
-            className="rounded-full border border-[#E3D9CE] bg-white px-4 py-2 text-[13px] text-[#5C4D42] focus:border-[#BFAE9E] focus:outline-none"
+            className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2 text-[13px] text-[#8A8578] focus:border-[#111] focus:outline-none"
           >
             <option value="__auto__">Auto</option>
             {recipes.map((recipe) => (
@@ -178,13 +178,13 @@ export default function MeetingNotesWorkspace() {
               </option>
             ))}
           </select>
-          <span className="text-[12px] text-[#8C7A6B]">
+          <span className="text-[12px] text-[#8A8578]">
             {selectedRecipe?.description || '默认生成通用会议摘要，可随时切换到更具体的 Recipe。'}
           </span>
         </div>
       </div>
 
-      <div className="relative min-h-[560px] bg-[#FCFAF8]">
+      <div className="relative min-h-[560px] bg-[#F4F0E6]">
         <div className={activeView === 'notes' ? 'block h-full' : 'hidden h-full'}>
           <NoteEditor embedded />
         </div>
@@ -199,17 +199,17 @@ export default function MeetingNotesWorkspace() {
 
         {shouldShowEnhancePrompt && (
           <div className="pointer-events-none sticky bottom-0 z-20 px-4 pb-4 sm:px-6 sm:pb-6">
-            <div className="pointer-events-auto ml-auto max-w-xl rounded-[24px] border border-[#D8CEC4] bg-white/95 p-4 shadow-[0_20px_60px_rgba(62,39,26,0.12)] backdrop-blur">
+            <div className="retro-window pointer-events-auto ml-auto max-w-xl rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 shadow-[4px_4px_0px_#111]">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex gap-3">
-                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-500">
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6] text-[#D9423E]">
                     <Wand2 size={18} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#3A2E25]">
+                    <p className="text-sm font-semibold text-[#111]">
                       录音已结束，生成 AI 增强笔记
                     </p>
-                    <p className="mt-1 text-xs leading-5 text-[#8C7A6B]">
+                    <p className="mt-1 text-xs leading-5 text-[#8A8578]">
                       基于实时转写和你的手写笔记整理结构化总结，并自动切换到 AI
                       总结视图。
                     </p>
@@ -218,7 +218,7 @@ export default function MeetingNotesWorkspace() {
                 <button
                   type="button"
                   onClick={() => setPromptDismissed(true)}
-                  className="rounded-lg p-1 text-[#A69B8F] transition-colors hover:bg-[#F7F3EE] hover:text-[#5C4D42]"
+                  className="rounded-none p-1 text-[#8A8578] hover:bg-[#F4F0E6] hover:text-[#111]"
                   title="稍后处理"
                 >
                   <X size={14} />
@@ -229,16 +229,18 @@ export default function MeetingNotesWorkspace() {
                 <button
                   type="button"
                   onClick={() => setPromptDismissed(true)}
-                  className="rounded-xl border border-[#E3D9CE] px-3 py-2 text-xs font-medium text-[#8C7A6B] transition-colors hover:bg-[#F7F3EE]"
+                  className="rounded-none border-2 border-[#111] px-3 py-2 text-xs font-medium text-[#8A8578] hover:bg-[#F4F0E6]"
                 >
                   稍后
                 </button>
                 <button
                   type="button"
                   onClick={handleGenerate}
-                  className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-sky-400"
+                  className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#111] px-4 py-2 text-xs font-semibold text-[#F4F0E6] shadow-[4px_4px_0px_#111] hover:bg-[#333]"
                 >
-                  <Sparkles size={14} />
+                  <span className="retro-stamp inline-flex rotate-[-5deg] border-2 border-[#D9423E] px-1">
+                    <Sparkles size={14} />
+                  </span>
                   AI 增强笔记
                 </button>
               </div>
@@ -265,10 +267,10 @@ function WorkspaceTab({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-[14px] px-4 py-2 text-sm font-medium transition-all ${
+      className={`inline-flex items-center gap-2 rounded-none px-4 py-2 text-sm font-medium transition-none ${
         active
-          ? 'bg-[#4A3C31] text-white shadow-sm'
-          : 'text-[#8C7A6B] hover:bg-[#F7F3EE] hover:text-[#4A3C31]'
+          ? 'retro-tab-active bg-[#111] text-[#F4F0E6] shadow-none'
+          : 'retro-tab-inactive bg-[#F4F0E6] text-[#111] hover:bg-[#E8E4DA]'
       }`}
     >
       {icon}

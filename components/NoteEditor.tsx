@@ -37,22 +37,22 @@ export default function NoteEditor({ embedded = false }: { embedded?: boolean })
     return (
       <div className="flex h-full flex-col bg-transparent">
         {!embedded && (
-          <div className="border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
-            <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
-              <FileText size={16} className="mr-2 text-sky-400" />
+          <div className="border-b-2 border-[#111] px-4 py-4 sm:px-6 sm:py-5">
+            <h3 className="font-[family-name:var(--font-vt323)] flex items-center text-[15px] font-semibold text-[#111]">
+              <FileText size={16} className="mr-2 text-[#111]" />
               灵感与笔记
             </h3>
           </div>
         )}
-        <div className="flex flex-1 items-center justify-center px-4 py-5 text-stone-400 sm:px-7 sm:py-8">
-          <div className="flex w-full max-w-[360px] flex-col items-center justify-center rounded-[28px] border border-dashed border-stone-200/90 bg-[#FCFBF8] px-5 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-8 sm:py-10">
-            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-100/50 bg-sky-50 shadow-sm">
-              <FileText size={20} className="text-sky-400" strokeWidth={2} />
+        <div className="flex flex-1 items-center justify-center px-4 py-5 text-[#8A8578] sm:px-7 sm:py-8">
+          <div className="flex w-full max-w-[360px] flex-col items-center justify-center rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-5 py-8 shadow-none sm:px-8 sm:py-10">
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-none">
+              <FileText size={20} className="text-[#111]" strokeWidth={2} />
             </div>
-            <p className="font-song mb-2 text-center text-[17px] font-semibold text-stone-700">
+            <p className="font-[family-name:var(--font-vt323)] mb-2 text-center text-[17px] font-semibold text-[#111]">
               灵感与笔记
             </p>
-            <p className="mx-auto max-w-[240px] text-center text-[13px] leading-6 text-stone-400">
+            <p className="mx-auto max-w-[240px] text-center text-[13px] leading-6 text-[#8A8578]">
               记录判断、补充背景，让思路与转写自然汇合。
             </p>
           </div>
@@ -64,16 +64,16 @@ export default function NoteEditor({ embedded = false }: { embedded?: boolean })
   return (
     <div className="flex h-full flex-col bg-transparent">
       {!embedded && (
-        <div className="border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
-          <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
-            <FileText size={16} className="mr-2 text-sky-400" />
+        <div className="border-b-2 border-[#111] px-4 py-4 sm:px-6 sm:py-5">
+          <h3 className="font-[family-name:var(--font-vt323)] flex items-center text-[15px] font-semibold text-[#111]">
+            <FileText size={16} className="mr-2 text-[#111]" />
             灵感与笔记
           </h3>
         </div>
       )}
       {/* 极简工具栏悬浮 */}
       {editor && (
-        <div className="sticky top-0 z-10 flex items-center gap-1 border-b border-black/[0.04] bg-[#FCFAF8]/90 px-6 py-4 backdrop-blur-md">
+        <div className="sticky top-0 z-10 flex items-center gap-1 border-b-2 border-[#111] bg-[#F4F0E6] px-6 py-4">
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             active={editor.isActive('heading', { level: 2 })}
@@ -95,7 +95,7 @@ export default function NoteEditor({ embedded = false }: { embedded?: boolean })
           >
             <Italic size={16} />
           </ToolbarButton>
-          <div className="mx-2 h-4 w-px bg-[#D8CEC4]" />
+          <div className="mx-2 h-4 w-px bg-[#111]" />
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             active={editor.isActive('bulletList')}
@@ -114,7 +114,7 @@ export default function NoteEditor({ embedded = false }: { embedded?: boolean })
       )}
 
       {/* 沉浸式编辑区 */}
-      <div className="flex-1 overflow-y-auto bg-[#FCFAF8] px-8 py-8">
+      <div className="flex-1 overflow-y-auto bg-[#F4F0E6] px-8 py-8">
         <EditorContent editor={editor} />
       </div>
     </div>
@@ -136,10 +136,10 @@ function ToolbarButton({
     <button
       onClick={onClick}
       title={title}
-      className={`rounded-xl p-2 transition-all ${
+      className={`rounded-none p-2 transition-all ${
         active
-          ? 'bg-sky-50 text-sky-600 shadow-sm border border-sky-100/50'
-          : 'text-[#A69B8F] hover:bg-[#F7F3EE] hover:text-[#5C4D42] border border-transparent'
+          ? 'bg-[#111] text-[#F4F0E6] border-2 border-[#111]'
+          : 'text-[#8A8578] hover:bg-[#111] hover:text-[#F4F0E6] border-2 border-transparent'
       }`}
     >
       {children}
