@@ -53,7 +53,7 @@ function GreetingHeader() {
 
   return (
     <div>
-      <div className="text-[12px] uppercase tracking-[0.26em] text-[#B29F8B]">
+      <div className="text-[12px] uppercase tracking-[0.26em] text-[#8A8578] font-[family-name:var(--font-space-mono)]">
         {now.toLocaleDateString('zh-CN', {
           year: 'numeric',
           month: 'long',
@@ -61,10 +61,10 @@ function GreetingHeader() {
           weekday: 'long',
         })}
       </div>
-      <h1 className="mt-3 font-song text-[34px] leading-tight text-[#3A2E25] sm:text-[44px]">
+      <h1 className="mt-3 font-[family-name:var(--font-vt323)] text-[40px] leading-tight text-[#111] sm:text-[52px]">
         {greeting}
       </h1>
-      <p className="mt-3 max-w-[620px] text-[15px] leading-7 text-[#7C6B5C]">
+      <p className="mt-3 max-w-[620px] text-[15px] leading-7 text-[#8A8578]">
         从最近的会议和最近的对话继续，不用每次都重新找上下文。
       </p>
     </div>
@@ -170,14 +170,15 @@ export default function HomePage() {
   return (
     <div className="flex-1">
       <div className="mx-auto flex max-w-[1100px] flex-col gap-8 px-6 pb-12 pt-10 sm:px-8 lg:px-10">
-        <section className="rounded-[34px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(249,244,237,0.98)_58%,_rgba(239,231,221,1))] px-6 py-8 shadow-[0_24px_72px_rgba(58,46,37,0.08)] sm:px-8 sm:py-9">
+        {/* 问候区 → retro-window */}
+        <section className="retro-window px-6 py-8 sm:px-8 sm:py-9">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <GreetingHeader />
             <div className="flex flex-wrap items-center gap-3">
               {selectedWorkspace ? (
                 <Link
                   href={`/workspace/${selectedWorkspace.id}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#D8CEC4] bg-white/88 px-4 py-2 text-sm text-[#5C4D42] transition-colors hover:bg-white"
+                  className="retro-btn inline-flex items-center gap-2 bg-[#F4F0E6] px-4 py-2 text-sm text-[#111]"
                 >
                   进入 {selectedWorkspace.name}
                   <ArrowRight size={14} />
@@ -186,7 +187,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setShowCreateWorkspace(true)}
-                className="inline-flex items-center gap-2 rounded-full border border-[#D8CEC4] bg-white/70 px-4 py-2 text-sm text-[#5C4D42] transition-colors hover:bg-white"
+                className="retro-btn inline-flex items-center gap-2 bg-[#111] px-4 py-2 text-sm text-[#F4F0E6]"
               >
                 <Plus size={14} />
                 创建工作区
@@ -196,136 +197,144 @@ export default function HomePage() {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
-          <div className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="font-song text-[24px] text-[#3A2E25]">最近会议</h2>
-                <p className="mt-1 text-sm text-[#8C7A6B]">
+          {/* 最近会议 → retro-window + 标题栏 */}
+          <div className="retro-window">
+            <div className="retro-title-bar">
+              <span className="retro-title-bar-label">最近会议</span>
+            </div>
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-sm text-[#8A8578]">
                   {selectedWorkspace
                     ? `当前查看 ${selectedWorkspace.name} 下最近继续过的会议。`
                     : '先创建一个工作区，再开始积累会议记录。'}
                 </p>
+                {selectedWorkspace ? (
+                  <Link
+                    href={`/workspace/${selectedWorkspace.id}`}
+                    className="retro-btn inline-flex shrink-0 items-center gap-1 bg-[#F4F0E6] px-3 py-2 text-sm text-[#111]"
+                  >
+                    查看工作区
+                    <ArrowRight size={14} />
+                  </Link>
+                ) : null}
               </div>
-              {selectedWorkspace ? (
-                <Link
-                  href={`/workspace/${selectedWorkspace.id}`}
-                  className="inline-flex items-center gap-1 rounded-full border border-[#D8CEC4] bg-[#FBF8F4] px-3 py-2 text-sm text-[#6B5C50] transition-colors hover:bg-white"
-                >
-                  查看工作区
-                  <ArrowRight size={14} />
-                </Link>
-              ) : null}
-            </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              {workspaces.map((workspace) => {
-                const active = workspace.id === selectedWorkspaceId;
-                return (
-                  <button
-                    key={workspace.id}
-                    type="button"
-                    onClick={() => handleSelectWorkspace(workspace.id)}
-                    className={`rounded-full border px-4 py-2 text-left transition-all ${
-                      active
-                        ? 'border-[#D4C1AA] bg-white shadow-sm ring-2 ring-[#EFE1D0]'
-                        : 'border-[#E7DDD2] bg-white/70 hover:border-[#D9CBBB] hover:bg-white'
-                    }`}
-                  >
-                    <div className="text-sm font-semibold text-[#3A2E25]">{workspace.name}</div>
-                    <div className="mt-0.5 text-[11px] text-[#9D8B7B]">
-                      {getWorkspaceModeLabel(workspace)}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-5 space-y-3">
-              {selectedWorkspace && recentMeetings.length === 0 ? (
-                <div className="rounded-[24px] border border-dashed border-[#D8CEC4] bg-[#FCFAF7] px-5 py-10 text-center">
-                  <p className="text-sm font-medium text-[#5C4D42]">这个工作区还没有会议</p>
-                  <p className="mt-2 text-sm leading-6 text-[#8B796A]">
-                    进入工作区后开始录音或导入音频，会自动沉淀到正确上下文。
-                  </p>
-                </div>
-              ) : !selectedWorkspace ? (
-                <div className="rounded-[24px] border border-dashed border-[#D8CEC4] bg-[#FCFAF7] px-5 py-10 text-center">
-                  <p className="text-sm font-medium text-[#5C4D42]">还没有工作区</p>
-                  <p className="mt-2 text-sm leading-6 text-[#8B796A]">先创建一个工作区，再开始积累会议与笔记。</p>
-                </div>
-              ) : (
-                recentMeetings.map((meeting) => (
-                  <button
-                    key={meeting.id}
-                    type="button"
-                    onClick={() => router.push(`/meeting/${meeting.id}?returnTo=${encodeURIComponent('/')}`)}
-                    className="w-full rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] p-4 text-left transition-all hover:border-[#D8CEC4] hover:shadow-[0_12px_24px_rgba(58,46,37,0.06)]"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <div className="line-clamp-1 text-[15px] font-semibold text-[#3A2E25]">
-                          {meeting.title || '无标题记录'}
-                        </div>
-                        {meeting.roundLabel ? (
-                          <div className="mt-1 text-xs text-[#A09082]">
-                            {meeting.roundLabel}
-                            {meeting.interviewerName ? ` · ${meeting.interviewerName}` : ''}
-                          </div>
-                        ) : null}
+              {/* 工作区筛选按钮 → 方形切换 */}
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                {workspaces.map((workspace) => {
+                  const active = workspace.id === selectedWorkspaceId;
+                  return (
+                    <button
+                      key={workspace.id}
+                      type="button"
+                      onClick={() => handleSelectWorkspace(workspace.id)}
+                      className={`border-2 px-4 py-2 text-left ${
+                        active
+                          ? 'border-[#111] bg-[#111] text-[#F4F0E6]'
+                          : 'border-[#111] bg-[#F4F0E6] text-[#111] hover:bg-[#111] hover:text-[#F4F0E6]'
+                      }`}
+                    >
+                      <div className="text-sm font-semibold">{workspace.name}</div>
+                      <div className="mt-0.5 text-[11px] opacity-60">
+                        {getWorkspaceModeLabel(workspace)}
                       </div>
-                      <div className="text-xs text-[#A09082]">{formatDuration(meeting.duration)}</div>
-                    </div>
-                    <div className="mt-3 flex items-center gap-2 text-xs text-[#8B796A]">
-                      <Clock3 size={12} />
-                      {formatMeetingDate(meeting.date)}
-                    </div>
-                  </button>
-                ))
-              )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 会议卡片列表 → 方形 */}
+              <div className="mt-5 space-y-3">
+                {selectedWorkspace && recentMeetings.length === 0 ? (
+                  <div className="border-2 border-dashed border-[#111] bg-[#F4F0E6] px-5 py-10 text-center">
+                    <p className="text-sm font-medium text-[#111]">这个工作区还没有会议</p>
+                    <p className="mt-2 text-sm leading-6 text-[#8A8578]">
+                      进入工作区后开始录音或导入音频，会自动沉淀到正确上下文。
+                    </p>
+                  </div>
+                ) : !selectedWorkspace ? (
+                  <div className="border-2 border-dashed border-[#111] bg-[#F4F0E6] px-5 py-10 text-center">
+                    <p className="text-sm font-medium text-[#111]">还没有工作区</p>
+                    <p className="mt-2 text-sm leading-6 text-[#8A8578]">先创建一个工作区，再开始积累会议与笔记。</p>
+                  </div>
+                ) : (
+                  recentMeetings.map((meeting) => (
+                    <button
+                      key={meeting.id}
+                      type="button"
+                      onClick={() => router.push(`/meeting/${meeting.id}?returnTo=${encodeURIComponent('/')}`)}
+                      className="w-full border-2 border-[#111] bg-[#F4F0E6] p-4 text-left hover:shadow-[6px_6px_0px_#111]"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <div className="line-clamp-1 text-[15px] font-semibold text-[#111]">
+                            {meeting.title || '无标题记录'}
+                          </div>
+                          {meeting.roundLabel ? (
+                            <div className="mt-1 text-xs text-[#8A8578]">
+                              {meeting.roundLabel}
+                              {meeting.interviewerName ? ` · ${meeting.interviewerName}` : ''}
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="text-xs text-[#8A8578]">{formatDuration(meeting.duration)}</div>
+                      </div>
+                      <div className="mt-3 flex items-center gap-2 text-xs text-[#8A8578]">
+                        <Clock3 size={12} />
+                        {formatMeetingDate(meeting.date)}
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="font-song text-[24px] text-[#3A2E25]">最近对话</h2>
-                <p className="mt-1 text-sm text-[#8C7A6B]">从最近的 AI 对话继续，不用重复描述上下文。</p>
-              </div>
-              <Link
-                href="/chat/history"
-                className="inline-flex items-center gap-1 rounded-full border border-[#D8CEC4] bg-[#FBF8F4] px-3 py-2 text-sm text-[#6B5C50] transition-colors hover:bg-white"
-              >
-                查看全部
-                <ArrowRight size={14} />
-              </Link>
+          {/* 最近对话 → retro-window + 标题栏 */}
+          <div className="retro-window">
+            <div className="retro-title-bar">
+              <span className="retro-title-bar-label">最近对话</span>
             </div>
+            <div className="p-6">
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sm text-[#8A8578]">从最近的 AI 对话继续，不用重复描述上下文。</p>
+                <Link
+                  href="/chat/history"
+                  className="retro-btn inline-flex shrink-0 items-center gap-1 bg-[#F4F0E6] px-3 py-2 text-sm text-[#111]"
+                >
+                  查看全部
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
 
-            <div className="mt-5 space-y-3">
-              {sessions.length === 0 ? (
-                <div className="rounded-[24px] border border-dashed border-[#D8CEC4] bg-[#FCFAF7] px-5 py-10 text-center">
-                  <p className="text-sm font-medium text-[#5C4D42]">还没有历史对话</p>
-                  <p className="mt-2 text-sm leading-6 text-[#8B796A]">进入 AI 对话页发起一次问题，之后就会出现在这里。</p>
-                </div>
-              ) : (
-                sessions.map((session) => (
-                  <button
-                    key={session.id}
-                    type="button"
-                    onClick={() => router.push(`/chat/${session.id}`)}
-                    className="w-full rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] p-4 text-left transition-all hover:border-[#D8CEC4] hover:shadow-[0_12px_24px_rgba(58,46,37,0.06)]"
-                  >
-                    <div className="line-clamp-1 text-[15px] font-semibold text-[#3A2E25]">
-                      {session.title}
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#8B796A]">
-                      <span className="rounded-full bg-white px-2.5 py-1">
-                        {session.workspace?.name || '全部工作区'}
-                      </span>
-                      <span>{formatRelativeTime(session.updatedAt)}</span>
-                    </div>
-                  </button>
-                ))
-              )}
+              <div className="mt-5 space-y-3">
+                {sessions.length === 0 ? (
+                  <div className="border-2 border-dashed border-[#111] bg-[#F4F0E6] px-5 py-10 text-center">
+                    <p className="text-sm font-medium text-[#111]">还没有历史对话</p>
+                    <p className="mt-2 text-sm leading-6 text-[#8A8578]">进入 AI 对话页发起一次问题，之后就会出现在这里。</p>
+                  </div>
+                ) : (
+                  sessions.map((session) => (
+                    <button
+                      key={session.id}
+                      type="button"
+                      onClick={() => router.push(`/chat/${session.id}`)}
+                      className="w-full border-2 border-[#111] bg-[#F4F0E6] p-4 text-left hover:shadow-[6px_6px_0px_#111]"
+                    >
+                      <div className="line-clamp-1 text-[15px] font-semibold text-[#111]">
+                        {session.title}
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#8A8578]">
+                        <span className="border-2 border-[#111] bg-[#EAE3D2] px-2.5 py-1">
+                          {session.workspace?.name || '全部工作区'}
+                        </span>
+                        <span>{formatRelativeTime(session.updatedAt)}</span>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </section>
