@@ -278,37 +278,37 @@ export default function Sidebar() {
   };
 
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-[#F7F3EE]">
-      {/* Logo */}
+    <div className="flex h-full flex-col bg-[#F4F0E6] border-r-2 border-[#111]">
+      {/* Logo — 方形边框, VT323 字体 */}
       <div className="flex items-center gap-2.5 px-4 pb-3 pt-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#2B2420] text-[#F5EEE6] shadow-[0_10px_24px_rgba(43,36,32,0.16)]">
+        <div className="flex h-10 w-10 items-center justify-center border-2 border-[#111] bg-[#111] text-[#F4F0E6]">
           <PiedrasMark className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <div className="font-song text-[19px] font-semibold text-[#3A2E25]">Piedras</div>
-          <div className="text-[11px] uppercase tracking-[0.22em] text-[#AE9D8E]">Workspace OS</div>
+          <div className="font-[family-name:var(--font-vt323)] text-[22px] text-[#111]">Piedras</div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-[#8A8578] font-[family-name:var(--font-space-mono)]">Workspace OS</div>
         </div>
         {/* Mobile close */}
         <button
           onClick={() => setMobileOpen(false)}
-          className="ml-auto rounded-lg p-1.5 text-[#8C7A6B] hover:bg-[#EFE9E2] md:hidden"
+          className="ml-auto p-1.5 text-[#8A8578] border-2 border-[#111] hover:bg-[#111] hover:text-[#F4F0E6] md:hidden"
         >
           <X size={16} />
         </button>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col px-3 pb-3">
-        <div className="flex min-h-0 flex-1 flex-col rounded-[28px] border border-[#E7DDD2] bg-[linear-gradient(180deg,rgba(250,246,240,0.94),rgba(246,240,232,0.92))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+        <div className="flex min-h-0 flex-1 flex-col p-2">
           <nav className="space-y-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] font-medium transition-all ${
+                className={`flex items-center gap-3 px-3 py-2.5 text-[15px] font-medium border-2 ${
                   isActive(item.href)
-                    ? 'border border-[#E3D9CE]/60 bg-white text-[#3A2E25] shadow-[0_8px_22px_rgba(58,46,37,0.08)]'
-                    : 'text-[#5C4D42] hover:bg-white/65'
+                    ? 'border-[#111] bg-[#111] text-[#F4F0E6]'
+                    : 'border-transparent text-[#111] hover:bg-[#111] hover:text-[#F4F0E6]'
                 }`}
               >
                 <item.icon size={17} />
@@ -317,7 +317,7 @@ export default function Sidebar() {
             ))}
           </nav>
 
-          <div className={`mt-1 flex min-h-0 flex-1 flex-col transition-all duration-200 ${workspaceListExpanded ? 'rounded-[24px] bg-white/42 px-1.5 py-2' : ''}`}>
+          <div className={`mt-1 flex min-h-0 flex-1 flex-col ${workspaceListExpanded ? 'px-1.5 py-2' : ''}`}>
             <div className={`flex items-center gap-1 ${workspaceListExpanded ? 'px-1' : ''}`}>
               <button
               type="button"
@@ -325,10 +325,10 @@ export default function Sidebar() {
                 router.push('/workspace');
                 setMobileOpen(false);
               }}
-                className={`flex min-w-0 flex-1 items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] font-medium transition-all ${
+                className={`flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-[15px] font-medium border-2 ${
                   isWorkspaceRoute
-                    ? 'border border-[#E3D9CE]/60 bg-white text-[#3A2E25] shadow-[0_8px_22px_rgba(58,46,37,0.08)]'
-                    : 'text-[#5C4D42] hover:bg-white/65'
+                    ? 'border-[#111] bg-[#111] text-[#F4F0E6]'
+                    : 'border-transparent text-[#111] hover:bg-[#111] hover:text-[#F4F0E6]'
                 }`}
               >
                 <Briefcase size={17} />
@@ -338,7 +338,7 @@ export default function Sidebar() {
                 type="button"
                 onClick={() => updateWorkspaceListExpanded(!workspaceListExpanded)}
                 aria-label={workspaceListExpanded ? '收起工作区列表' : '展开工作区列表'}
-                className="rounded-2xl p-2 text-[#8C7A6B] transition-colors hover:bg-white/65 hover:text-[#5C4D42]"
+                className="p-2 text-[#8A8578] hover:bg-[#111] hover:text-[#F4F0E6]"
               >
                 {workspaceListExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
               </button>
@@ -346,7 +346,7 @@ export default function Sidebar() {
                 type="button"
                 onClick={() => setWorkspaceModalState({ mode: 'create' })}
                 aria-label="创建工作区"
-                className="rounded-2xl p-2 text-[#A69B8F] transition-colors hover:bg-white/65 hover:text-[#5C4D42]"
+                className="p-2 text-[#8A8578] hover:bg-[#111] hover:text-[#F4F0E6]"
               >
                 <Plus size={15} />
               </button>
@@ -354,7 +354,7 @@ export default function Sidebar() {
 
             {workspaceListExpanded ? (
               <div className="mt-2 min-h-0 flex-1 overflow-y-auto pr-1">
-                <div className="space-y-1 border-l border-[#DDD1C4] pl-3 ml-4">
+                <div className="space-y-1 border-l-2 border-[#111] pl-3 ml-4">
                   {workspaces.map((ws) => {
                     const workspaceSelected =
                       pathname === `/workspace/${ws.id}` ||
@@ -382,17 +382,17 @@ export default function Sidebar() {
                             if (!meetingIdValue) return;
                             void handleWorkspaceDrop(ws.id, meetingIdValue);
                           }}
-                          className={`flex items-center gap-2 rounded-2xl px-3 py-2.5 text-[14px] transition-all ${
+                          className={`flex items-center gap-2 px-3 py-2.5 text-[14px] border-2 ${
                             workspaceSelected
-                              ? 'border border-[#E3D9CE]/60 bg-white font-semibold text-[#3A2E25] shadow-[0_8px_20px_rgba(58,46,37,0.08)]'
-                              : 'text-[#5C4D42] hover:bg-white/70'
+                              ? 'border-[#111] bg-[#111] text-[#F4F0E6] font-semibold'
+                              : 'border-transparent text-[#111] hover:bg-[#111] hover:text-[#F4F0E6]'
                           } ${
                             highlightedWorkspaceId === ws.id
-                              ? 'ring-2 ring-[#E9D7B8] ring-offset-2 ring-offset-[#F7F3EE] shadow-[0_12px_24px_rgba(191,156,100,0.18)]'
+                              ? 'border-[#D9423E]'
                               : ''
                           } ${
                             dragOverWorkspaceId === ws.id
-                              ? 'ring-2 ring-sky-300 ring-offset-1 ring-offset-[#F7F3EE]'
+                              ? 'border-[#2B4C7E]'
                               : ''
                           }`}
                         >
@@ -404,7 +404,7 @@ export default function Sidebar() {
                             <WorkspaceIconBadge icon={ws.icon} color={ws.color} size="sm" />
                             <div className="min-w-0 flex-1">
                               <div className="truncate">{ws.name}</div>
-                              <div className="mt-0.5 truncate text-[10px] font-medium text-[#A09082]">
+                              <div className="mt-0.5 truncate text-[10px] font-medium opacity-60">
                                 {getWorkspaceModeLabel(ws)}
                               </div>
                             </div>
@@ -416,7 +416,7 @@ export default function Sidebar() {
                                 e.stopPropagation();
                                 setWorkspaceModalState({ mode: 'edit', workspaceId: ws.id });
                               }}
-                              className="rounded-md p-1 text-[#8C7A6B] hover:bg-[#EFE9E2] hover:text-[#5C4D42]"
+                              className="p-1 text-[#8A8578] hover:bg-[#F4F0E6] hover:text-[#111]"
                               aria-label={`编辑工作区 ${ws.name}`}
                             >
                               <Pencil size={11} />
@@ -428,7 +428,7 @@ export default function Sidebar() {
                                   e.stopPropagation();
                                   void handleDelete(ws.id);
                                 }}
-                                className="rounded-md p-1 text-[#8C7A6B] hover:bg-red-50 hover:text-red-500"
+                                className="p-1 text-[#8A8578] hover:bg-[#D9423E] hover:text-[#F4F0E6]"
                                 aria-label={`删除工作区 ${ws.name}`}
                               >
                                 <Trash2 size={11} />
@@ -448,10 +448,10 @@ export default function Sidebar() {
             <Link
               href="/settings"
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[14px] font-medium transition-all ${
+              className={`flex items-center gap-3 px-3 py-2.5 text-[14px] font-medium border-2 ${
                 isActive('/settings')
-                  ? 'border border-[#E3D9CE]/60 bg-white text-[#3A2E25] shadow-[0_8px_22px_rgba(58,46,37,0.08)]'
-                  : 'text-[#5C4D42] hover:bg-white/65'
+                  ? 'border-[#111] bg-[#111] text-[#F4F0E6]'
+                  : 'border-transparent text-[#111] hover:bg-[#111] hover:text-[#F4F0E6]'
               }`}
             >
               <Settings size={16} />
@@ -468,14 +468,14 @@ export default function Sidebar() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed left-3 top-3 z-50 flex h-9 w-9 items-center justify-center rounded-xl bg-white/80 text-[#5C4D42] shadow-md backdrop-blur-sm md:hidden"
+        className="fixed left-3 top-3 z-50 flex h-9 w-9 items-center justify-center border-2 border-[#111] bg-[#F4F0E6] text-[#111] shadow-[2px_2px_0px_#111] md:hidden"
       >
         <Menu size={18} />
       </button>
 
       {/* Desktop sidebar */}
       <div
-        className="group/sidebar relative hidden shrink-0 border-r border-[#E3D9CE] md:block"
+        className="group/sidebar relative hidden shrink-0 md:block"
         style={{ width: desktopWidth }}
       >
         <aside className="h-full w-full overflow-hidden">
@@ -488,21 +488,21 @@ export default function Sidebar() {
           className="absolute inset-y-0 -right-[6px] z-10 hidden w-3 cursor-col-resize touch-none md:block"
         >
           <span
-            className={`absolute inset-y-0 left-1/2 w-[2px] -translate-x-1/2 rounded-full transition-colors ${
-              isResizingSidebar ? 'bg-[#C9B59E]' : 'bg-transparent group-hover/sidebar:bg-[#DED0C0]'
+            className={`absolute inset-y-0 left-1/2 w-[2px] -translate-x-1/2 transition-colors ${
+              isResizingSidebar ? 'bg-[#111]' : 'bg-transparent group-hover/sidebar:bg-[#8A8578]'
             }`}
           />
         </button>
       </div>
 
-      {/* Mobile sidebar overlay */}
+      {/* Mobile sidebar overlay — 不透明黑色背景, 无模糊 */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <button
-            className="absolute inset-0 bg-[#3A2E25]/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-[#111]/40"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-[280px] animate-in slide-in-from-left duration-200">
+          <aside className="absolute left-0 top-0 h-full w-[280px]">
             {sidebarContent}
           </aside>
         </div>
