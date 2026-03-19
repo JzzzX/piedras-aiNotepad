@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Loader2, Pencil, Plus, WandSparkles, X } from 'lucide-react';
+import { Loader2, Pencil, Plus, WandSparkles } from 'lucide-react';
 import WorkspaceIconBadge from '@/components/WorkspaceIconBadge';
 import {
   getDefaultWorkspaceIconKey,
@@ -180,7 +180,7 @@ export default function CollectionModal({
   const submitLabel = mode === 'create' ? '创建' : '保存';
 
   return createPortal(
-    <div className="fixed inset-0 z-[115] flex items-center justify-center bg-[#2B2420]/26 p-4 backdrop-blur-sm sm:p-6">
+    <div className="fixed inset-0 z-[115] flex items-center justify-center bg-[#111]/40 p-4 sm:p-6">
       <button
         type="button"
         aria-label="关闭 Collection 弹窗"
@@ -188,30 +188,20 @@ export default function CollectionModal({
         onClick={handleClose}
       />
 
-      <div className="relative z-10 flex w-full max-h-[90vh] max-w-[720px] flex-col overflow-hidden rounded-[32px] border border-[#E3D9CE]/70 bg-[#FCF9F5] shadow-[0_30px_80px_rgba(58,46,37,0.18)]">
-        <div className="shrink-0 flex items-start justify-between border-b border-[#E8DED3] px-6 py-5 sm:px-7">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#B29F8B]">
-              {workflowMode === 'interview' ? 'Candidate' : 'Collection'}
-            </p>
-            <h2 className="mt-2 font-song text-[24px] font-semibold text-[#3A2E25]">{title}</h2>
-            <p className="mt-2 text-sm text-[#7B6A5B]">{subtitle}</p>
-          </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="rounded-full p-2 text-[#9D8B7B] transition-colors hover:bg-white/80 hover:text-[#5C4D42]"
-            aria-label="关闭"
-          >
-            <X size={18} />
-          </button>
+      <div className="retro-window relative z-10 flex w-full max-h-[90vh] max-w-[720px] flex-col overflow-hidden">
+        <div className="retro-title-bar">
+          <div className="retro-close-box" onClick={handleClose} />
+          <span className="retro-title-bar-label">{title}</span>
+        </div>
+        <div className="shrink-0 px-6 py-3 border-b-2 border-[#111]">
+          <p className="text-sm text-[#8A8578]">{subtitle}</p>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           <div className="grid gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[minmax(0,1.2fr)_280px]">
             <div className="space-y-5">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-[#5C4D42]">名称</span>
+                <span className="mb-2 block text-sm font-medium text-[#111]">名称</span>
                 <input
                   ref={nameInputRef}
                   value={draft.name}
@@ -223,25 +213,25 @@ export default function CollectionModal({
                     }
                   }}
                   placeholder={workflowMode === 'interview' ? '例如：王小明' : '例如：销售、政策研究'}
-                  className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                  className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-sm text-[#111] placeholder:text-[#8A8578] focus:outline-none focus:ring-2 focus:ring-[#2B4C7E]"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-[#5C4D42]">描述</span>
+                <span className="mb-2 block text-sm font-medium text-[#111]">描述</span>
                 <textarea
                   value={draft.description}
                   onChange={(event) => setDraft((prev) => ({ ...prev, description: event.target.value }))}
                   placeholder="一句话说明这组会议的用途，可选"
                   rows={3}
-                  className="w-full resize-none rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm leading-6 text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                  className="w-full resize-none rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-sm leading-6 text-[#111] placeholder:text-[#8A8578] focus:outline-none focus:ring-2 focus:ring-[#2B4C7E]"
                 />
               </label>
 
               {workflowMode === 'interview' ? (
                 <>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-[#5C4D42]">当前状态</span>
+                    <span className="mb-2 block text-sm font-medium text-[#111]">当前状态</span>
                     <select
                       value={draft.candidateStatus}
                       onChange={(event) =>
@@ -250,7 +240,7 @@ export default function CollectionModal({
                           candidateStatus: event.target.value as CandidateStatus,
                         }))
                       }
-                      className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                      className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-sm text-[#111] placeholder:text-[#8A8578] focus:outline-none focus:ring-2 focus:ring-[#2B4C7E]"
                     >
                       {CANDIDATE_STATUS_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -261,19 +251,19 @@ export default function CollectionModal({
                   </label>
 
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-[#5C4D42]">下一位面试官</span>
+                    <span className="mb-2 block text-sm font-medium text-[#111]">下一位面试官</span>
                     <input
                       value={draft.nextInterviewer}
                       onChange={(event) =>
                         setDraft((prev) => ({ ...prev, nextInterviewer: event.target.value }))
                       }
                       placeholder="例如：技术负责人 / HRBP"
-                      className="w-full rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                      className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-sm text-[#111] placeholder:text-[#8A8578] focus:outline-none focus:ring-2 focus:ring-[#2B4C7E]"
                     />
                   </label>
 
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-[#5C4D42]">下一轮重点</span>
+                    <span className="mb-2 block text-sm font-medium text-[#111]">下一轮重点</span>
                     <textarea
                       value={draft.nextFocus}
                       onChange={(event) =>
@@ -281,7 +271,7 @@ export default function CollectionModal({
                       }
                       placeholder="例如：深挖系统设计、文化匹配和沟通方式"
                       rows={3}
-                      className="w-full resize-none rounded-2xl border border-[#D8CEC4] bg-white px-4 py-3 text-sm leading-6 text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none focus:ring-4 focus:ring-[#EADFD3]/70"
+                      className="w-full resize-none rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-sm leading-6 text-[#111] placeholder:text-[#8A8578] focus:outline-none focus:ring-2 focus:ring-[#2B4C7E]"
                     />
                   </label>
                 </>
@@ -289,9 +279,9 @@ export default function CollectionModal({
 
               <div>
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <span className="block text-sm font-medium text-[#5C4D42]">图标</span>
+                  <span className="block text-sm font-medium text-[#111]">图标</span>
                   {mode === 'create' ? (
-                    <span className="inline-flex items-center gap-1 text-xs text-[#9D8B7B]">
+                    <span className="inline-flex items-center gap-1 text-xs text-[#8A8578]">
                       <WandSparkles size={12} />
                       自动推荐
                     </span>
@@ -308,10 +298,10 @@ export default function CollectionModal({
                           setIconTouched(true);
                           setDraft((prev) => ({ ...prev, icon: option.key }));
                         }}
-                        className={`rounded-2xl border px-3 py-2.5 transition-all ${
+                        className={`rounded-none border px-3 py-2.5 transition-all ${
                           selected
-                            ? 'border-[#5C4D42] bg-white shadow-sm ring-2 ring-[#E8DED3]'
-                            : 'border-transparent bg-white/70 hover:border-[#D8CEC4] hover:bg-white'
+                            ? 'border-2 border-[#111] bg-[#F4F0E6] shadow-[2px_2px_0px_#111]'
+                            : 'border-2 border-transparent hover:border-[#111]'
                         }`}
                         aria-label={`选择图标 ${option.label}`}
                       >
@@ -325,7 +315,7 @@ export default function CollectionModal({
               </div>
 
               <div>
-                <span className="mb-3 block text-sm font-medium text-[#5C4D42]">颜色</span>
+                <span className="mb-3 block text-sm font-medium text-[#111]">颜色</span>
                 <div className="flex flex-wrap gap-3">
                   {PRESET_COLORS.map((color) => {
                     const selected = draft.color === color;
@@ -334,14 +324,14 @@ export default function CollectionModal({
                         key={color}
                         type="button"
                         onClick={() => setDraft((prev) => ({ ...prev, color }))}
-                        className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
+                        className={`flex h-11 w-11 items-center justify-center rounded-none border transition-all ${
                           selected
-                            ? 'border-[#5C4D42] bg-white shadow-sm ring-2 ring-[#E8DED3]'
-                            : 'border-transparent bg-white/70 hover:border-[#D8CEC4] hover:bg-white'
+                            ? 'border-2 border-[#111] bg-[#F4F0E6] shadow-[2px_2px_0px_#111]'
+                            : 'border-2 border-transparent hover:border-[#111]'
                         }`}
                         aria-label={`选择颜色 ${color}`}
                       >
-                        <span className="h-7 w-7 rounded-full" style={{ backgroundColor: color }} />
+                        <span className="h-7 w-7 rounded-none" style={{ backgroundColor: color }} />
                       </button>
                     );
                   })}
@@ -349,29 +339,29 @@ export default function CollectionModal({
               </div>
 
               {error ? (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                <div className="border-2 border-[#D9423E] bg-[#F4F0E6] px-4 py-3 text-sm text-[#D9423E]">
                   {error}
                 </div>
               ) : null}
             </div>
 
-            <div className="rounded-[28px] border border-[#E8DED3] bg-white/80 p-5 shadow-sm lg:sticky lg:top-0 lg:h-fit">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#B29F8B]">
+            <div className="retro-window p-5 lg:sticky lg:top-0 lg:h-fit">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#8A8578]">
                 预览
               </div>
 
-              <div className="mt-5 rounded-[24px] border border-[#E3D9CE] bg-white p-4 shadow-[0_10px_20px_rgba(58,46,37,0.08)]">
+              <div className="mt-5 border-2 border-[#111] bg-[#F4F0E6] p-4">
                 <div className="flex items-center gap-3">
                   <WorkspaceIconBadge icon={draft.icon} color={draft.color} size="lg" />
                   <div className="min-w-0">
-                    <div className="truncate text-base font-semibold text-[#3A2E25]">{previewName}</div>
-                    <div className="mt-1 line-clamp-2 text-xs text-[#A09082]">{previewDescription}</div>
+                    <div className="truncate text-base font-semibold text-[#111]">{previewName}</div>
+                    <div className="mt-1 line-clamp-2 text-xs text-[#8A8578]">{previewDescription}</div>
                   </div>
                 </div>
               </div>
 
               {workflowMode === 'interview' ? (
-                <div className="mt-4 rounded-[22px] bg-[#F7F2EB] px-4 py-4 text-sm leading-6 text-[#7B6A5B]">
+                <div className="mt-4 border-2 border-[#111] bg-[#EAE3D2] px-4 py-4 text-sm leading-6 text-[#8A8578]">
                   下一位面试官：{draft.nextInterviewer.trim() || '待定'}
                   <br />
                   下一轮重点：{draft.nextFocus.trim() || '待补充'}
@@ -379,7 +369,7 @@ export default function CollectionModal({
               ) : null}
 
               {mode === 'create' ? (
-                <div className="mt-4 flex items-center gap-2 text-xs text-[#9D8B7B]">
+                <div className="mt-4 flex items-center gap-2 text-xs text-[#8A8578]">
                   <WorkspaceIconBadge icon={suggestedIcon} color={draft.color} size="sm" />
                   当前推荐：{WORKSPACE_ICON_OPTIONS.find((option) => option.key === suggestedIcon)?.label || '通用'}
                 </div>
@@ -388,8 +378,8 @@ export default function CollectionModal({
           </div>
         </div>
 
-        <div className="shrink-0 flex items-center justify-between border-t border-[#E8DED3] bg-white/60 px-6 py-4 sm:px-7">
-          <div className="hidden items-center gap-2 text-sm text-[#9D8B7B] sm:flex">
+        <div className="shrink-0 flex items-center justify-between border-t-2 border-[#111] bg-[#F4F0E6] px-6 py-4 sm:px-7">
+          <div className="hidden items-center gap-2 text-sm text-[#8A8578] sm:flex">
             {mode === 'create' ? <Plus size={15} /> : <Pencil size={15} />}
             {mode === 'create' ? '创建后可继续把会议移进来' : '保存后立即生效'}
           </div>
@@ -397,7 +387,7 @@ export default function CollectionModal({
             <button
               type="button"
               onClick={handleClose}
-              className="rounded-2xl px-4 py-2.5 text-sm font-medium text-[#8C7A6B] transition-colors hover:bg-[#F3ECE5] hover:text-[#5C4D42]"
+              className="retro-btn bg-[#F4F0E6] text-[#111] px-4 py-2.5 text-sm font-medium"
             >
               取消
             </button>
@@ -405,7 +395,7 @@ export default function CollectionModal({
               type="button"
               onClick={() => void handleSubmit()}
               disabled={isSubmitting || !draft.name.trim()}
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#3A2E25] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2B2420] disabled:cursor-not-allowed disabled:opacity-50"
+              className="retro-btn bg-[#111] text-[#F4F0E6] px-4 py-2.5 text-sm font-medium inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
               {submitLabel}
