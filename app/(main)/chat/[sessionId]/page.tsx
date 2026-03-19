@@ -450,14 +450,14 @@ export default function GlobalChatSessionPage() {
             <button
               type="button"
               onClick={() => router.push('/chat')}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#D8CEC4] bg-white text-[#6B5C50] transition-colors hover:bg-[#FBF8F4]"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6] text-[#111] transition-colors hover:bg-[#E8E4DA]"
             >
               <ArrowLeft size={18} />
             </button>
             <div>
-              <h1 className="font-song text-[28px] text-[#3A2E25]">{title}</h1>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] text-[#8C7A6B]">
-                <span className="rounded-full bg-white px-2.5 py-1">{currentScopeLabel}</span>
+              <h1 className="font-[family-name:var(--font-vt323)] text-[28px] text-[#111]">{title}</h1>
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] text-[#8A8578]">
+                <span className="rounded-none border border-[#111] bg-[#F4F0E6] px-2.5 py-1">{currentScopeLabel}</span>
               </div>
             </div>
           </div>
@@ -468,7 +468,7 @@ export default function GlobalChatSessionPage() {
                 type="button"
                 onClick={() => void handleDeleteSession()}
                 disabled={isDeleting}
-                className="inline-flex items-center gap-2 rounded-full border border-[#E6D8CB] bg-white px-4 py-2.5 text-sm font-medium text-[#7A5B57] transition-colors hover:bg-[#FBF8F4] disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2.5 text-sm font-medium text-[#111] transition-colors hover:bg-[#E8E4DA] disabled:opacity-60"
               >
                 <Trash2 size={15} />
                 删除对话
@@ -477,7 +477,7 @@ export default function GlobalChatSessionPage() {
             <button
               type="button"
               onClick={() => router.push('/chat')}
-              className="inline-flex items-center gap-2 rounded-full bg-[#3A2E25] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2B2420]"
+              className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#111] px-4 py-2.5 text-sm font-medium text-[#F4F0E6] transition-colors hover:bg-[#333]"
             >
               <Plus size={16} />
               New chat
@@ -485,7 +485,7 @@ export default function GlobalChatSessionPage() {
           </div>
         </header>
 
-        <div className="flex min-h-[540px] flex-1 flex-col overflow-hidden rounded-[32px] border border-[#DED4C9] bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(249,245,239,0.94))] shadow-[0_20px_64px_rgba(58,46,37,0.08)]">
+        <div className="flex min-h-[540px] flex-1 flex-col overflow-hidden rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111]">
           <div
             ref={scrollRef}
             className={`flex-1 overflow-y-auto px-5 py-6 sm:px-8 ${
@@ -493,25 +493,25 @@ export default function GlobalChatSessionPage() {
             }`}
           >
             {isLoadingSession ? (
-              <div className="flex items-center gap-3 rounded-full bg-white px-5 py-3 text-sm text-[#7C6B5C] shadow-sm">
+              <div className="flex items-center gap-3 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-5 py-3 text-sm text-[#8A8578] shadow-none">
                 <Loader2 size={16} className="animate-spin" />
                 正在加载聊天上下文...
               </div>
             ) : null}
 
             {!isLoadingSession && error && messages.length === 0 ? (
-              <div className="rounded-[24px] border border-[#F0C6C3] bg-[#FFF3F2] px-5 py-4 text-sm text-[#B35454]">
+              <div className="rounded-none border-2 border-[#111] bg-[#FFF3F2] px-5 py-4 text-sm text-[#B35454]">
                 {error}
               </div>
             ) : null}
 
             {!isLoadingSession && !error && messages.length === 0 ? (
               <div className="mx-auto max-w-[520px] text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] border border-[#ECD9BC] bg-[#FFF4DE]">
-                  <MessageSquareText size={26} className="text-[#D8871F]" />
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6]">
+                  <MessageSquareText size={26} className="text-[#111]" />
                 </div>
-                <h2 className="mt-5 font-song text-[28px] text-[#3A2E25]">新对话已准备好</h2>
-                <p className="mt-3 text-[15px] leading-7 text-[#857364]">
+                <h2 className="mt-5 font-[family-name:var(--font-vt323)] text-[28px] text-[#111]">新对话已准备好</h2>
+                <p className="mt-3 text-[15px] leading-7 text-[#8A8578]">
                   用下方输入框继续追问会议细节，也可以输入 <code>/</code> 调用 recipe。
                 </p>
               </div>
@@ -527,21 +527,21 @@ export default function GlobalChatSessionPage() {
                     }`}
                   >
                     {message.role === 'assistant' ? (
-                      <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#ECD9BC] bg-[#FFF4DE]">
-                        <Bot size={17} className="text-[#D8871F]" />
+                      <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6]">
+                        <Bot size={17} className="text-[#111]" />
                       </div>
                     ) : null}
 
                     <div
-                      className={`max-w-[82%] rounded-[24px] px-5 py-4 text-[15px] leading-7 shadow-sm ${
+                      className={`max-w-[82%] rounded-none px-5 py-4 text-[15px] leading-7 shadow-none ${
                         message.role === 'user'
-                          ? 'rounded-tr-md bg-[#3A2E25] text-white'
-                          : 'rounded-tl-md border border-[#E7DDD2] bg-white text-[#3A2E25]'
+                          ? 'border-2 border-[#111] bg-[#111] text-[#F4F0E6]'
+                          : 'border-2 border-[#111] bg-[#F4F0E6] text-[#111]'
                       }`}
                     >
                       <div className="whitespace-pre-wrap break-words">{message.content}</div>
                       {message.role === 'assistant' && !message.content && isSending ? (
-                        <div className="flex items-center gap-2 text-[#D8871F]">
+                        <div className="flex items-center gap-2 text-[#111]">
                           <Loader2 size={16} className="animate-spin" />
                           <span className="text-sm">思考中...</span>
                         </div>
@@ -549,8 +549,8 @@ export default function GlobalChatSessionPage() {
                     </div>
 
                     {message.role === 'user' ? (
-                      <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#E7DDD2] bg-[#F7F3EE]">
-                        <User size={17} className="text-[#8C7A6B]" />
+                      <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6]">
+                        <User size={17} className="text-[#8A8578]" />
                       </div>
                     ) : null}
                   </div>
@@ -559,9 +559,9 @@ export default function GlobalChatSessionPage() {
             ) : null}
           </div>
 
-          <div className="border-t border-[#E6DDD2] bg-white/90 px-4 py-4 sm:px-6">
+          <div className="border-t-2 border-[#111] bg-[#F4F0E6] px-4 py-4 sm:px-6">
             {error && messages.length > 0 ? (
-              <div className="mx-auto mb-3 max-w-[860px] rounded-2xl border border-[#F0C6C3] bg-[#FFF3F2] px-4 py-3 text-sm text-[#B35454]">
+              <div className="mx-auto mb-3 max-w-[860px] rounded-none border-2 border-[#111] bg-[#FFF3F2] px-4 py-3 text-sm text-[#B35454]">
                 {error}
               </div>
             ) : null}

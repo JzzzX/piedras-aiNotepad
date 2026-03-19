@@ -25,22 +25,22 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('recorder');
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-[#F4F0E6]">
       <header className="px-6 py-4 sm:px-8">
-        <h1 className="font-song text-lg font-semibold text-[#3A2E25] pl-10 md:pl-0">设置</h1>
+        <h1 className="font-[family-name:var(--font-vt323)] text-lg font-semibold text-[#111] pl-10 md:pl-0">设置</h1>
       </header>
 
       {/* Tab bar */}
-      <div className="border-b border-[#E3D9CE]/50 px-6 sm:px-8">
+      <div className="border-b-2 border-[#111] px-6 sm:px-8">
         <div className="flex gap-1">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 rounded-t-lg px-4 py-2.5 text-sm font-medium transition-all ${
+              className={`flex items-center gap-1.5 rounded-none px-4 py-2.5 text-sm font-medium font-[family-name:var(--font-vt323)] transition-all border-2 border-[#111] border-b-0 ${
                 activeTab === tab.id
-                  ? 'border-b-2 border-[#4A3C31] text-[#3A2E25]'
-                  : 'text-[#8C7A6B] hover:text-[#5C4D42]'
+                  ? 'bg-[#111] text-[#F4F0E6]'
+                  : 'bg-[#F4F0E6] text-[#111] hover:text-[#8A8578]'
               }`}
             >
               <tab.icon size={14} />

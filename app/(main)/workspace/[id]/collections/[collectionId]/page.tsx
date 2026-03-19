@@ -179,33 +179,33 @@ export default function CollectionDetailPage() {
             : 'grid-rows-[auto_minmax(0,1fr)]'
         }`}
       >
-        <section className="rounded-[30px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(249,244,237,0.98)_58%,_rgba(239,231,221,1))] px-6 py-7 shadow-[0_24px_72px_rgba(58,46,37,0.08)] sm:px-8">
+        <section className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-6 py-7 shadow-[4px_4px_0px_#111] sm:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
               <Link
                 href={`/workspace/${workspaceId}`}
-                className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm text-[#6C5D50] transition-colors hover:bg-white"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2 text-sm text-[#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 <ChevronLeft size={14} />
                 返回工作区
               </Link>
               {workspace ? (
                 <div
-                  className={`mt-4 inline-flex items-center gap-3 rounded-full px-4 py-2 text-sm ${
-                    modeConfig?.accentSurface || 'bg-white/90'
-                  } ${modeConfig?.accentText || 'text-[#6C5D50]'}`}
+                  className={`mt-4 inline-flex items-center gap-3 rounded-none border-2 border-[#111] px-4 py-2 text-sm ${
+                    modeConfig?.accentSurface || 'bg-[#F4F0E6]'
+                  } ${modeConfig?.accentText || 'text-[#8A8578]'}`}
                 >
                   <WorkspaceIconBadge icon={workspace.icon} color={workspace.color} size="sm" />
                   <span>{getWorkspaceModeLabel(workspace)}</span>
                 </div>
               ) : null}
-              <h1 className="mt-4 flex items-center gap-3 font-song text-[34px] leading-tight text-[#3A2E25] sm:text-[42px]">
+              <h1 className="mt-4 flex items-center gap-3 font-[family-name:var(--font-vt323)] text-[34px] leading-tight text-[#111] sm:text-[42px]">
                 {collection ? (
                   <WorkspaceIconBadge icon={collection.icon} color={collection.color} size="lg" />
                 ) : null}
                 <span>{collection?.name || (isInterviewMode ? '候选人' : 'Collection')}</span>
               </h1>
-              <p className="mt-3 max-w-[720px] text-[15px] leading-7 text-[#7C6B5C]">
+              <p className="mt-3 max-w-[720px] text-[15px] leading-7 text-[#8A8578]">
                 {isInterviewMode
                   ? collection?.description || '在这里查看候选人的多轮面试记录和交接摘要。'
                   : collection?.description || `查看 ${workspace?.name || '当前工作区'} 下这组会议与笔记历史。`}
@@ -213,14 +213,14 @@ export default function CollectionDetailPage() {
               {isInterviewMode && collection ? (
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
                   <span
-                    className={`rounded-full px-3 py-1.5 ${getCandidateStatusMeta(collection.candidateStatus).tone}`}
+                    className={`rounded-none border-2 border-[#111] px-3 py-1.5 ${getCandidateStatusMeta(collection.candidateStatus).tone}`}
                   >
                     {getCandidateStatusMeta(collection.candidateStatus).label}
                   </span>
-                  <span className="rounded-full bg-white px-3 py-1.5 text-[#8B796A]">
+                  <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5 text-[#8A8578]">
                     下一位面试官：{collection.nextInterviewer || '待定'}
                   </span>
-                  <span className="rounded-full bg-white px-3 py-1.5 text-[#8B796A]">
+                  <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5 text-[#8A8578]">
                     下一轮重点：{collection.nextFocus || '待补充'}
                   </span>
                 </div>
@@ -231,7 +231,7 @@ export default function CollectionDetailPage() {
               <button
                 type="button"
                 onClick={handleNewMeeting}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#3A2E25] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2B2420]"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#111] px-4 py-2.5 text-sm font-medium text-[#F4F0E6] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#333]"
               >
                 <Mic size={16} />
                 {isInterviewMode ? '发起这一轮' : '在此录音'}
@@ -239,7 +239,7 @@ export default function CollectionDetailPage() {
               <button
                 type="button"
                 onClick={handleImportAudio}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2.5 text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 <FileAudio size={16} />
                 {isInterviewMode ? '导入这一轮录音' : '导入音频'}
@@ -247,7 +247,7 @@ export default function CollectionDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowEditModal(true)}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2.5 text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 <Edit3 size={16} />
                 {isInterviewMode ? '编辑候选人' : '编辑 Collection'}
@@ -258,7 +258,7 @@ export default function CollectionDetailPage() {
                   setActiveTab('assets');
                   setAssetUploadSignal((value) => value + 1);
                 }}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2.5 text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 <FileText size={16} />
                 导入资料
@@ -269,11 +269,11 @@ export default function CollectionDetailPage() {
 
         {isInterviewMode ? (
           <section className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-            <div className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-5 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+            <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-5 shadow-[4px_4px_0px_#111]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="font-song text-[26px] text-[#3A2E25]">交接摘要</h2>
-                  <p className="mt-1 text-sm text-[#8B796A]">
+                  <h2 className="font-[family-name:var(--font-vt323)] text-[26px] text-[#111]">交接摘要</h2>
+                  <p className="mt-1 text-sm text-[#8A8578]">
                     给下一位面试官一个能快速接手的候选人概览。
                   </p>
                 </div>
@@ -281,7 +281,7 @@ export default function CollectionDetailPage() {
                   type="button"
                   onClick={() => void handleGenerateHandoff()}
                   disabled={handoffGenerating}
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-3 py-2 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4] disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2 text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA] disabled:opacity-60"
                 >
                   {handoffGenerating ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
                   AI 更新摘要
@@ -293,16 +293,16 @@ export default function CollectionDetailPage() {
                 onChange={(event) => setHandoffDraft(event.target.value)}
                 placeholder="在这里记录给下一轮面试官的背景、风险点和建议关注项。"
                 rows={10}
-                className="mt-5 w-full resize-none rounded-[24px] border border-[#E3D9CE] bg-[#FCFAF7] px-4 py-4 text-sm leading-7 text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none"
+                className="mt-5 w-full resize-none rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-4 text-sm leading-7 text-[#111] placeholder:text-[#8A8578] focus:border-[#111] focus:outline-none"
               />
 
               <div className="mt-4 flex items-center justify-between gap-3">
-                <div className="text-sm text-[#8B796A]">{handoffMessage || '可手动编辑，也可基于历史面试自动生成。'}</div>
+                <div className="text-sm text-[#8A8578]">{handoffMessage || '可手动编辑，也可基于历史面试自动生成。'}</div>
                 <button
                   type="button"
                   onClick={() => void handleSaveHandoff()}
                   disabled={handoffSaving}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#3A2E25] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2B2420] disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#111] px-4 py-2.5 text-sm font-medium text-[#F4F0E6] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#333] disabled:opacity-60"
                 >
                   {handoffSaving ? <Loader2 size={15} className="animate-spin" /> : null}
                   保存交接摘要
@@ -310,17 +310,17 @@ export default function CollectionDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-5 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+            <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-5 shadow-[4px_4px_0px_#111]">
               <div>
-                <h2 className="font-song text-[26px] text-[#3A2E25]">轮次时间线</h2>
-                <p className="mt-1 text-sm text-[#8B796A]">按时间倒序查看这个候选人的每一轮面试和交接判断。</p>
+                <h2 className="font-[family-name:var(--font-vt323)] text-[26px] text-[#111]">轮次时间线</h2>
+                <p className="mt-1 text-sm text-[#8A8578]">按时间倒序查看这个候选人的每一轮面试和交接判断。</p>
               </div>
 
               <div className="mt-5 space-y-4">
                 {timelineMeetings.length === 0 ? (
-                  <div className="rounded-[24px] border border-dashed border-[#D8CEC4] bg-[#FCFAF7] px-5 py-10 text-center">
-                    <p className="text-sm font-medium text-[#5C4D42]">还没有面试轮次</p>
-                    <p className="mt-2 text-sm leading-6 text-[#8B796A]">从上方发起这一轮或导入录音后，这里会自动形成时间线。</p>
+                  <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-5 py-10 text-center">
+                    <p className="text-sm font-medium text-[#111]">还没有面试轮次</p>
+                    <p className="mt-2 text-sm leading-6 text-[#8A8578]">从上方发起这一轮或导入录音后，这里会自动形成时间线。</p>
                   </div>
                 ) : (
                   timelineMeetings.map((meeting) => {
@@ -336,14 +336,14 @@ export default function CollectionDetailPage() {
                             )}`
                           )
                         }
-                        className="w-full rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] p-4 text-left transition-all hover:border-[#D8CEC4] hover:shadow-[0_12px_24px_rgba(58,46,37,0.06)]"
+                        className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 text-left shadow-[4px_4px_0px_#111] transition-all hover:shadow-[6px_6px_0px_#111]"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div>
-                            <div className="text-[15px] font-semibold text-[#3A2E25]">
+                            <div className="text-[15px] font-semibold text-[#111]">
                               {meeting.roundLabel || meeting.title || '未命名轮次'}
                             </div>
-                            <div className="mt-1 text-xs text-[#A09082]">
+                            <div className="mt-1 text-xs text-[#8A8578]">
                               {meeting.interviewerName || '面试官待补充'} ·{' '}
                               {new Date(meeting.date).toLocaleString('zh-CN', {
                                 month: 'short',
@@ -353,11 +353,11 @@ export default function CollectionDetailPage() {
                               })}
                             </div>
                           </div>
-                          <span className={`rounded-full px-2.5 py-1 text-xs ${recommendation.tone}`}>
+                          <span className={`rounded-none border-2 border-[#111] px-2.5 py-1 text-xs ${recommendation.tone}`}>
                             {recommendation.label}
                           </span>
                         </div>
-                        <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#746556]">
+                        <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#8A8578]">
                           {meeting.handoffNote ||
                             meeting.enhancedNotes ||
                             meeting.userNotes ||
@@ -372,13 +372,13 @@ export default function CollectionDetailPage() {
           </section>
         ) : null}
 
-        <section className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-5 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+        <section className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-5 shadow-[4px_4px_0px_#111]">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-song text-[26px] text-[#3A2E25]">
+              <h2 className="font-[family-name:var(--font-vt323)] text-[26px] text-[#111]">
                 {activeTab === 'meetings' ? (isInterviewMode ? '全部轮次' : '会议与笔记历史') : '资料库'}
               </h2>
-              <p className="mt-1 text-sm text-[#8B796A]">
+              <p className="mt-1 text-sm text-[#8A8578]">
                 {activeTab === 'meetings'
                   ? isInterviewMode
                     ? '这里保留完整的轮次列表，也可以继续把单条会议移到别的 Collection。'
@@ -386,7 +386,7 @@ export default function CollectionDetailPage() {
                   : '当前资料库只显示这个 Collection 下的资料，并仅用于预览和归档。'}
               </p>
             </div>
-            <div className="inline-flex rounded-2xl border border-[#E3D9CE] bg-[#F8F4EF] p-1">
+            <div className="inline-flex rounded-none border-2 border-[#111] bg-[#F4F0E6] p-1">
               <WorkspaceTab
                 active={activeTab === 'meetings'}
                 icon={<Mic size={14} />}
@@ -451,10 +451,10 @@ function WorkspaceTab({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-[14px] px-4 py-2 text-sm font-medium transition-all ${
+      className={`inline-flex items-center gap-2 rounded-none px-4 py-2 text-sm font-medium transition-all ${
         active
-          ? 'bg-[#4A3C31] text-white shadow-sm'
-          : 'text-[#8C7A6B] hover:bg-white hover:text-[#4A3C31]'
+          ? 'bg-[#111] text-[#F4F0E6] shadow-none'
+          : 'text-[#8A8578] hover:bg-[#F4F0E6] hover:text-[#111]'
       }`}
     >
       {icon}

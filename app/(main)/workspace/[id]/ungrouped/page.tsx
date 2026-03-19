@@ -59,23 +59,23 @@ export default function UngroupedMeetingPage() {
   return (
     <div className="min-h-full shrink-0">
       <div className="mx-auto grid min-h-full w-full max-w-[1180px] grid-rows-[auto_minmax(0,1fr)] gap-6 px-6 pb-10 pt-8 sm:px-8 lg:px-10">
-        <section className="rounded-[30px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(249,244,237,0.98)_58%,_rgba(239,231,221,1))] px-6 py-7 shadow-[0_24px_72px_rgba(58,46,37,0.08)] sm:px-8">
+        <section className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-6 py-7 shadow-[4px_4px_0px_#111] sm:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
               <Link
                 href={`/workspace/${workspaceId}`}
-                className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm text-[#6C5D50] transition-colors hover:bg-white"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2 text-sm text-[#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 <ChevronLeft size={14} />
                 返回工作区
               </Link>
-              <h1 className="mt-4 flex items-center gap-3 font-song text-[34px] leading-tight text-[#3A2E25] sm:text-[42px]">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#E3D9CE] bg-white text-[#8C7A6B]">
+              <h1 className="mt-4 flex items-center gap-3 font-[family-name:var(--font-vt323)] text-[34px] leading-tight text-[#111] sm:text-[42px]">
+                <span className="flex h-12 w-12 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6] text-[#8A8578]">
                   <FolderClosed size={20} />
                 </span>
                 <span>未归类</span>
               </h1>
-              <p className="mt-3 max-w-[720px] text-[15px] leading-7 text-[#7C6B5C]">
+              <p className="mt-3 max-w-[720px] text-[15px] leading-7 text-[#8A8578]">
                 查看 {workspace?.name || '当前工作区'} 下尚未归入任何 Collection 的会议。
               </p>
             </div>
@@ -84,7 +84,7 @@ export default function UngroupedMeetingPage() {
               <button
                 type="button"
                 onClick={handleNewMeeting}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#3A2E25] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2B2420]"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#111] px-4 py-2.5 text-sm font-medium text-[#F4F0E6] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#333]"
               >
                 <Mic size={16} />
                 新录音
@@ -92,7 +92,7 @@ export default function UngroupedMeetingPage() {
               <button
                 type="button"
                 onClick={handleImportAudio}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2.5 text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 <FileAudio size={16} />
                 导入音频
@@ -101,10 +101,10 @@ export default function UngroupedMeetingPage() {
           </div>
         </section>
 
-        <section className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-5 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+        <section className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-5 shadow-[4px_4px_0px_#111]">
           <div className="mb-4">
-            <h2 className="font-song text-[26px] text-[#3A2E25]">会议与笔记历史</h2>
-            <p className="mt-1 text-sm text-[#8B796A]">
+            <h2 className="font-[family-name:var(--font-vt323)] text-[26px] text-[#111]">会议与笔记历史</h2>
+            <p className="mt-1 text-sm text-[#8A8578]">
               当前只显示未归类会议。整理后可以直接把它们移动到具体 Collection。
             </p>
           </div>

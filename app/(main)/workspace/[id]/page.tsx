@@ -179,8 +179,8 @@ export default function WorkspacePage() {
       if (
         !window.confirm(
           isInterviewMode
-            ? `确定删除候选人「${collection.name}」吗？其下会议会回到“未归类”。`
-            : `确定删除「${collection.name}」吗？其中会议会回到“未归类”。`
+            ? `确定删除候选人「${collection.name}」吗？其下会议会回到"未归类"。`
+            : `确定删除「${collection.name}」吗？其中会议会回到"未归类"。`
         )
       ) {
         return;
@@ -204,35 +204,35 @@ export default function WorkspacePage() {
   return (
     <div className="min-h-full shrink-0">
       <div className="mx-auto grid min-h-full w-full max-w-[1180px] grid-rows-[auto_minmax(0,1fr)] gap-6 px-6 pb-10 pt-8 sm:px-8 lg:px-10">
-        <section className="rounded-[30px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.94),_rgba(249,244,237,0.98)_58%,_rgba(239,231,221,1))] px-6 py-7 shadow-[0_24px_72px_rgba(58,46,37,0.08)] sm:px-8">
+        <section className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-6 py-7 shadow-[4px_4px_0px_#111] sm:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
               {workspace ? (
                 <div
-                  className={`inline-flex items-center gap-3 rounded-full px-4 py-2 text-sm ${
-                    modeConfig?.accentSurface || 'bg-white/90'
-                  } ${modeConfig?.accentText || 'text-[#6C5D50]'}`}
+                  className={`inline-flex items-center gap-3 rounded-none border-2 border-[#111] px-4 py-2 text-sm ${
+                    modeConfig?.accentSurface || 'bg-[#F4F0E6]'
+                  } ${modeConfig?.accentText || 'text-[#8A8578]'}`}
                 >
                   <WorkspaceIconBadge icon={workspace.icon} color={workspace.color} size="sm" />
                   <span>{getWorkspaceModeLabel(workspace)}</span>
                 </div>
               ) : null}
-              <h1 className="mt-4 font-song text-[34px] leading-tight text-[#3A2E25] sm:text-[42px]">
+              <h1 className="mt-4 font-[family-name:var(--font-vt323)] text-[34px] leading-tight text-[#111] sm:text-[42px]">
                 {workspace?.name || '工作区'}
               </h1>
-              <p className="mt-3 max-w-[720px] text-[15px] leading-7 text-[#7C6B5C]">
+              <p className="mt-3 max-w-[720px] text-[15px] leading-7 text-[#8A8578]">
                 {isInterviewMode
                   ? workspace?.description || '在这里管理候选人、多轮面试和交接摘要。'
                   : workspace?.description || '先选一个 Collection，再管理这组会议和笔记历史。'}
               </p>
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-[12px] text-[#8B796A]">
-                <span className="rounded-full bg-white px-3 py-1.5">会议 {meetingList.length} 条</span>
-                <span className="rounded-full bg-white px-3 py-1.5">
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-[12px] text-[#8A8578]">
+                <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5">会议 {meetingList.length} 条</span>
+                <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5">
                   {isInterviewMode ? '候选人' : 'Collection'} {collections.length} 个
                 </span>
                 {modeConfig ? (
                   <span
-                    className={`rounded-full px-3 py-1.5 font-medium ${modeConfig.accentSurface} ${modeConfig.accentText}`}
+                    className={`rounded-none border-2 border-[#111] px-3 py-1.5 font-medium ${modeConfig.accentSurface} ${modeConfig.accentText}`}
                   >
                     {modeConfig.description}
                   </span>
@@ -246,7 +246,7 @@ export default function WorkspacePage() {
                   <button
                     type="button"
                     onClick={handleNewMeeting}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#3A2E25] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2B2420]"
+                    className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#111] px-4 py-2.5 text-sm font-medium text-[#F4F0E6] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#333]"
                   >
                     <Mic size={16} />
                     新录音
@@ -254,7 +254,7 @@ export default function WorkspacePage() {
                   <button
                     type="button"
                     onClick={handleImportAudio}
-                    className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+                    className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2.5 text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA]"
                   >
                     <FileAudio size={16} />
                     导入音频
@@ -264,7 +264,7 @@ export default function WorkspacePage() {
               <button
                 type="button"
                 onClick={() => setShowEditWorkspace(true)}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2.5 text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 <Edit3 size={16} />
                 编辑工作区
@@ -272,7 +272,7 @@ export default function WorkspacePage() {
               <button
                 type="button"
                 onClick={() => setCollectionModalState({ mode: 'create' })}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2.5 text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 <Plus size={16} />
                 {isInterviewMode ? '新增候选人' : '新建 Collection'}
@@ -283,7 +283,7 @@ export default function WorkspacePage() {
                   setActiveTab('assets');
                   setAssetUploadSignal((value) => value + 1);
                 }}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D8CEC4] bg-white px-4 py-2.5 text-sm font-medium text-[#5C4D42] transition-colors hover:bg-[#FBF8F4]"
+                className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2.5 text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 <FileText size={16} />
                 导入资料
@@ -292,10 +292,10 @@ export default function WorkspacePage() {
           </div>
         </section>
 
-        <section className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-5 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+        <section className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-5 shadow-[4px_4px_0px_#111]">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-song text-[26px] text-[#3A2E25]">
+              <h2 className="font-[family-name:var(--font-vt323)] text-[26px] text-[#111]">
                 {activeTab === 'collections'
                   ? isInterviewMode
                     ? '候选人池'
@@ -304,7 +304,7 @@ export default function WorkspacePage() {
                     ? '会议记录'
                     : '资料库'}
               </h2>
-              <p className="mt-1 text-sm text-[#8B796A]">
+              <p className="mt-1 text-sm text-[#8A8578]">
                 {activeTab === 'collections'
                   ? isInterviewMode
                     ? '每个候选人对应一个 Collection，进入后可以查看多轮面试时间线和交接摘要。'
@@ -314,7 +314,7 @@ export default function WorkspacePage() {
                     : '当前资料库仅提供预览和归档；资料不会参与 AI 检索。'}
               </p>
             </div>
-            <div className="inline-flex rounded-2xl border border-[#E3D9CE] bg-[#F8F4EF] p-1">
+            <div className="inline-flex rounded-none border-2 border-[#111] bg-[#F4F0E6] p-1">
               <WorkspaceTab
                 active={activeTab === 'collections'}
                 icon={isInterviewMode ? <UserRound size={14} /> : <LibraryBig size={14} />}
@@ -344,26 +344,26 @@ export default function WorkspacePage() {
                 <button
                   type="button"
                   onClick={openUngroupedRoute}
-                  className="group rounded-[26px] border border-dashed border-[#D9CBBB] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,236,0.92))] p-5 text-left shadow-[0_14px_40px_rgba(58,46,37,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(58,46,37,0.1)]"
+                  className="retro-window group rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] p-5 text-left shadow-[4px_4px_0px_#111] transition-all hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_#111]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#E3D9CE] bg-white text-[#8C7A6B]">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6] text-[#8A8578]">
                         <FolderClosed size={20} />
                       </div>
                       <div className="min-w-0">
-                        <div className="truncate text-lg font-semibold text-[#3A2E25]">未归类</div>
-                        <div className="mt-1 text-xs text-[#A09082]">尚未归入任何 Collection</div>
+                        <div className="truncate text-lg font-semibold text-[#111]">未归类</div>
+                        <div className="mt-1 text-xs text-[#8A8578]">尚未归入任何 Collection</div>
                       </div>
                     </div>
-                    <ArrowRight size={16} className="shrink-0 text-[#B09D8A] transition-transform group-hover:translate-x-0.5" />
+                    <ArrowRight size={16} className="shrink-0 text-[#8A8578] transition-transform group-hover:translate-x-0.5" />
                   </div>
-                  <p className="mt-4 min-h-[44px] text-sm leading-6 text-[#746556]">
+                  <p className="mt-4 min-h-[44px] text-sm leading-6 text-[#8A8578]">
                     用来承接刚录完、还未整理结构的会议记录。
                   </p>
-                  <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] text-[#8B796A]">
-                    <span className="rounded-full bg-white px-3 py-1.5">会议 {collectionStats.ungroupedCount} 条</span>
-                    <span className="rounded-full bg-white px-3 py-1.5">
+                  <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] text-[#8A8578]">
+                    <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5">会议 {collectionStats.ungroupedCount} 条</span>
+                    <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5">
                       {formatLatestMeeting(collectionStats.ungroupedLatestMeetingAt)}
                     </span>
                   </div>
@@ -380,7 +380,7 @@ export default function WorkspacePage() {
                 return (
                   <div
                     key={collection.id}
-                    className="group rounded-[26px] border border-[#E7DDD2] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,236,0.92))] p-5 shadow-[0_14px_40px_rgba(58,46,37,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(58,46,37,0.12)]"
+                    className="retro-window group rounded-none border-2 border-[#111] bg-[#F4F0E6] p-5 shadow-[4px_4px_0px_#111] transition-all hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_#111]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <button
@@ -390,15 +390,15 @@ export default function WorkspacePage() {
                       >
                         <WorkspaceIconBadge icon={collection.icon} color={collection.color} size="lg" />
                         <div className="min-w-0">
-                          <div className="truncate text-lg font-semibold text-[#3A2E25]">
+                          <div className="truncate text-lg font-semibold text-[#111]">
                             {collection.name}
                           </div>
                           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                            <span className={`rounded-full px-2.5 py-1 ${statusMeta.tone}`}>
+                            <span className={`rounded-none border-2 border-[#111] px-2.5 py-1 ${statusMeta.tone}`}>
                               {statusMeta.label}
                             </span>
                             {recommendationMeta ? (
-                              <span className={`rounded-full px-2.5 py-1 ${recommendationMeta.tone}`}>
+                              <span className={`rounded-none border-2 border-[#111] px-2.5 py-1 ${recommendationMeta.tone}`}>
                                 {recommendationMeta.label}
                               </span>
                             ) : null}
@@ -411,7 +411,7 @@ export default function WorkspacePage() {
                           onClick={() =>
                             setCollectionModalState({ mode: 'edit', collectionId: collection.id })
                           }
-                          className="rounded-xl p-2 text-[#A09082] transition-colors hover:bg-white hover:text-[#5C4D42]"
+                          className="rounded-none border-2 border-[#111] p-2 text-[#8A8578] transition-colors hover:bg-[#F4F0E6] hover:text-[#111]"
                           title={isInterviewMode ? '编辑候选人' : '编辑 Collection'}
                         >
                           <Edit3 size={14} />
@@ -419,7 +419,7 @@ export default function WorkspacePage() {
                         <button
                           type="button"
                           onClick={() => void handleDeleteCollection(collection)}
-                          className="rounded-xl p-2 text-[#A09082] transition-colors hover:bg-rose-50 hover:text-rose-600"
+                          className="rounded-none border-2 border-[#111] p-2 text-[#8A8578] transition-colors hover:bg-rose-50 hover:text-rose-600"
                           title={isInterviewMode ? '删除候选人' : '删除 Collection'}
                         >
                           <Trash2 size={14} />
@@ -432,21 +432,21 @@ export default function WorkspacePage() {
                       onClick={() => openCollectionRoute(collection.id)}
                       className="mt-4 block w-full text-left"
                     >
-                      <p className="line-clamp-3 min-h-[66px] text-sm leading-6 text-[#746556]">
+                      <p className="line-clamp-3 min-h-[66px] text-sm leading-6 text-[#8A8578]">
                         {isInterviewMode
                           ? collection.nextFocus || collection.description || '进入后补充交接摘要和下一轮重点。'
                           : collection.description || '还没有描述，可进入后继续补充这个 Collection 的用途。'}
                       </p>
-                      <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] text-[#8B796A]">
-                        <span className="rounded-full bg-white px-3 py-1.5">
+                      <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] text-[#8A8578]">
+                        <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5">
                           {isInterviewMode ? '轮次' : '会议'} {meetingCount} 条
                         </span>
-                        <span className="rounded-full bg-white px-3 py-1.5">
+                        <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5">
                           {formatLatestMeeting(latestMeetingAt)}
                         </span>
                       </div>
                       {isInterviewMode ? (
-                        <div className="mt-3 text-xs text-[#9D8B7B]">
+                        <div className="mt-3 text-xs text-[#8A8578]">
                           下一位面试官：{collection.nextInterviewer || '待定'}
                           <br />
                           最近一轮：{latestMeeting?.roundLabel || '尚未开始'}
@@ -509,10 +509,10 @@ function WorkspaceTab({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-[14px] px-4 py-2 text-sm font-medium transition-all ${
+      className={`inline-flex items-center gap-2 rounded-none px-4 py-2 text-sm font-medium transition-all ${
         active
-          ? 'bg-[#4A3C31] text-white shadow-sm'
-          : 'text-[#8C7A6B] hover:bg-white hover:text-[#4A3C31]'
+          ? 'bg-[#111] text-[#F4F0E6] shadow-none'
+          : 'text-[#8A8578] hover:bg-[#F4F0E6] hover:text-[#111]'
       }`}
     >
       {icon}

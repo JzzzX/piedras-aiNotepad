@@ -70,25 +70,25 @@ export default function ChatHistoryPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/chat"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#D8CEC4] bg-white text-[#6B5C50] transition-colors hover:bg-[#FBF8F4]"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6] text-[#111] transition-colors hover:bg-[#E8E4DA]"
             >
               <ArrowLeft size={18} />
             </Link>
             <div>
-              <h1 className="font-song text-[34px] text-[#3A2E25]">All Chats</h1>
-              <p className="mt-1 text-sm text-[#8C7A6B]">查看完整历史对话，并按标题快速检索。</p>
+              <h1 className="font-[family-name:var(--font-vt323)] text-[34px] text-[#111]">All Chats</h1>
+              <p className="mt-1 text-sm text-[#8A8578]">查看完整历史对话，并按标题快速检索。</p>
             </div>
           </div>
         </header>
 
-        <section className="rounded-[30px] border border-[#DED4C9] bg-white/90 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
-          <div className="flex items-center gap-2 rounded-2xl border border-[#E3D9CE] bg-[#FCFAF7] px-4 py-3">
-            <Search size={16} className="text-[#A08C79]" />
+        <section className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-6 shadow-[4px_4px_0px_#111]">
+          <div className="flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3">
+            <Search size={16} className="text-[#8A8578]" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="搜索聊天标题"
-              className="flex-1 bg-transparent text-sm text-[#3A2E25] placeholder:text-[#B4A79A] focus:outline-none"
+              className="flex-1 bg-transparent text-sm text-[#111] placeholder:text-[#8A8578] focus:outline-none"
             />
           </div>
 
@@ -97,29 +97,29 @@ export default function ChatHistoryPage() {
               [0, 1, 2, 3].map((idx) => (
                 <div
                   key={idx}
-                  className="h-[92px] animate-pulse rounded-[24px] bg-[#F4EEE7]"
+                  className="h-[92px] animate-pulse rounded-none border-2 border-[#111] bg-[#E8E4DA]"
                 />
               ))
             ) : sessions.length === 0 ? (
-              <div className="rounded-[24px] border border-dashed border-[#DDD2C7] bg-[#FCFAF7] px-4 py-10 text-center text-sm text-[#9A8877]">
+              <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-4 py-10 text-center text-sm text-[#8A8578]">
                 没有找到匹配的对话记录。
               </div>
             ) : (
               sessions.map((session) => (
                 <div
                   key={session.id}
-                  className="flex items-start justify-between gap-4 rounded-[24px] border border-[#E9E1D7] bg-[#FCFAF7] px-5 py-4 transition-all hover:border-[#D8CEC4] hover:bg-white hover:shadow-[0_14px_30px_rgba(58,46,37,0.08)]"
+                  className="flex items-start justify-between gap-4 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-5 py-4 transition-all hover:bg-[#E8E4DA] hover:shadow-[4px_4px_0px_#111]"
                 >
                   <button
                     type="button"
                     onClick={() => router.push(`/chat/${session.id}`)}
                     className="min-w-0 flex-1 text-left"
                   >
-                    <div className="line-clamp-1 text-[16px] font-semibold text-[#3A2E25]">
+                    <div className="line-clamp-1 text-[16px] font-semibold text-[#111]">
                       {session.title}
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-[#8C7A6B]">
-                      <span className="rounded-full bg-[#F1EBE3] px-2.5 py-1">
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-[#8A8578]">
+                      <span className="rounded-none border border-[#111] bg-[#F4F0E6] px-2.5 py-1">
                         {getGlobalChatScopeLabel(session.scope, session.workspace?.name)}
                       </span>
                       <span className="inline-flex items-center gap-1">
@@ -150,12 +150,12 @@ export default function ChatHistoryPage() {
                         }
                       }}
                       disabled={deletingId === session.id}
-                      className="rounded-full p-2 text-[#B9A999] transition-colors hover:bg-[#F3ECE4] hover:text-rose-500 disabled:opacity-50"
+                      className="rounded-none p-2 text-[#8A8578] transition-colors hover:bg-[#E8E4DA] hover:text-rose-500 disabled:opacity-50"
                       aria-label={`删除对话 ${session.title}`}
                     >
                       <Trash2 size={16} />
                     </button>
-                    <MessageSquareText size={18} className="text-[#B9A999]" />
+                    <MessageSquareText size={18} className="text-[#8A8578]" />
                   </div>
                 </div>
               ))

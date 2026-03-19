@@ -169,16 +169,16 @@ export default function ChatHomePage() {
   return (
     <div className="flex-1">
       <div className="mx-auto flex max-w-[1100px] flex-col gap-10 px-6 pb-12 pt-10 sm:px-8 lg:px-10">
-        <section className="rounded-[36px] border border-[#DED4C9] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.92),_rgba(248,243,236,0.98)_58%,_rgba(239,231,221,1))] px-6 py-8 shadow-[0_24px_80px_rgba(58,46,37,0.08)] sm:px-8 sm:py-10">
+        <section className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-6 py-8 shadow-[4px_4px_0px_#111] sm:px-8 sm:py-10">
           <div className="mx-auto max-w-[760px]">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-[#A08C79]">
+            <div className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-[#8A8578]">
               <Sparkles size={12} />
               Piedras Chat
             </div>
-            <h1 className="mt-5 font-song text-[38px] leading-tight text-[#3A2E25] sm:text-[52px]">
+            <h1 className="mt-5 font-[family-name:var(--font-vt323)] text-[38px] leading-tight text-[#111] sm:text-[52px]">
               Ask anything
             </h1>
-            <p className="mt-3 max-w-[560px] text-[15px] leading-7 text-[#7C6B5C]">
+            <p className="mt-3 max-w-[560px] text-[15px] leading-7 text-[#8A8578]">
               直接问会议、笔记和行动项。支持 recipes 命令和跨工作区检索。
             </p>
 
@@ -202,15 +202,15 @@ export default function ChatHomePage() {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
-          <div className="rounded-[30px] border border-[#DED4C9] bg-white/85 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+          <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-6 shadow-[4px_4px_0px_#111]">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="font-song text-[24px] text-[#3A2E25]">Recipes</h2>
-                <p className="mt-1 text-sm text-[#8C7A6B]">常见问题一键开聊，也支持用命令直接调用。</p>
+                <h2 className="font-[family-name:var(--font-vt323)] text-[24px] text-[#111]">Recipes</h2>
+                <p className="mt-1 text-sm text-[#8A8578]">常见问题一键开聊，也支持用命令直接调用。</p>
               </div>
               <Link
                 href="/chat/recipes"
-                className="inline-flex items-center gap-1 rounded-full border border-[#D8CEC4] bg-[#FBF8F4] px-3 py-2 text-sm text-[#6B5C50] transition-colors hover:bg-white"
+                className="inline-flex items-center gap-1 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2 text-sm text-[#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 See all
                 <ArrowRight size={14} />
@@ -232,18 +232,18 @@ export default function ChatHomePage() {
                       workspaceId: selectedWorkspaceId,
                     })
                   }
-                  className="group rounded-[24px] border border-[#E9E1D7] bg-[#FCFAF7] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[#D8CEC4] hover:shadow-[0_16px_32px_rgba(58,46,37,0.08)]"
+                  className="group rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#111]"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="h-10 w-2 rounded-full bg-[#D8C2A8]" />
+                    <span className="h-10 w-2 rounded-none bg-[#111]" />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <div className="text-[15px] font-semibold text-[#3A2E25]">{recipe.name}</div>
-                        <code className="rounded-md bg-[#F7F3EE] px-1.5 py-0.5 text-[10px] text-[#8C7A6B]">
+                        <div className="text-[15px] font-semibold text-[#111]">{recipe.name}</div>
+                        <code className="rounded-none border border-[#111] bg-[#F4F0E6] px-1.5 py-0.5 text-[10px] text-[#8A8578]">
                           {recipe.command}
                         </code>
                       </div>
-                      <div className="mt-1 text-[13px] leading-6 text-[#8C7A6B]">
+                      <div className="mt-1 text-[13px] leading-6 text-[#8A8578]">
                         {recipe.description}
                       </div>
                     </div>
@@ -253,15 +253,15 @@ export default function ChatHomePage() {
             </div>
           </div>
 
-          <div className="rounded-[30px] border border-[#DED4C9] bg-white/85 p-6 shadow-[0_18px_48px_rgba(58,46,37,0.08)]">
+          <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-6 shadow-[4px_4px_0px_#111]">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="font-song text-[24px] text-[#3A2E25]">Recent Chats</h2>
-                <p className="mt-1 text-sm text-[#8C7A6B]">继续最近的问题，不用重新描述上下文。</p>
+                <h2 className="font-[family-name:var(--font-vt323)] text-[24px] text-[#111]">Recent Chats</h2>
+                <p className="mt-1 text-sm text-[#8A8578]">继续最近的问题，不用重新描述上下文。</p>
               </div>
               <Link
                 href="/chat/history"
-                className="inline-flex items-center gap-1 rounded-full border border-[#D8CEC4] bg-[#FBF8F4] px-3 py-2 text-sm text-[#6B5C50] transition-colors hover:bg-white"
+                className="inline-flex items-center gap-1 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2 text-sm text-[#111] transition-colors hover:bg-[#E8E4DA]"
               >
                 See all
                 <ArrowRight size={14} />
@@ -274,13 +274,13 @@ export default function ChatHomePage() {
                   key={session.id}
                   type="button"
                   onClick={() => router.push(`/chat/${session.id}`)}
-                  className="w-full rounded-[22px] border border-[#E9E1D7] bg-[#FCFAF7] px-4 py-4 text-left transition-all hover:border-[#D8CEC4] hover:bg-white"
+                  className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-4 text-left transition-all hover:bg-[#E8E4DA]"
                 >
-                  <div className="line-clamp-1 text-[15px] font-semibold text-[#3A2E25]">
+                  <div className="line-clamp-1 text-[15px] font-semibold text-[#111]">
                     {session.title}
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-[#8C7A6B]">
-                    <span className="rounded-full bg-[#F1EBE3] px-2.5 py-1">
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-[#8A8578]">
+                    <span className="rounded-none border border-[#111] bg-[#F4F0E6] px-2.5 py-1">
                       {getGlobalChatScopeLabel(session.scope, session.workspace?.name)}
                     </span>
                     <span className="inline-flex items-center gap-1">
@@ -292,7 +292,7 @@ export default function ChatHomePage() {
               ))}
 
               {!isBooting && sessions.length === 0 ? (
-                <div className="rounded-[24px] border border-dashed border-[#DDD2C7] bg-[#FCFAF7] px-4 py-8 text-center text-sm text-[#9A8877]">
+                <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-4 py-8 text-center text-sm text-[#8A8578]">
                   还没有历史对话。先从上方输入一个问题，或直接点 recipe 开始。
                 </div>
               ) : null}
@@ -302,7 +302,7 @@ export default function ChatHomePage() {
                   {[0, 1, 2].map((idx) => (
                     <div
                       key={idx}
-                      className="h-[84px] animate-pulse rounded-[22px] bg-[#F4EEE7]"
+                      className="h-[84px] animate-pulse rounded-none border-2 border-[#111] bg-[#E8E4DA]"
                     />
                   ))}
                 </div>
