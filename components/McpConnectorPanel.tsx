@@ -35,29 +35,29 @@ function InfoCard({
   copied?: boolean;
 }) {
   return (
-    <section className="rounded-2xl border border-[#E3D9CE] bg-[#FCFAF8] p-4 shadow-[0_8px_20px_-16px_rgba(74,60,49,0.14)]">
+    <section className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 shadow-[4px_4px_0px_#111]">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-[#F3ECE4] text-[#6C5A4C]">
+          <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-none bg-[#EAE3D2] text-[#111] border-2 border-[#111]">
             {icon}
           </div>
           <div className="space-y-1">
-            <h4 className="text-sm font-semibold text-[#4A3C31]">{title}</h4>
-            <p className="text-xs leading-5 text-[#8C7A6B]">{description}</p>
+            <h4 className="text-sm font-semibold text-[#111]">{title}</h4>
+            <p className="text-xs leading-5 text-[#8A8578]">{description}</p>
           </div>
         </div>
         {onCopy && (
           <button
             type="button"
             onClick={onCopy}
-            className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#D8CEC4] bg-[#F7F3EE] px-2.5 py-1.5 text-[11px] font-medium text-[#5C4D42] transition-colors hover:bg-[#EFE9E2]"
+            className="inline-flex shrink-0 items-center gap-1 rounded-none border-2 border-[#111] bg-[#EAE3D2] px-2.5 py-1.5 text-[11px] font-medium text-[#111] transition-colors hover:bg-[#F4F0E6]"
           >
             {copied ? <Check size={12} className="text-[#6D8A67]" /> : <Copy size={12} />}
             {copied ? '已复制' : '复制'}
           </button>
         )}
       </div>
-      <pre className="mt-3 overflow-x-auto rounded-xl bg-[#F5EFE8] px-3 py-2.5 text-xs leading-5 text-[#4A3C31]">
+      <pre className="mt-3 overflow-x-auto rounded-none bg-[#EAE3D2] px-3 py-2.5 text-xs leading-5 text-[#111] border-2 border-[#111]">
         <code>{value}</code>
       </pre>
     </section>
@@ -128,27 +128,27 @@ export default function McpConnectorPanel({
     >
       <button
         type="button"
-        className="absolute inset-0 bg-[#3A2E25]/18"
+        className="absolute inset-0 bg-[#111]/18"
         onClick={onClose}
         aria-label="关闭生态接入说明"
       />
 
       <aside
-        className={`absolute right-0 top-0 flex h-full w-full max-w-[430px] flex-col border-l border-[#D8CEC4] bg-[#F7F3EE] shadow-2xl transition-transform ${
+        className={`absolute right-0 top-0 flex h-full w-full max-w-[430px] flex-col border-l-2 border-[#111] bg-[#EAE3D2] shadow-[4px_4px_0px_#111] transition-transform ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="border-b border-[#D8CEC4]/70 px-5 py-4">
+        <div className="border-b-2 border-[#111] px-5 py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EAF4FF] text-sky-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-none bg-[#D9423E]/10 text-[#D9423E] border-2 border-[#111]">
                 <Workflow size={18} strokeWidth={2.2} />
               </div>
               <div>
-                <h3 className="font-song text-base font-semibold text-[#4A3C31]">
+                <h3 className="font-[family-name:var(--font-vt323)] text-base font-semibold text-[#111]">
                   生态接入
                 </h3>
-                <p className="mt-1 max-w-[280px] text-xs leading-5 text-[#8C7A6B]">
+                <p className="mt-1 max-w-[280px] text-xs leading-5 text-[#8A8578]">
                   这是对外只读的 MCP 接口，优先面向 Claude Code
                   这类支持 MCP 的 Agent，也方便后续接入 OpenClaw
                   一类生态工具，不影响当前网页主流程。
@@ -159,7 +159,7 @@ export default function McpConnectorPanel({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1.5 text-[#8C7A6B] transition-colors hover:bg-[#EFE9E2] hover:text-[#4A3C31]"
+              className="rounded-none p-1.5 text-[#8A8578] transition-colors hover:bg-[#F4F0E6] hover:text-[#111] border-2 border-[#111]"
               aria-label="关闭生态接入说明"
             >
               <X size={16} />
@@ -224,9 +224,9 @@ export default function McpConnectorPanel({
             copied={copiedKey === 'config'}
           />
 
-          <div className="rounded-2xl border border-dashed border-[#D8CEC4] bg-[#FCFAF8] px-4 py-3 text-xs leading-5 text-[#8C7A6B]">
+          <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-4 py-3 text-xs leading-5 text-[#8A8578]">
             搜索模板里，空值请使用 `_` 占位。例如：
-            <div className="mt-2 rounded-xl bg-[#F5EFE8] px-3 py-2 text-[#4A3C31]">
+            <div className="mt-2 rounded-none bg-[#EAE3D2] px-3 py-2 text-[#111] border-2 border-[#111]">
               piedras://search/meetings/预算/2026-02-01/2026-02-28/_/10
             </div>
           </div>

@@ -153,16 +153,16 @@ export default function TemplateManagerInline() {
   };
 
   return (
-    <div className="flex h-[500px] overflow-hidden rounded-2xl border border-[#E3D9CE] bg-white">
+    <div className="flex h-[500px] overflow-hidden rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111]">
       {/* Sidebar list */}
-      <div className="flex w-48 shrink-0 flex-col border-r border-[#E3D9CE] bg-[#FCFAF8]">
+      <div className="flex w-48 shrink-0 flex-col border-r-2 border-[#111] bg-[#F4F0E6]">
         <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
           {templates.map((t) => (
             <div key={t.id} className="group relative">
               <button
                 onClick={() => handleSelect(t)}
-                className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm transition-all ${
-                  t.id === selectedId ? 'bg-white shadow-sm font-medium text-[#3A2E25] border border-[#E3D9CE]/60' : 'text-[#5C4D42] border border-transparent hover:bg-[#F7F3EE]'
+                className={`flex w-full items-center gap-2 rounded-none px-3 py-2.5 text-left text-sm transition-all ${
+                  t.id === selectedId ? 'bg-[#EAE3D2] shadow-[2px_2px_0px_#111] font-medium text-[#111] border-2 border-[#111]' : 'text-[#111] border-2 border-transparent hover:bg-[#EAE3D2]'
                 }`}
               >
                 <span>{t.icon}</span>
@@ -171,18 +171,18 @@ export default function TemplateManagerInline() {
               <span className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
                 {!t.isSystem ? (
                   <>
-                    <button onClick={() => reorder(t.id, 'up')} className="rounded-md p-0.5 text-[#8C7A6B] hover:bg-[#EFE9E2]"><ChevronUp size={13} /></button>
-                    <button onClick={() => reorder(t.id, 'down')} className="rounded-md p-0.5 text-[#8C7A6B] hover:bg-[#EFE9E2]"><ChevronDown size={13} /></button>
+                    <button onClick={() => reorder(t.id, 'up')} className="rounded-none p-0.5 text-[#8A8578] hover:bg-[#EAE3D2]"><ChevronUp size={13} /></button>
+                    <button onClick={() => reorder(t.id, 'down')} className="rounded-none p-0.5 text-[#8A8578] hover:bg-[#EAE3D2]"><ChevronDown size={13} /></button>
                   </>
                 ) : null}
               </span>
             </div>
           ))}
         </div>
-        <div className="border-t border-[#E3D9CE]/50 p-3 bg-[#FCFAF8]">
+        <div className="border-t-2 border-[#111] p-3 bg-[#F4F0E6]">
           <button
             onClick={handleNew}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#D8CEC4] bg-white px-3 py-2 text-[13px] font-medium text-[#8C7A6B] hover:border-[#BFAE9E] hover:text-[#5C4D42] transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-3 py-2 text-[13px] font-medium text-[#8A8578] hover:bg-[#EAE3D2] hover:text-[#111] transition-colors shadow-[2px_2px_0px_#111]"
           >
             <Plus size={14} />
             新建 Recipe
@@ -191,48 +191,48 @@ export default function TemplateManagerInline() {
       </div>
 
       {/* Editor */}
-      <div className="flex-1 overflow-y-auto bg-white p-6 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto bg-[#F4F0E6] p-6 custom-scrollbar">
         {!selectedId && !isCreating ? (
-          <div className="flex h-full items-center justify-center text-sm text-[#A69B8F]">
+          <div className="flex h-full items-center justify-center text-sm text-[#8A8578]">
             选择或新建一个 Recipe
           </div>
         ) : (
           <div className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="space-y-1.5">
-                <span className="text-[12px] font-medium text-[#8C7A6B]">名称</span>
+                <span className="text-[12px] font-medium text-[#8A8578]">名称</span>
                 <input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   disabled={isBusy || isReadOnly}
-                  className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+                  className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 transition-all disabled:bg-[#EAE3D2] disabled:text-[#8A8578]"
                 />
               </label>
               <label className="space-y-1.5">
-                <span className="text-[12px] font-medium text-[#8C7A6B]">命令</span>
+                <span className="text-[12px] font-medium text-[#8A8578]">命令</span>
                 <input
                   value={form.command}
                   onChange={(e) => setForm({ ...form, command: e.target.value })}
                   disabled={isBusy || isReadOnly}
-                  className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm font-mono text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+                  className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm font-mono text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 transition-all disabled:bg-[#EAE3D2] disabled:text-[#8A8578]"
                 />
               </label>
               <label className="space-y-1.5">
-                <span className="text-[12px] font-medium text-[#8C7A6B]">图标</span>
+                <span className="text-[12px] font-medium text-[#8A8578]">图标</span>
                 <input
                   value={form.icon}
                   onChange={(e) => setForm({ ...form, icon: e.target.value })}
                   disabled={isBusy || isReadOnly}
-                  className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+                  className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 transition-all disabled:bg-[#EAE3D2] disabled:text-[#8A8578]"
                 />
               </label>
               <label className="space-y-1.5">
-                <span className="text-[12px] font-medium text-[#8C7A6B]">分类</span>
+                <span className="text-[12px] font-medium text-[#8A8578]">分类</span>
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
                   disabled={isBusy || isReadOnly}
-                  className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+                  className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 transition-all disabled:bg-[#EAE3D2] disabled:text-[#8A8578]"
                 >
                   {TEMPLATE_CATEGORIES.map((c) => (
                     <option key={c} value={c}>{c}</option>
@@ -240,14 +240,14 @@ export default function TemplateManagerInline() {
                 </select>
               </label>
               <label className="space-y-1.5">
-                <span className="text-[12px] font-medium text-[#8C7A6B]">适用入口</span>
+                <span className="text-[12px] font-medium text-[#8A8578]">适用入口</span>
                 <select
                   value={form.surfaces}
                   onChange={(e) =>
                     setForm({ ...form, surfaces: e.target.value as TemplateForm['surfaces'] })
                   }
                   disabled={isBusy || isReadOnly}
-                  className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+                  className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 transition-all disabled:bg-[#EAE3D2] disabled:text-[#8A8578]"
                 >
                   <option value="both">Chat + 笔记工作台</option>
                   <option value="chat">仅 Chat</option>
@@ -255,60 +255,60 @@ export default function TemplateManagerInline() {
                 </select>
               </label>
             </div>
-            
+
             <label className="block space-y-1.5">
-              <span className="text-[12px] font-medium text-[#8C7A6B]">描述</span>
+              <span className="text-[12px] font-medium text-[#8A8578]">描述</span>
               <input
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 disabled={isBusy || isReadOnly}
-                className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+                className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 transition-all disabled:bg-[#EAE3D2] disabled:text-[#8A8578]"
               />
             </label>
 
             <label className="block space-y-1.5">
-              <span className="text-[12px] font-medium text-[#8C7A6B]">一键启动语句</span>
+              <span className="text-[12px] font-medium text-[#8A8578]">一键启动语句</span>
               <input
                 value={form.starterQuestion}
                 onChange={(e) => setForm({ ...form, starterQuestion: e.target.value })}
                 disabled={isBusy || isReadOnly}
                 placeholder="用于 Chat 首页和 all-recipes 的默认提问"
-                className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+                className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 transition-all disabled:bg-[#EAE3D2] disabled:text-[#8A8578]"
               />
             </label>
-            
+
             <label className="block space-y-1.5">
-              <span className="text-[12px] font-medium text-[#8C7A6B]">Prompt</span>
+              <span className="text-[12px] font-medium text-[#8A8578]">Prompt</span>
               <textarea
                 value={form.prompt}
                 onChange={(e) => setForm({ ...form, prompt: e.target.value })}
                 rows={6}
                 disabled={isBusy || isReadOnly}
-                className="w-full resize-y rounded-xl border border-[#D8CEC4] bg-white px-3.5 py-3 text-sm leading-relaxed text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none focus:ring-2 focus:ring-[#BFAE9E]/20 transition-all disabled:bg-[#F7F3EE] disabled:text-[#A69B8F]"
+                className="w-full resize-y rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-3 text-sm leading-relaxed text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 transition-all disabled:bg-[#EAE3D2] disabled:text-[#8A8578]"
                 style={{ minHeight: '160px' }}
               />
             </label>
-            
-            {error && <p className="text-[13px] text-red-500">{error}</p>}
-            
+
+            {error && <p className="text-[13px] text-[#D9423E]">{error}</p>}
+
             {isReadOnly && (
-              <div className="rounded-xl border border-[#E3D9CE] bg-[#FCFAF8] px-4 py-3 text-[12px] leading-relaxed text-[#8C7A6B]">
+              <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-[12px] leading-relaxed text-[#8A8578]">
                 <div>系统 Recipe 只读，如需修改请复制为自定义 Recipe 后再编辑。</div>
                 <button
                   onClick={handleDuplicate}
-                  className="mt-3 rounded-lg border border-[#D8CEC4] bg-white px-3 py-1.5 text-[12px] font-medium text-[#5C4D42] hover:bg-[#F7F3EE]"
+                  className="mt-3 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5 text-[12px] font-medium text-[#111] hover:bg-[#EAE3D2] shadow-[2px_2px_0px_#111]"
                 >
                   复制为自定义 Recipe
                 </button>
               </div>
             )}
-            
+
             <div className="flex items-center justify-end gap-3 pt-4">
               {selectedId && selected && !selected.isSystem && (
                 <button
                   onClick={handleDelete}
                   disabled={isBusy}
-                  className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-4 py-2 text-[13px] font-medium text-red-500 hover:bg-red-50 hover:border-red-300 disabled:opacity-50 transition-all"
+                  className="flex items-center gap-1.5 rounded-none border-2 border-[#D9423E] bg-[#F4F0E6] px-4 py-2 text-[13px] font-medium text-[#D9423E] hover:bg-[#D9423E]/10 disabled:opacity-50 transition-all shadow-[2px_2px_0px_#D9423E]"
                 >
                   <Trash2 size={14} />
                   删除
@@ -317,7 +317,7 @@ export default function TemplateManagerInline() {
               <button
                 onClick={handleSave}
                 disabled={isBusy || isReadOnly}
-                className="rounded-xl bg-[#4A3C31] px-6 py-2 text-[13px] font-medium text-white shadow-sm hover:bg-[#3A2E25] disabled:opacity-50 active:scale-[0.98] transition-all"
+                className="rounded-none bg-[#111] px-6 py-2 text-[13px] font-medium text-[#F4F0E6] shadow-[4px_4px_0px_#555] hover:bg-[#333] disabled:opacity-50 active:scale-[0.98] transition-all border-2 border-[#111]"
               >
                 {isBusy ? '保存中...' : '保存修改'}
               </button>

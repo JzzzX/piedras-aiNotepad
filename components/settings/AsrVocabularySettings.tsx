@@ -120,42 +120,42 @@ export default function AsrVocabularySettings() {
   };
 
   const helperTone = syncStatus?.supported
-    ? 'border-sky-200 bg-sky-50 text-sky-700'
-    : 'border-amber-200 bg-amber-50 text-amber-700';
+    ? 'border-[#111] bg-[#D9423E]/10 text-[#D9423E]'
+    : 'border-[#111] bg-amber-50 text-amber-700';
 
   return (
-    <div className="space-y-5 rounded-2xl border border-[#E3D9CE] bg-[#FCFAF8] p-5">
+    <div className="space-y-5 rounded-none border-2 border-[#111] bg-[#F4F0E6] p-5 shadow-[4px_4px_0px_#111]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h4 className="flex items-center gap-2 text-[14px] font-semibold text-[#5C4D42]">
-            <BookOpenText size={16} className="text-[#4A3C31]" />
+          <h4 className="flex items-center gap-2 text-[14px] font-semibold text-[#111]">
+            <BookOpenText size={16} className="text-[#111]" />
             自定义词汇
           </h4>
-          <p className="mt-1 text-[12px] leading-relaxed text-[#8C7A6B]">
+          <p className="mt-1 text-[12px] leading-relaxed text-[#8A8578]">
             把常被识别错的行业术语写在这里，一行一个。
           </p>
         </div>
-        <div className="rounded-full border border-[#E3D9CE] bg-white px-3 py-1 text-[11px] text-[#8C7A6B]">
+        <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1 text-[11px] text-[#8A8578]">
           最多 {maxTerms} 个有效词条
         </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-xl border border-[#E3D9CE] bg-white px-4 py-3 text-[12px] leading-relaxed text-[#6F6155]">
-          开始阿里云转写时，Piedras 会把这些词作为“热词”提交，识别时会优先参考这些写法。
+        <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-[12px] leading-relaxed text-[#111]">
+          开始阿里云转写时，Piedras 会把这些词作为"热词"提交，识别时会优先参考这些写法。
         </div>
-        <div className="rounded-xl border border-[#E3D9CE] bg-white px-4 py-3 text-[12px] leading-relaxed text-[#6F6155]">
+        <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-[12px] leading-relaxed text-[#111]">
           `全局通用` 对所有会议生效；`当前工作区` 只对这个工作区生效。实际转写时会合并两者。
         </div>
       </div>
 
-      <div className="inline-flex rounded-2xl border border-[#E3D9CE] bg-white p-1 shadow-sm">
+      <div className="inline-flex rounded-none border-2 border-[#111] bg-[#F4F0E6] p-1 shadow-[2px_2px_0px_#111]">
         <button
           onClick={() => setScope('global')}
-          className={`rounded-[14px] px-4 py-2 text-sm font-medium transition-all ${
+          className={`rounded-none px-4 py-2 text-sm font-medium transition-all ${
             scope === 'global'
-              ? 'bg-[#4A3C31] text-white shadow-sm'
-              : 'text-[#8C7A6B] hover:bg-[#F7F3EE] hover:text-[#4A3C31]'
+              ? 'bg-[#111] text-[#F4F0E6] shadow-none'
+              : 'text-[#8A8578] hover:bg-[#EAE3D2] hover:text-[#111]'
           }`}
         >
           全局通用
@@ -163,10 +163,10 @@ export default function AsrVocabularySettings() {
         <button
           onClick={() => setScope('workspace')}
           disabled={!currentWorkspaceId}
-          className={`rounded-[14px] px-4 py-2 text-sm font-medium transition-all ${
+          className={`rounded-none px-4 py-2 text-sm font-medium transition-all ${
             scope === 'workspace'
-              ? 'bg-[#4A3C31] text-white shadow-sm'
-              : 'text-[#8C7A6B] hover:bg-[#F7F3EE] hover:text-[#4A3C31]'
+              ? 'bg-[#111] text-[#F4F0E6] shadow-none'
+              : 'text-[#8A8578] hover:bg-[#EAE3D2] hover:text-[#111]'
           } disabled:cursor-not-allowed disabled:opacity-50`}
         >
           当前工作区
@@ -174,22 +174,22 @@ export default function AsrVocabularySettings() {
       </div>
 
       {scope === 'workspace' && currentWorkspace ? (
-        <div className="rounded-xl border border-[#E3D9CE] bg-white px-4 py-3 text-[12px] text-[#8C7A6B]">
-          当前工作区：<span className="font-medium text-[#4A3C31]">{currentWorkspace.name}</span>
+        <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-[12px] text-[#8A8578]">
+          当前工作区：<span className="font-medium text-[#111]">{currentWorkspace.name}</span>
         </div>
       ) : null}
 
-      <div className={`rounded-xl border px-4 py-3 text-[12px] leading-relaxed ${helperTone}`}>
+      <div className={`rounded-none border-2 px-4 py-3 text-[12px] leading-relaxed ${helperTone}`}>
         {syncStatus?.message || '词汇会先保存在本地。阿里云 ASR 可用时，Piedras 会在开始转写时自动带上这些词。'}
         {syncStatus?.lastError ? (
-          <div className="mt-2 rounded-lg bg-white/60 px-3 py-2 text-[11px] text-[#7B5B3B]">
+          <div className="mt-2 rounded-none bg-[#F4F0E6]/60 px-3 py-2 text-[11px] text-[#111] border border-[#111]">
             最近一次同步失败：{syncStatus.lastError}
           </div>
         ) : null}
       </div>
 
       <label className="block">
-        <span className="mb-2 block text-[12px] font-medium text-[#8C7A6B]">术语列表</span>
+        <span className="mb-2 block text-[12px] font-medium text-[#8A8578]">术语列表</span>
         <textarea
           value={termsText}
           onChange={(event) => {
@@ -198,20 +198,20 @@ export default function AsrVocabularySettings() {
             setError('');
           }}
           rows={9}
-          placeholder="每行一个术语，例如：\nPiedras\nNLS\n专病库\n肿瘤标志物"
-          className="w-full resize-none rounded-2xl border border-[#E3D9CE] bg-white px-4 py-3 text-[13px] leading-6 text-[#4A3C31] placeholder:text-[#B4A79A] focus:border-[#BFAE9E] focus:outline-none"
+          placeholder={'每行一个术语，例如：\nPiedras\nNLS\n专病库\n肿瘤标志物'}
+          className="w-full resize-none rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-[13px] leading-6 text-[#111] placeholder:text-[#8A8578] focus:outline-none"
         />
       </label>
 
       <div className="flex items-center justify-between gap-3">
-        <div className="inline-flex items-center gap-2 rounded-full bg-[#F7F3EE] px-3 py-1 text-[11px] text-[#8C7A6B]">
+        <div className="inline-flex items-center gap-2 rounded-none bg-[#EAE3D2] px-3 py-1 text-[11px] text-[#8A8578] border-2 border-[#111]">
           <Sparkles size={12} />
           当前工作区转写时共生效 {effectiveCount} 个词条
         </div>
         <button
           onClick={() => void handleSave()}
           disabled={isSaving || isLoading || (scope === 'workspace' && !currentWorkspaceId)}
-          className="inline-flex items-center gap-2 rounded-2xl bg-[#4A3C31] px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-[#3A2E25] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-none bg-[#111] px-4 py-2.5 text-sm font-medium text-[#F4F0E6] transition-all hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50 border-2 border-[#111] shadow-[4px_4px_0px_#555]"
         >
           {isSaving ? <Loader2 size={15} className="animate-spin" /> : null}
           保存词表
@@ -219,21 +219,21 @@ export default function AsrVocabularySettings() {
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[12px] text-rose-600">
+        <div className="rounded-none border-2 border-[#D9423E] bg-[#D9423E]/10 px-4 py-3 text-[12px] text-[#D9423E]">
           {error}
         </div>
       ) : null}
 
       {success ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[12px] text-emerald-700">
+        <div className="rounded-none border-2 border-emerald-600 bg-emerald-50 px-4 py-3 text-[12px] text-emerald-700">
           {success}
         </div>
       ) : null}
 
       <div className="space-y-2">
-        <div className="text-[12px] font-medium text-[#8C7A6B]">已保存词条</div>
+        <div className="text-[12px] font-medium text-[#8A8578]">已保存词条</div>
         {isLoading ? (
-          <div className="flex items-center gap-2 rounded-xl border border-[#E3D9CE] bg-white px-4 py-3 text-[12px] text-[#8C7A6B]">
+          <div className="flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-[12px] text-[#8A8578]">
             <Loader2 size={14} className="animate-spin" />
             加载中...
           </div>
@@ -242,14 +242,14 @@ export default function AsrVocabularySettings() {
             {savedTerms.map((term) => (
               <span
                 key={term}
-                className="rounded-full border border-[#E3D9CE] bg-white px-3 py-1.5 text-[12px] text-[#5C4D42]"
+                className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-1.5 text-[12px] text-[#111]"
               >
                 {term}
               </span>
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-[#E3D9CE] bg-white/70 px-4 py-3 text-[12px] text-[#A69B8F]">
+          <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6]/70 px-4 py-3 text-[12px] text-[#8A8578]">
             还没有词条，保存后下次阿里云转写会自动带上。
           </div>
         )}

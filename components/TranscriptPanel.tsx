@@ -259,21 +259,21 @@ export default function TranscriptPanel() {
   if (status === 'idle') {
     return (
       <div className="flex h-full flex-col bg-transparent">
-        <div className="border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
-          <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
-            <MessageSquare size={16} className="mr-2 text-sky-400" />
+        <div className="border-b border-2 border-[#111] px-4 py-4 sm:px-6 sm:py-5">
+          <h3 className="font-[family-name:var(--font-vt323)] flex items-center text-[15px] font-semibold text-[#111]">
+            <MessageSquare size={16} className="mr-2 text-[#D9423E]" />
             实时转写
           </h3>
         </div>
-        <div className="flex flex-1 items-center justify-center px-4 py-5 text-stone-400 sm:px-7 sm:py-8">
-          <div className="flex w-full max-w-[360px] flex-col items-center justify-center rounded-[28px] border border-dashed border-stone-200/90 bg-[#FCFBF8] px-5 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-8 sm:py-10">
-            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-100/50 bg-sky-50 shadow-sm">
-              <MessageSquare size={20} className="text-sky-400" strokeWidth={2} />
+        <div className="flex flex-1 items-center justify-center px-4 py-5 text-[#8A8578] sm:px-7 sm:py-8">
+          <div className="flex w-full max-w-[360px] flex-col items-center justify-center rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-5 py-8 shadow-none sm:px-8 sm:py-10">
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-none border-2 border-[#111] bg-[#D9423E]/10 shadow-[4px_4px_0px_#111]">
+              <MessageSquare size={20} className="text-[#D9423E]" strokeWidth={2} />
             </div>
-            <p className="font-song mb-2 text-center text-[17px] font-semibold text-stone-700">
+            <p className="font-[family-name:var(--font-vt323)] mb-2 text-center text-[17px] font-semibold text-[#111]">
               准备聆听...
             </p>
-            <p className="mx-auto max-w-[240px] text-center text-[13px] leading-6 text-stone-400">
+            <p className="mx-auto max-w-[240px] text-center text-[13px] leading-6 text-[#8A8578]">
               从这一刻开始，把声音整理成清晰记录。
             </p>
           </div>
@@ -303,34 +303,34 @@ export default function TranscriptPanel() {
         className="hidden"
       />
 
-      <div className="border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
+      <div className="border-b border-2 border-[#111] px-4 py-4 sm:px-6 sm:py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
-            <MessageSquare size={16} className="mr-2 text-sky-400" />
+          <h3 className="font-[family-name:var(--font-vt323)] flex items-center text-[15px] font-semibold text-[#111]">
+            <MessageSquare size={16} className="mr-2 text-[#D9423E]" />
             实时转写
           </h3>
           <div className="flex items-center gap-3">
             {(status === 'recording' || status === 'paused') && (
               <div className="flex items-center gap-2">
                 <div
-                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                  className={`flex items-center gap-1.5 rounded-none px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
                     status === 'paused'
-                      ? 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
+                      ? 'border-2 border-[#111] bg-[#F4F0E6] text-[#8A8578]'
                       : micActive
-                      ? 'border border-sky-100 bg-sky-50 text-sky-600'
-                      : 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
+                      ? 'border-2 border-[#111] bg-[#D9423E]/10 text-[#D9423E]'
+                      : 'border-2 border-[#111] bg-[#F4F0E6] text-[#8A8578]'
                   }`}
                 >
                   <Mic size={10} />
                   <span>ME</span>
                 </div>
                 <div
-                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                  className={`flex items-center gap-1.5 rounded-none px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
                     status === 'paused'
-                      ? 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
+                      ? 'border-2 border-[#111] bg-[#F4F0E6] text-[#8A8578]'
                       : systemAudioActive
-                      ? 'border border-teal-100 bg-teal-50 text-teal-600'
-                      : 'border border-[#D8CEC4]/50 bg-[#F7F3EE] text-[#8C7A6B]'
+                      ? 'border-2 border-[#111] bg-teal-50 text-teal-600'
+                      : 'border-2 border-[#111] bg-[#F4F0E6] text-[#8A8578]'
                   }`}
                 >
                   <Volume2 size={10} />
@@ -338,15 +338,15 @@ export default function TranscriptPanel() {
                 </div>
               </div>
             )}
-            <span className="rounded-full border border-[#D8CEC4]/50 bg-[#F7F3EE] px-2.5 py-1 text-[11px] font-medium text-[#8C7A6B]">
+            <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2.5 py-1 text-[11px] font-medium text-[#8A8578]">
               {segments.length} 条
             </span>
           </div>
         </div>
 
         <div className="mt-4 space-y-2">
-          <div className="flex items-center gap-2 rounded-2xl border border-[#D8CEC4] bg-white px-3 py-2 shadow-sm">
-            <Search size={14} className="text-[#A69B8F]" />
+          <div className="flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2 shadow-[4px_4px_0px_#111]">
+            <Search size={14} className="text-[#8A8578]" />
             <input
               value={searchQuery}
               onChange={(event) => {
@@ -354,7 +354,7 @@ export default function TranscriptPanel() {
                 setActiveMatchIndex(0);
               }}
               placeholder="搜索转写内容..."
-              className="flex-1 bg-transparent text-sm text-[#4A3C31] placeholder:text-[#C4B6A9] focus:outline-none"
+              className="flex-1 bg-transparent text-sm text-[#111] placeholder:text-[#8A8578] focus:outline-none"
             />
             {searchQuery && (
               <button
@@ -362,17 +362,17 @@ export default function TranscriptPanel() {
                   setSearchQuery('');
                   setActiveMatchIndex(0);
                 }}
-                className="rounded-md p-1 text-[#A69B8F] transition-colors hover:bg-[#F7F3EE] hover:text-[#5C4D42]"
+                className="rounded-md p-1 text-[#8A8578] transition-colors hover:bg-[#F4F0E6] hover:text-[#8A8578]"
                 title="清空搜索"
               >
                 <X size={14} />
               </button>
             )}
-            <div className="h-4 w-px bg-[#E3D9CE]" />
+            <div className="h-4 w-px bg-[#111]" />
             <button
               onClick={() => jumpToMatch('prev')}
               disabled={matchedSegmentIds.length === 0}
-              className="rounded-md p-1 text-[#A69B8F] transition-colors hover:bg-[#F7F3EE] hover:text-[#5C4D42] disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-md p-1 text-[#8A8578] transition-colors hover:bg-[#F4F0E6] hover:text-[#8A8578] disabled:cursor-not-allowed disabled:opacity-30"
               title="上一个匹配"
             >
               <ChevronUp size={14} />
@@ -380,7 +380,7 @@ export default function TranscriptPanel() {
             <button
               onClick={() => jumpToMatch('next')}
               disabled={matchedSegmentIds.length === 0}
-              className="rounded-md p-1 text-[#A69B8F] transition-colors hover:bg-[#F7F3EE] hover:text-[#5C4D42] disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-md p-1 text-[#8A8578] transition-colors hover:bg-[#F4F0E6] hover:text-[#8A8578] disabled:cursor-not-allowed disabled:opacity-30"
               title="下一个匹配"
             >
               <ChevronDown size={14} />
@@ -388,13 +388,13 @@ export default function TranscriptPanel() {
           </div>
 
           {searchQuery.trim() ? (
-            <p className="text-xs text-[#8C7A6B]">
+            <p className="text-xs text-[#8A8578]">
               {matchedSegmentIds.length > 0
                 ? `找到 ${safeActiveMatchIndex + 1} / ${matchedSegmentIds.length} 条匹配`
-                : `未找到“${searchQuery.trim()}”`}
+                : `未找到"${searchQuery.trim()}"`}
             </p>
           ) : actionMessage ? (
-            <p className="text-xs text-[#8C7A6B]">{actionMessage}</p>
+            <p className="text-xs text-[#8A8578]">{actionMessage}</p>
           ) : null}
         </div>
       </div>
@@ -415,22 +415,22 @@ export default function TranscriptPanel() {
               ref={(node) => {
                 segmentRefs.current[segment.id] = node;
               }}
-              className={`group relative rounded-2xl border transition-all duration-300 ${
+              className={`group relative rounded-none border-2 transition-all duration-300 ${
                 isSystemPlaceholder ? 'opacity-50 grayscale' : ''
               } ${
                 isPlayingHere
-                  ? 'border-indigo-300 bg-indigo-50/40 ring-4 ring-indigo-500/5'
+                  ? 'border-[#111] bg-indigo-50/40 ring-4 ring-indigo-500/5'
                   : isActiveMatch
-                    ? 'border-sky-300 bg-sky-50/30 ring-4 ring-sky-500/5'
+                    ? 'border-[#111] bg-[#D9423E]/10 ring-4 ring-[#D9423E]/5'
                     : isMatched
-                      ? 'border-amber-200 bg-amber-50/50'
-                      : 'border-[#E3D9CE] bg-white hover:border-[#D8CEC4] hover:shadow-md'
+                      ? 'border-[#111] bg-amber-50/50'
+                      : 'border-[#111] bg-[#F4F0E6] hover:shadow-[4px_4px_0px_#111]'
               } px-5 py-4`}
             >
               <div className="absolute right-3 top-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
                   onClick={() => handleCopySegment(segment.speaker, segment.text, segment.id)}
-                  className="rounded-lg border border-[#E3D9CE] bg-white p-2 text-[#A69B8F] transition-all hover:bg-[#F7F3EE] hover:text-[#4A3C31]"
+                  className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-2 text-[#8A8578] transition-all hover:bg-[#F4F0E6] hover:text-[#111]"
                   title="复制该段"
                 >
                   {copiedSegmentId === segment.id ? (
@@ -441,7 +441,7 @@ export default function TranscriptPanel() {
                 </button>
                 <button
                   onClick={() => handleDeleteSegment(segment.id)}
-                  className="rounded-lg border border-[#E3D9CE] bg-white p-2 text-[#A69B8F] transition-all hover:bg-red-50 hover:text-red-500"
+                  className="rounded-none border-2 border-[#111] bg-[#F4F0E6] p-2 text-[#8A8578] transition-all hover:bg-red-50 hover:text-red-500"
                   title="删除该段"
                 >
                   <Trash2 size={14} />
@@ -449,14 +449,14 @@ export default function TranscriptPanel() {
               </div>
 
               <div className="mb-3 flex items-center gap-3 pr-20">
-                <span className="inline-flex items-center gap-2 rounded-lg border border-[#E3D9CE] bg-[#F7F3EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#8C7A6B]">
-                  <span className={`h-1.5 w-1.5 rounded-full ${style.dot} shadow-sm`} />
+                <span className="inline-flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#8A8578]">
+                  <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
                   {getSpeakerDisplayName(segment.speaker)}
                 </span>
                 {canSeek ? (
                   <button
                     onClick={() => void handleSeekToSegment(segment)}
-                    className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 font-mono text-[10px] font-bold tracking-tighter text-indigo-600 transition-colors hover:bg-indigo-100"
+                    className="rounded-none border-2 border-[#111] bg-indigo-50 px-2.5 py-1 font-mono text-[10px] font-bold tracking-tighter text-indigo-600 transition-colors hover:bg-indigo-100"
                     title="跳到这段并播放"
                   >
                     {formatSeconds(segmentOffset)}
@@ -464,15 +464,15 @@ export default function TranscriptPanel() {
                 ) : (
                   <span
                     title={new Date(segment.startTime).toLocaleString('zh-CN')}
-                    className="cursor-default font-mono text-[10px] font-bold tracking-tighter text-[#A69B8F]"
+                    className="cursor-default font-mono text-[10px] font-bold tracking-tighter text-[#8A8578]"
                   >
                     {formatSeconds(segmentOffset)}
                   </span>
                 )}
               </div>
               <p
-                className={`text-[15px] leading-relaxed text-[#3A2E25] selection:bg-sky-100 ${
-                  isSystemPlaceholder ? 'italic text-[#A69B8F]' : ''
+                className={`text-[15px] leading-relaxed text-[#111] selection:bg-[#D9423E]/10 ${
+                  isSystemPlaceholder ? 'italic text-[#8A8578]' : ''
                 }`}
               >
                 {highlightText(segment.text, searchQuery)}
@@ -482,20 +482,20 @@ export default function TranscriptPanel() {
         })}
 
         {currentPartial && status === 'recording' && (
-          <div className="rounded-lg border border-dashed border-blue-200 bg-blue-50/50 p-3">
+          <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] p-3">
             <div className="mb-1 flex items-center gap-2">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-blue-400" />
-              <Mic size={11} className="text-blue-400" />
-              <span className="text-xs font-medium text-blue-500">识别中...</span>
+              <div className="h-2 w-2 animate-pulse rounded-full bg-[#D9423E]" />
+              <Mic size={11} className="text-[#D9423E]" />
+              <span className="text-xs font-medium text-[#D9423E]">识别中...</span>
             </div>
-            <p className="text-sm italic text-blue-500/80">
+            <p className="text-sm italic text-[#D9423E]/80">
               {highlightText(currentPartial, searchQuery)}
             </p>
           </div>
         )}
 
         {systemAudioActive && status === 'recording' && (
-          <div className="rounded-lg border border-dashed border-green-200 bg-green-50/50 p-3">
+          <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] p-3">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
               <Volume2 size={11} className="text-green-400" />
@@ -505,31 +505,31 @@ export default function TranscriptPanel() {
         )}
 
         {segments.length === 0 && !currentPartial && status === 'recording' && (
-          <div className="flex flex-col items-center justify-center py-8 text-[#A69B8F]">
+          <div className="flex flex-col items-center justify-center py-8 text-[#8A8578]">
             <div className="mb-3 flex gap-1">
-              <div className="h-3 w-1 animate-pulse rounded bg-sky-300" style={{ animationDelay: '0ms' }} />
-              <div className="h-4 w-1 animate-pulse rounded bg-sky-400" style={{ animationDelay: '150ms' }} />
-              <div className="h-5 w-1 animate-pulse rounded bg-sky-500" style={{ animationDelay: '300ms' }} />
-              <div className="h-4 w-1 animate-pulse rounded bg-sky-400" style={{ animationDelay: '150ms' }} />
-              <div className="h-3 w-1 animate-pulse rounded bg-sky-300" style={{ animationDelay: '0ms' }} />
+              <div className="h-3 w-1 animate-pulse rounded bg-[#D9423E]/40" style={{ animationDelay: '0ms' }} />
+              <div className="h-4 w-1 animate-pulse rounded bg-[#D9423E]/60" style={{ animationDelay: '150ms' }} />
+              <div className="h-5 w-1 animate-pulse rounded bg-[#D9423E]" style={{ animationDelay: '300ms' }} />
+              <div className="h-4 w-1 animate-pulse rounded bg-[#D9423E]/60" style={{ animationDelay: '150ms' }} />
+              <div className="h-3 w-1 animate-pulse rounded bg-[#D9423E]/40" style={{ animationDelay: '0ms' }} />
             </div>
             <p className="text-xs">正在聆听...</p>
           </div>
         )}
       </div>
 
-      <div className="border-t border-[#E3D9CE] bg-[#FCFAF8]/95 px-4 py-3 backdrop-blur">
-        <div className="rounded-2xl border border-[#E3D9CE] bg-white px-4 py-3 shadow-sm">
+      <div className="border-t border-2 border-[#111] bg-[#F4F0E6] px-4 py-3">
+        <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 shadow-[4px_4px_0px_#111]">
           <div className="flex items-center gap-3">
             <button
               onClick={() => void handleTogglePlayback()}
               disabled={!audioUrl}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2B2420] text-white transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:bg-[#C4B6A9]"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none bg-[#111] text-white transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:bg-[#8A8578]"
             >
               {effectiveIsPlaying ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}
             </button>
 
-            <div className="min-w-[44px] text-[12px] font-medium tabular-nums text-[#5C4D42]">
+            <div className="min-w-[44px] text-[12px] font-medium tabular-nums text-[#8A8578]">
               {formatSeconds(effectivePlaybackTime)}
             </div>
 
@@ -547,16 +547,16 @@ export default function TranscriptPanel() {
                   audioRef.current.currentTime = nextTime;
                 }
               }}
-              className="h-1 flex-1 cursor-pointer accent-[#4A3C31]"
+              className="h-1 flex-1 cursor-pointer accent-[#111]"
             />
 
-            <div className="min-w-[44px] text-right text-[12px] font-medium tabular-nums text-[#8C7A6B]">
+            <div className="min-w-[44px] text-right text-[12px] font-medium tabular-nums text-[#8A8578]">
               {formatSeconds(playerDuration)}
             </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[12px] text-[#8C7A6B]">
+            <p className="text-[12px] text-[#8A8578]">
               {audioUrl
                 ? status === 'recording'
                   ? '可回放到当前已录进度；点任意时间戳可跳播。'
@@ -574,7 +574,7 @@ export default function TranscriptPanel() {
                   const style = getSpeakerStyle(speaker);
                   const Icon = style.icon;
                   return (
-                    <div key={speaker} className="flex items-center gap-1.5 text-xs text-[#8C7A6B]">
+                    <div key={speaker} className="flex items-center gap-1.5 text-xs text-[#8A8578]">
                       <div className={`h-2 w-2 rounded-full ${style.dot}`} />
                       <Icon size={10} />
                       <span>{getSpeakerDisplayName(speaker)}</span>

@@ -31,7 +31,7 @@ export default function SpeakerManager() {
 
   return (
     <div className="space-y-2">
-      <h4 className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+      <h4 className="flex items-center gap-1.5 text-xs font-medium text-[#8A8578]">
         <UserCircle size={12} />
         说话人管理
       </h4>
@@ -39,7 +39,7 @@ export default function SpeakerManager() {
         {uniqueSpeakers.map((speaker) => (
           <div
             key={speaker}
-            className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 py-1"
+            className="flex items-center gap-1.5 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2.5 py-1"
           >
             {editing === speaker ? (
               <>
@@ -59,19 +59,19 @@ export default function SpeakerManager() {
                 </button>
                 <button
                   onClick={() => setEditing(null)}
-                  className="text-zinc-400 hover:text-zinc-600"
+                  className="text-[#8A8578] hover:text-[#111]"
                 >
                   <X size={12} />
                 </button>
               </>
             ) : (
               <>
-                <span className="text-xs text-zinc-600">
+                <span className="text-xs text-[#111]">
                   {speakers[speaker] || speaker}
                 </span>
                 <button
                   onClick={() => startEdit(speaker)}
-                  className="text-zinc-300 hover:text-zinc-500"
+                  className="text-[#8A8578] hover:text-[#111]"
                 >
                   <Edit3 size={10} />
                 </button>

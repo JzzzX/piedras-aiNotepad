@@ -187,12 +187,12 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/5 backdrop-blur-[2px] transition-all"
+          className="fixed inset-0 z-40 bg-black/5 transition-all"
           onClick={onClose}
         />
       )}
       <div
-        className={`fixed top-1/2 left-1/2 z-50 w-[92vw] max-w-[760px] origin-center -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-[#E3D9CE] bg-[#FCFAF8]/98 shadow-[0_24px_80px_-12px_rgba(74,60,49,0.2)] backdrop-blur-2xl transition-all duration-300 ${
+        className={`retro-window fixed top-1/2 left-1/2 z-50 w-[92vw] max-w-[760px] origin-center -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111] transition-all duration-300 ${
           isOpen
             ? 'scale-100 opacity-100 pointer-events-auto'
             : 'scale-95 opacity-0 pointer-events-none'
@@ -200,23 +200,23 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
       >
         <div className="flex h-[78vh] max-h-[850px] flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-black/[0.04] px-5 py-4 sm:px-6">
+          <div className="retro-title-bar flex items-center justify-between border-b-2 border-[#111] px-5 py-4 sm:px-6">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 border border-amber-100/50">
-                <BookOpen size={16} className="text-amber-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-none bg-[#D9423E]/10 border-2 border-[#111]">
+                <BookOpen size={16} className="text-[#D9423E]" />
               </div>
-              <h3 className="font-song text-[15px] font-semibold text-stone-800">知识库</h3>
+              <h3 className="font-[family-name:var(--font-vt323)] text-[15px] font-semibold text-[#111]">知识库</h3>
             </div>
 
             <div className="flex items-center gap-3">
               {/* Tab switcher */}
-              <div className="flex items-center rounded-xl border border-black/[0.02] bg-[#F9F8F6] p-1">
+              <div className="flex items-center rounded-none border-2 border-[#111] bg-[#EAE3D2] p-1">
                 <button
                   onClick={() => setActiveTab('search')}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                  className={`flex items-center gap-1.5 rounded-none px-3 py-1.5 text-xs font-medium transition-all ${
                     activeTab === 'search'
-                      ? 'bg-white text-stone-800 shadow-sm border border-black/[0.04]'
-                      : 'text-stone-400 hover:text-stone-600'
+                      ? 'bg-[#F4F0E6] text-[#111] shadow-[4px_4px_0px_#111] border-2 border-[#111]'
+                      : 'text-[#8A8578] hover:text-[#111]'
                   }`}
                 >
                   <Search size={12} />
@@ -224,10 +224,10 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
                 </button>
                 <button
                   onClick={() => setActiveTab('qa')}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                  className={`flex items-center gap-1.5 rounded-none px-3 py-1.5 text-xs font-medium transition-all ${
                     activeTab === 'qa'
-                      ? 'bg-white text-stone-800 shadow-sm border border-black/[0.04]'
-                      : 'text-stone-400 hover:text-stone-600'
+                      ? 'bg-[#F4F0E6] text-[#111] shadow-[4px_4px_0px_#111] border-2 border-[#111]'
+                      : 'text-[#8A8578] hover:text-[#111]'
                   }`}
                 >
                   <MessageSquare size={12} />
@@ -236,23 +236,23 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
               </div>
 
               {/* Scope toggle */}
-              <div className="flex items-center rounded-lg border border-stone-200/80 bg-white/80 p-0.5 text-[11px]">
+              <div className="flex items-center rounded-none border-2 border-[#111] bg-[#F4F0E6] p-0.5 text-[11px]">
                 <button
                   onClick={() => setSearchScope('workspace')}
-                  className={`rounded-md px-2 py-1 transition-all ${
+                  className={`rounded-none px-2 py-1 transition-all ${
                     searchScope === 'workspace'
-                      ? 'bg-stone-800 text-white'
-                      : 'text-stone-400 hover:text-stone-600'
+                      ? 'bg-[#111] text-white'
+                      : 'text-[#8A8578] hover:text-[#111]'
                   }`}
                 >
                   当前工作区
                 </button>
                 <button
                   onClick={() => setSearchScope('all')}
-                  className={`rounded-md px-2 py-1 transition-all ${
+                  className={`rounded-none px-2 py-1 transition-all ${
                     searchScope === 'all'
-                      ? 'bg-stone-800 text-white'
-                      : 'text-stone-400 hover:text-stone-600'
+                      ? 'bg-[#111] text-white'
+                      : 'text-[#8A8578] hover:text-[#111]'
                   }`}
                 >
                   全部
@@ -261,7 +261,7 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
 
               <button
                 onClick={onClose}
-                className="rounded-xl p-2 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+                className="rounded-none p-2 text-[#8A8578] transition-colors hover:bg-[#EAE3D2] hover:text-[#111]"
               >
                 <X size={18} />
               </button>
@@ -272,10 +272,10 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
           {activeTab === 'search' && (
             <div className="flex flex-1 flex-col overflow-hidden">
               {/* Search bar + filters */}
-              <div className="space-y-2 border-b border-black/[0.04] px-5 py-3 sm:px-6">
+              <div className="space-y-2 border-b-2 border-[#111] px-5 py-3 sm:px-6">
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8578]" />
                     <input
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -283,13 +283,13 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
                         if (e.key === 'Enter') handleSearch();
                       }}
                       placeholder="搜索会议内容..."
-                      className="w-full rounded-xl border border-stone-200 bg-white py-2.5 pl-9 pr-3 text-sm text-stone-700 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none"
+                      className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] py-2.5 pl-9 pr-3 text-sm text-[#111] placeholder:text-[#8A8578] focus:border-[#111] focus:outline-none"
                     />
                   </div>
                   <button
                     onClick={handleSearch}
                     disabled={!searchQuery.trim() || isSearching}
-                    className="rounded-xl bg-[#4A3C31] px-4 py-2.5 text-xs font-medium text-white transition-all hover:bg-[#3A2E25] disabled:opacity-50"
+                    className="rounded-none bg-[#111] px-4 py-2.5 text-xs font-medium text-white transition-all hover:bg-[#333] disabled:opacity-50 border-2 border-[#111] shadow-[4px_4px_0px_#111]"
                   >
                     {isSearching ? <Loader2 size={14} className="animate-spin" /> : '搜索'}
                   </button>
@@ -299,20 +299,20 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
                     type="date"
                     value={searchDateFrom}
                     onChange={(e) => setSearchDateFrom(e.target.value)}
-                    className="rounded-lg border border-stone-200 bg-white/90 px-2 py-1 text-xs text-stone-600 focus:outline-none"
+                    className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2 py-1 text-xs text-[#111] focus:outline-none"
                     placeholder="开始日期"
                   />
-                  <span className="text-xs text-stone-400">~</span>
+                  <span className="text-xs text-[#8A8578]">~</span>
                   <input
                     type="date"
                     value={searchDateTo}
                     onChange={(e) => setSearchDateTo(e.target.value)}
-                    className="rounded-lg border border-stone-200 bg-white/90 px-2 py-1 text-xs text-stone-600 focus:outline-none"
+                    className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2 py-1 text-xs text-[#111] focus:outline-none"
                   />
                   <select
                     value={searchCollectionId}
                     onChange={(e) => setSearchCollectionId(e.target.value)}
-                    className="rounded-lg border border-stone-200 bg-white/90 px-2 py-1 text-xs text-stone-600 focus:outline-none"
+                    className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2 py-1 text-xs text-[#111] focus:outline-none"
                   >
                     <option value="">全部 Collections</option>
                     <option value="__ungrouped">未归类</option>
@@ -326,14 +326,14 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
               {/* Results */}
               <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
                 {searchResults.length === 0 && !isSearching && (
-                  <div className="flex flex-col items-center justify-center pt-16 text-stone-400">
-                    <BookOpen size={32} className="mb-3 text-stone-300" />
+                  <div className="flex flex-col items-center justify-center pt-16 text-[#8A8578]">
+                    <BookOpen size={32} className="mb-3 text-[#8A8578]" />
                     <p className="text-sm">输入关键词搜索历史会议内容</p>
                   </div>
                 )}
                 {isSearching && (
                   <div className="flex items-center justify-center pt-16">
-                    <Loader2 size={20} className="animate-spin text-stone-400" />
+                    <Loader2 size={20} className="animate-spin text-[#8A8578]" />
                   </div>
                 )}
                 <div className="space-y-3">
@@ -341,21 +341,21 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
                     <button
                       key={`${result.type}-${result.meetingId || result.assetId}`}
                       onClick={() => handleResultClick(result)}
-                      className="group w-full rounded-2xl border border-stone-200/80 bg-white p-4 text-left transition-all hover:border-[#D8CEC4] hover:shadow-md"
+                      className="group w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 text-left transition-all hover:border-[#111] hover:shadow-[4px_4px_0px_#111]"
                     >
                       <div className="mb-2 flex items-start justify-between">
-                        <h4 className="text-sm font-semibold text-stone-800 group-hover:text-[#4A3C31]">
+                        <h4 className="text-sm font-semibold text-[#111] group-hover:text-[#111]">
                           {result.title || (result.type === 'meeting' ? '未命名会议' : '未命名资料')}
                         </h4>
-                        <ExternalLink size={12} className="mt-0.5 shrink-0 text-stone-300 group-hover:text-[#8C7A6B]" />
+                        <ExternalLink size={12} className="mt-0.5 shrink-0 text-[#8A8578] group-hover:text-[#111]" />
                       </div>
-                      <p className="mb-2 text-[11px] text-stone-400">
-                        <span className="mr-2 rounded-full bg-[#F7F3EE] px-1.5 py-0.5 text-[10px] text-[#8C7A6B]">
+                      <p className="mb-2 text-[11px] text-[#8A8578]">
+                        <span className="mr-2 rounded-none bg-[#EAE3D2] px-1.5 py-0.5 text-[10px] text-[#8A8578]">
                           {result.type === 'meeting' ? '会议' : '资料'}
                         </span>
                         {new Date(result.date).toLocaleString('zh-CN', { hour12: false })}
                         {result.score > 0 && (
-                          <span className="ml-2 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-600">
+                          <span className="ml-2 rounded-none bg-[#D9423E]/10 px-1.5 py-0.5 text-[10px] text-[#D9423E]">
                             相关度 {Math.round(result.score * 100)}%
                           </span>
                         )}
@@ -363,7 +363,7 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
                       {result.snippets.length > 0 && (
                         <div className="space-y-1">
                           {result.snippets.map((snippet, i) => (
-                            <p key={i} className="text-xs leading-relaxed text-stone-500 line-clamp-2">
+                            <p key={i} className="text-xs leading-relaxed text-[#8A8578] line-clamp-2">
                               {snippet}
                             </p>
                           ))}
@@ -388,12 +388,12 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
                 }`}
               >
                 {qaMessages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center pt-12 text-stone-400">
-                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-[20px] border border-amber-100/50 bg-amber-50">
-                      <Bot size={20} className="text-amber-500" />
+                  <div className="flex flex-col items-center justify-center pt-12 text-[#8A8578]">
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-none border-2 border-[#111] bg-[#D9423E]/10">
+                      <Bot size={20} className="text-[#D9423E]" />
                     </div>
-                    <p className="font-song mb-1 text-[15px] font-semibold text-stone-700">知识库问答</p>
-                    <p className="max-w-[260px] text-center text-[13px] leading-6 text-stone-400">
+                    <p className="font-[family-name:var(--font-vt323)] mb-1 text-[15px] font-semibold text-[#111]">知识库问答</p>
+                    <p className="max-w-[260px] text-center text-[13px] leading-6 text-[#8A8578]">
                       跨会议提问，快速召回历史结论与线索。
                     </p>
                   </div>
@@ -402,28 +402,28 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
                 {qaMessages.map((msg) => (
                   <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                     {msg.role === 'assistant' && (
-                      <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 border border-amber-100/50">
-                        <Bot size={16} className="text-amber-500" />
+                      <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-[#D9423E]/10 border-2 border-[#111]">
+                        <Bot size={16} className="text-[#D9423E]" />
                       </div>
                     )}
                     <div
-                      className={`max-w-[85%] rounded-2xl px-5 py-3.5 text-[15px] leading-relaxed shadow-sm ${
+                      className={`max-w-[85%] rounded-none px-5 py-3.5 text-[15px] leading-relaxed shadow-[4px_4px_0px_#111] ${
                         msg.role === 'user'
-                          ? 'bg-[#4A3C31] text-white rounded-tr-sm'
-                          : 'bg-white text-stone-700 border border-black/[0.04] rounded-tl-sm'
+                          ? 'bg-[#111] text-white'
+                          : 'bg-[#F4F0E6] text-[#111] border-2 border-[#111]'
                       }`}
                     >
                       <div className="whitespace-pre-wrap">{msg.content}</div>
                       {msg.role === 'assistant' && !msg.content && isQaLoading && (
-                        <div className="flex items-center gap-2 text-amber-500">
+                        <div className="flex items-center gap-2 text-[#D9423E]">
                           <Loader2 size={16} className="animate-spin" />
                           <span className="text-sm">思考中...</span>
                         </div>
                       )}
                     </div>
                     {msg.role === 'user' && (
-                      <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F9F8F6] border border-black/[0.04]">
-                        <User size={16} className="text-stone-400" />
+                      <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-[#EAE3D2] border-2 border-[#111]">
+                        <User size={16} className="text-[#8A8578]" />
                       </div>
                     )}
                   </div>
@@ -432,7 +432,7 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
 
               {/* QA input */}
               <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-10 sm:bottom-5 sm:left-6 sm:right-6">
-                <div className="pointer-events-auto flex items-end gap-2 rounded-[24px] border border-black/[0.04] bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+                <div className="pointer-events-auto flex items-end gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] p-2 shadow-[4px_4px_0px_#111]">
                   <textarea
                     ref={qaInputRef}
                     value={qaInput}
@@ -447,15 +447,15 @@ export default function FloatingKnowledgeBase({ isOpen, onClose }: FloatingKnowl
                     disabled={isQaLoading}
                     rows={1}
                     style={{ minHeight: '44px', maxHeight: '120px' }}
-                    className="flex-1 resize-none bg-transparent px-4 py-3 text-[15px] text-stone-800 placeholder:text-stone-400 focus:outline-none disabled:opacity-50"
+                    className="flex-1 resize-none bg-transparent px-4 py-3 text-[15px] text-[#111] placeholder:text-[#8A8578] focus:outline-none disabled:opacity-50"
                   />
                   <button
                     onClick={handleQaSend}
                     disabled={!qaInput.trim() || isQaLoading}
-                    className={`mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full p-3 transition-all ${
+                    className={`mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-none p-3 transition-all border-2 border-[#111] ${
                       qaInput.trim() && !isQaLoading
-                        ? 'bg-[#4A3C31] text-white hover:bg-[#3A2E25] shadow-sm'
-                        : 'bg-[#F9F8F6] text-stone-300'
+                        ? 'bg-[#111] text-white hover:bg-[#333] shadow-[4px_4px_0px_#111]'
+                        : 'bg-[#EAE3D2] text-[#8A8578]'
                     }`}
                   >
                     {isQaLoading ? (

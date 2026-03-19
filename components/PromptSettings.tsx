@@ -12,21 +12,21 @@ export default function PromptSettings() {
   const { promptOptions, setPromptOptions } = useMeetingStore();
 
   return (
-    <div className="space-y-4 rounded-2xl border border-[#D8CEC4] bg-[#FCFAF8] p-4">
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-[#5C4D42]">
-        <SlidersHorizontal size={13} className="text-[#8C7A6B]" />
+    <div className="space-y-4 rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 shadow-[4px_4px_0px_#111]">
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-[#111]">
+        <SlidersHorizontal size={13} className="text-[#8A8578]" />
         AI 输出设置
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <label className="space-y-1">
-          <span className="text-xs text-[#8C7A6B]">会议类型</span>
+          <span className="text-xs text-[#8A8578]">会议类型</span>
           <select
             value={promptOptions.meetingType}
             onChange={(e) =>
               setPromptOptions({ meetingType: e.target.value as MeetingType })
             }
-            className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3 py-2 text-sm text-[#4A3C31] focus:border-[#BFAE9E] focus:outline-none"
+            className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2 text-sm text-[#111] focus:outline-none"
           >
             {MEETING_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -37,13 +37,13 @@ export default function PromptSettings() {
         </label>
 
         <label className="space-y-1">
-          <span className="text-xs text-[#8C7A6B]">输出风格</span>
+          <span className="text-xs text-[#8A8578]">输出风格</span>
           <select
             value={promptOptions.outputStyle}
             onChange={(e) =>
               setPromptOptions({ outputStyle: e.target.value as OutputStyle })
             }
-            className="w-full rounded-xl border border-[#D8CEC4] bg-white px-3 py-2 text-sm text-[#4A3C31] focus:border-[#BFAE9E] focus:outline-none"
+            className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2 text-sm text-[#111] focus:outline-none"
           >
             {OUTPUT_STYLES.map((style) => (
               <option key={style} value={style}>
@@ -54,12 +54,12 @@ export default function PromptSettings() {
         </label>
       </div>
 
-      <label className="flex items-center gap-2 text-xs text-[#5C4D42]">
+      <label className="flex items-center gap-2 text-xs text-[#111]">
         <input
           type="checkbox"
           checked={promptOptions.includeActionItems}
           onChange={(e) => setPromptOptions({ includeActionItems: e.target.checked })}
-          className="h-3.5 w-3.5 rounded border-[#C4B6A9]"
+          className="h-3.5 w-3.5 rounded-none border-2 border-[#111]"
         />
         输出行动项（负责人 + 截止日期）
       </label>

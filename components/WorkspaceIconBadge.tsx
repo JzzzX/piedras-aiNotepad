@@ -13,9 +13,9 @@ interface WorkspaceIconBadgeProps {
 }
 
 const SIZE_STYLES = {
-  sm: { box: 'h-7 w-7 rounded-xl', icon: 14 },
-  md: { box: 'h-8 w-8 rounded-xl', icon: 16 },
-  lg: { box: 'h-10 w-10 rounded-2xl', icon: 18 },
+  sm: { box: 'h-7 w-7', icon: 14 },
+  md: { box: 'h-8 w-8', icon: 16 },
+  lg: { box: 'h-10 w-10', icon: 18 },
 } as const;
 
 export default function WorkspaceIconBadge({
@@ -32,11 +32,10 @@ export default function WorkspaceIconBadge({
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center border ${styles.box}`}
+      className={`inline-flex shrink-0 items-center justify-center border-2 border-[#111] ${styles.box}`}
       style={{
         color,
         backgroundColor: `${color}14`,
-        borderColor: `${color}30`,
       }}
     >
       <Icon size={styles.icon} strokeWidth={2} />

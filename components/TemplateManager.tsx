@@ -189,30 +189,30 @@ export default function TemplateManager({
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm p-4 sm:p-6 transition-all">
-      <div className="flex h-[82vh] max-h-[720px] w-full max-w-[960px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 p-4 sm:p-6 transition-all">
+      <div className="flex h-[82vh] max-h-[720px] w-full max-w-[960px] flex-col overflow-hidden rounded-none bg-[#F4F0E6] shadow-[4px_4px_0px_#111] border-2 border-[#111] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-zinc-100 bg-white px-5 py-4">
+        <div className="relative z-10 flex shrink-0 items-center justify-between border-b-2 border-[#111] bg-[#F4F0E6] px-5 py-4">
           <div>
-            <h3 className="font-song text-[16px] font-semibold text-zinc-800">Recipe 管理</h3>
-            <p className="mt-0.5 text-[12px] text-zinc-500">创建、编辑、删除与排序</p>
+            <h3 className="font-[family-name:var(--font-vt323)] text-[16px] font-semibold text-[#111]">Recipe 管理</h3>
+            <p className="mt-0.5 text-[12px] text-[#8A8578]">创建、编辑、删除与排序</p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
+            className="rounded-none p-2 text-[#8A8578] transition-colors hover:bg-[#EAE3D2] hover:text-[#111] border-2 border-[#111]"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Body: sidebar + editor */}
-        <div className="relative flex min-h-0 flex-1 overflow-hidden bg-white">
+        <div className="relative flex min-h-0 flex-1 overflow-hidden bg-[#F4F0E6]">
           {/* Left sidebar */}
-          <div className="flex w-[220px] shrink-0 flex-col border-r border-zinc-100 bg-zinc-50/80 sm:w-[250px]">
+          <div className="flex w-[220px] shrink-0 flex-col border-r-2 border-[#111] bg-[#EAE3D2] sm:w-[250px]">
             <div className="shrink-0 p-3">
               <button
                 onClick={handleCreateNew}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 bg-white px-3 py-2.5 text-[13px] font-medium text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-800 shadow-sm"
+                className="flex w-full items-center justify-center gap-1.5 rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-3 py-2.5 text-[13px] font-medium text-[#111] transition-colors hover:bg-[#EAE3D2] shadow-[2px_2px_0px_#111]"
               >
                 <Plus size={15} />
                 新建 Recipe
@@ -225,10 +225,10 @@ export default function TemplateManager({
                 return (
                   <div
                     key={template.id}
-                    className={`group mb-1 flex items-center gap-1 rounded-xl transition-all ${
+                    className={`group mb-1 flex items-center gap-1 rounded-none transition-all ${
                       isSelected
-                        ? 'bg-white shadow-sm ring-1 ring-zinc-200/80'
-                        : 'hover:bg-white/60'
+                        ? 'bg-[#F4F0E6] shadow-[2px_2px_0px_#111] border-2 border-[#111]'
+                        : 'hover:bg-[#F4F0E6]/60'
                     }`}
                   >
                     <button
@@ -242,16 +242,16 @@ export default function TemplateManager({
                       <span className="shrink-0 text-base">{template.icon}</span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="truncate text-[13px] font-medium text-zinc-700">
+                          <span className="truncate text-[13px] font-medium text-[#111]">
                             {template.name}
                           </span>
                           {template.isSystem && (
-                            <span className="shrink-0 rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">
+                            <span className="shrink-0 rounded-none bg-[#EAE3D2] px-1.5 py-0.5 text-[10px] font-medium text-[#8A8578] border border-[#111]">
                               系统
                             </span>
                           )}
                         </div>
-                        <p className="truncate text-[11px] text-zinc-400 font-mono">
+                        <p className="truncate text-[11px] text-[#8A8578] font-mono">
                           {template.command}
                         </p>
                       </div>
@@ -262,14 +262,14 @@ export default function TemplateManager({
                       <button
                         onClick={() => reorderTemplate(template.id, 'up')}
                         disabled={idx === 0 || isBusy}
-                        className="rounded p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-0"
+                        className="rounded-none p-0.5 text-[#8A8578] hover:bg-[#EAE3D2] hover:text-[#111] disabled:opacity-0"
                       >
                         <ChevronUp size={14} />
                       </button>
                       <button
                         onClick={() => reorderTemplate(template.id, 'down')}
                         disabled={idx === templates.length - 1 || isBusy}
-                        className="rounded p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-0"
+                        className="rounded-none p-0.5 text-[#8A8578] hover:bg-[#EAE3D2] hover:text-[#111] disabled:opacity-0"
                       >
                         <ChevronDown size={14} />
                       </button>
@@ -281,54 +281,54 @@ export default function TemplateManager({
           </div>
 
           {/* Right editor */}
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#F4F0E6]">
             <div className="min-h-0 flex-1 overflow-y-auto p-6">
               {isCreating && (
-                <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-200/60 bg-emerald-50/80 px-4 py-3 text-[13px] text-emerald-700">
+                <div className="mb-5 flex items-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-[13px] text-[#111]">
                   <span className="relative flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#111] opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#111]" />
                   </span>
                   正在创建自定义 Recipe
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-5">
-                <label className="text-[12px] font-medium text-zinc-600">
+                <label className="text-[12px] font-medium text-[#111]">
                   名称
                   <input
                     value={form.name}
                     onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                     disabled={isReadOnly || isBusy}
-                    className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-800 focus:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-100/50 disabled:bg-zinc-50/80 disabled:text-zinc-500 transition-all"
+                    className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 disabled:bg-[#EAE3D2] disabled:text-[#8A8578] transition-all"
                   />
                 </label>
-                <label className="text-[12px] font-medium text-zinc-600">
+                <label className="text-[12px] font-medium text-[#111]">
                   命令
                   <input
                     value={form.command}
                     onChange={(e) => setForm((prev) => ({ ...prev, command: e.target.value }))}
                     placeholder="/custom"
                     disabled={isReadOnly || isBusy}
-                    className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm font-mono text-zinc-800 focus:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-100/50 disabled:bg-zinc-50/80 disabled:text-zinc-500 transition-all"
+                    className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm font-mono text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 disabled:bg-[#EAE3D2] disabled:text-[#8A8578] transition-all"
                   />
                 </label>
-                <label className="text-[12px] font-medium text-zinc-600">
+                <label className="text-[12px] font-medium text-[#111]">
                   图标
                   <input
                     value={form.icon}
                     onChange={(e) => setForm((prev) => ({ ...prev, icon: e.target.value }))}
                     disabled={isReadOnly || isBusy}
-                    className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-800 focus:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-100/50 disabled:bg-zinc-50/80 disabled:text-zinc-500 transition-all"
+                    className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 disabled:bg-[#EAE3D2] disabled:text-[#8A8578] transition-all"
                   />
                 </label>
-                <label className="text-[12px] font-medium text-zinc-600">
+                <label className="text-[12px] font-medium text-[#111]">
                   分类
                   <select
                     value={form.category}
                     onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
                     disabled={isReadOnly || isBusy}
-                    className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-800 focus:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-100/50 disabled:bg-zinc-50/80 disabled:text-zinc-500 transition-all"
+                    className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 disabled:bg-[#EAE3D2] disabled:text-[#8A8578] transition-all"
                   >
                     {TEMPLATE_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -339,42 +339,42 @@ export default function TemplateManager({
                 </label>
               </div>
 
-              <label className="mt-5 block text-[12px] font-medium text-zinc-600">
+              <label className="mt-5 block text-[12px] font-medium text-[#111]">
                 描述
                 <input
                   value={form.description}
                   onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                   disabled={isReadOnly || isBusy}
-                  className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-800 focus:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-100/50 disabled:bg-zinc-50/80 disabled:text-zinc-500 transition-all"
+                  className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-2.5 text-sm text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 disabled:bg-[#EAE3D2] disabled:text-[#8A8578] transition-all"
                 />
               </label>
 
-              <label className="mt-5 block text-[12px] font-medium text-zinc-600">
+              <label className="mt-5 block text-[12px] font-medium text-[#111]">
                 Prompt
                 <textarea
                   value={form.prompt}
                   onChange={(e) => setForm((prev) => ({ ...prev, prompt: e.target.value }))}
                   disabled={isReadOnly || isBusy}
-                  className="mt-1.5 min-h-[160px] w-full resize-y rounded-xl border border-zinc-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-zinc-800 focus:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-100/50 disabled:bg-zinc-50/80 disabled:text-zinc-500 transition-all"
+                  className="mt-1.5 min-h-[160px] w-full resize-y rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3.5 py-3 text-sm leading-relaxed text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]/20 disabled:bg-[#EAE3D2] disabled:text-[#8A8578] transition-all"
                 />
               </label>
 
-              {error && <p className="mt-3 text-[13px] text-red-500 flex items-center gap-1.5"><X size={14}/>{error}</p>}
+              {error && <p className="mt-3 text-[13px] text-[#D9423E] flex items-center gap-1.5"><X size={14}/>{error}</p>}
               {isReadOnly && (
-                <div className="mt-5 flex items-center gap-2 rounded-xl bg-zinc-50 px-4 py-3 text-[12px] text-zinc-500 border border-zinc-100">
-                  <span className="text-zinc-400">ℹ️</span>
+                <div className="mt-5 flex items-center gap-2 rounded-none bg-[#EAE3D2] px-4 py-3 text-[12px] text-[#8A8578] border-2 border-[#111]">
+                  <span className="text-[#8A8578]">ℹ️</span>
                   系统 Recipe 只读，如需改造请点击左侧「新建 Recipe」。
                 </div>
               )}
             </div>
 
             {/* Footer actions */}
-            <div className="flex shrink-0 items-center justify-end gap-3 border-t border-zinc-100 bg-white px-6 py-4">
+            <div className="flex shrink-0 items-center justify-end gap-3 border-t-2 border-[#111] bg-[#F4F0E6] px-6 py-4">
               {selectedTemplate && !selectedTemplate.isSystem && (
                 <button
                   onClick={handleDelete}
                   disabled={isBusy}
-                  className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-4 py-2 text-[13px] font-medium text-red-500 transition-all hover:bg-red-50 hover:border-red-300 disabled:opacity-40"
+                  className="flex items-center gap-1.5 rounded-none border-2 border-[#D9423E] bg-[#F4F0E6] px-4 py-2 text-[13px] font-medium text-[#D9423E] transition-all hover:bg-[#D9423E]/10 disabled:opacity-40 shadow-[2px_2px_0px_#D9423E]"
                 >
                   <Trash2 size={14} />
                   删除
@@ -383,7 +383,7 @@ export default function TemplateManager({
               <button
                 onClick={handleSave}
                 disabled={isBusy || isReadOnly}
-                className="rounded-xl bg-zinc-900 px-6 py-2 text-[13px] font-medium text-white shadow-sm transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
+                className="rounded-none bg-[#111] px-6 py-2 text-[13px] font-medium text-[#F4F0E6] shadow-[4px_4px_0px_#555] transition-all hover:bg-[#333] active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 border-2 border-[#111]"
               >
                 {isCreating
                   ? '创建 Recipe'

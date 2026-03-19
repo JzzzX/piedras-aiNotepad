@@ -143,10 +143,10 @@ export default function MeetingHistory({
     return (
       <div
         key={meeting.id}
-        className={`group flex items-start gap-4 rounded-[24px] border px-4 py-4 transition-all ${
+        className={`group flex items-start gap-4 rounded-none border-2 px-4 py-4 transition-all ${
           isActive
-            ? 'border-zinc-300 bg-white shadow-sm'
-            : 'border-[#ECE4DA] bg-[#FCFAF7] hover:border-[#D8CEC4] hover:shadow-[0_12px_24px_rgba(58,46,37,0.06)]'
+            ? 'border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111]'
+            : 'border-[#111] bg-[#F4F0E6] hover:shadow-[4px_4px_0px_#111]'
         }`}
       >
         <button
@@ -156,18 +156,18 @@ export default function MeetingHistory({
         >
           <p
             className={`line-clamp-2 text-[15px] font-medium leading-6 ${
-              isActive ? 'text-gray-900' : 'text-gray-700'
+              isActive ? 'text-[#111]' : 'text-[#111]'
             }`}
           >
             {meeting.title || '无标题记录'}
           </p>
           {(meeting.roundLabel || meeting.interviewerName) && (
-            <div className="mt-1 text-xs text-[#A09082]">
+            <div className="mt-1 text-xs text-[#8A8578]">
               {meeting.roundLabel || '未命名轮次'}
               {meeting.interviewerName ? ` · ${meeting.interviewerName}` : ''}
             </div>
           )}
-          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-400">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-[#8A8578]">
             <span>{formatDate(meeting.date)}</span>
             {meeting.duration > 0 && (
               <>
@@ -188,7 +188,7 @@ export default function MeetingHistory({
               </>
             )}
           </div>
-          <p className="mt-2 line-clamp-2 text-[13px] leading-6 text-stone-500">
+          <p className="mt-2 line-clamp-2 text-[13px] leading-6 text-[#8A8578]">
             {buildNotePreview(meeting)}
           </p>
         </button>
@@ -204,7 +204,7 @@ export default function MeetingHistory({
                   event.target.value === '__ungrouped' ? null : event.target.value
                 )
               }
-              className="w-full rounded-xl border border-[#E3D9CE] bg-white px-3 py-2 text-sm text-[#5C4D42] focus:border-[#C2B3A4] focus:outline-none"
+              className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2 text-sm text-[#8A8578] focus:border-[#111] focus:outline-none"
             >
               {moveOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -220,7 +220,7 @@ export default function MeetingHistory({
                 void deleteMeeting(meeting.id);
               }
             }}
-            className="rounded-lg px-2 py-1.5 text-xs text-[#A09082] transition-colors hover:bg-rose-50 hover:text-rose-600"
+            className="rounded-none px-2 py-1.5 text-xs text-[#8A8578] transition-colors hover:bg-rose-50 hover:text-rose-600"
             title="删除会议"
           >
             <span className="inline-flex items-center gap-1">
@@ -237,27 +237,27 @@ export default function MeetingHistory({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] p-4 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(180px,0.5fr))]">
+      <div className="grid gap-3 rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(180px,0.5fr))]">
         <label className="relative">
           <Search
             size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#B4A79A]"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8578]"
           />
           <input
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="搜索会议标题、AI 总结或用户笔记"
-            className="w-full rounded-2xl border border-[#E3D9CE] bg-white px-10 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none"
+            className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-10 py-3 text-sm text-[#111] placeholder:text-[#8A8578] focus:border-[#111] focus:outline-none"
           />
         </label>
 
         {!hideCollectionFilter && fixedCollectionId === undefined ? (
-          <label className="text-[12px] text-[#8C7A6B]">
+          <label className="text-[12px] text-[#8A8578]">
             Collection
             <select
               value={effectiveCollectionFilter}
               onChange={(event) => setCollectionFilter(event.target.value)}
-              className="mt-1.5 w-full rounded-2xl border border-[#E3D9CE] bg-white px-3 py-3 text-sm text-[#3A2E25] focus:border-[#C2B3A4] focus:outline-none"
+              className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-3 text-sm text-[#111] focus:border-[#111] focus:outline-none"
             >
               <option value="all">全部 Collections</option>
               <option value="ungrouped">未归类</option>
@@ -270,50 +270,50 @@ export default function MeetingHistory({
           </label>
         ) : null}
 
-        <label className="text-[12px] text-[#8C7A6B]">
+        <label className="text-[12px] text-[#8A8578]">
           开始日期
           <div className="relative mt-1.5">
             <CalendarRange
               size={15}
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#B4A79A]"
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8A8578]"
             />
             <input
               type="date"
               value={dateFrom}
               onChange={(event) => setDateFrom(event.target.value)}
-              className="w-full rounded-2xl border border-[#E3D9CE] bg-white px-3 py-3 pr-10 text-sm text-[#3A2E25] focus:border-[#C2B3A4] focus:outline-none"
+              className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-3 pr-10 text-sm text-[#111] focus:border-[#111] focus:outline-none"
             />
           </div>
         </label>
 
-        <label className="text-[12px] text-[#8C7A6B]">
+        <label className="text-[12px] text-[#8A8578]">
           结束日期
           <div className="relative mt-1.5">
             <CalendarRange
               size={15}
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#B4A79A]"
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8A8578]"
             />
             <input
               type="date"
               value={dateTo}
               onChange={(event) => setDateTo(event.target.value)}
-              className="w-full rounded-2xl border border-[#E3D9CE] bg-white px-3 py-3 pr-10 text-sm text-[#3A2E25] focus:border-[#C2B3A4] focus:outline-none"
+              className="w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-3 pr-10 text-sm text-[#111] focus:border-[#111] focus:outline-none"
             />
           </div>
         </label>
       </div>
 
       {(isLoadingCollections || isLoadingList) && (
-        <div className="flex items-center justify-center gap-2 rounded-[24px] border border-[#E8DED3] bg-white/80 px-4 py-10 text-sm text-[#8B796A]">
+        <div className="flex items-center justify-center gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-10 text-sm text-[#8A8578]">
           <Loader2 size={16} className="animate-spin" />
           正在加载会议历史...
         </div>
       )}
 
       {!isLoadingCollections && !isLoadingList && isEmpty && (
-        <div className="rounded-[24px] border border-dashed border-[#D8CEC4] bg-[#FCFAF7] px-6 py-12 text-center">
-          <p className="text-base font-medium text-[#5C4D42]">{emptyTitle}</p>
-          <p className="mt-2 text-sm leading-6 text-[#8B796A]">{emptyDescription}</p>
+        <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-6 py-12 text-center">
+          <p className="text-base font-medium text-[#8A8578]">{emptyTitle}</p>
+          <p className="mt-2 text-sm leading-6 text-[#8A8578]">{emptyDescription}</p>
         </div>
       )}
 

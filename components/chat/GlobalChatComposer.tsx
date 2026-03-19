@@ -248,8 +248,8 @@ export default function GlobalChatComposer({
 
   const cardClassName =
     variant === 'hero'
-      ? 'rounded-[28px] border border-[#D8CEC4] bg-white p-4 shadow-[0_12px_36px_rgba(58,46,37,0.08)]'
-      : 'rounded-[24px] border border-[#D8CEC4] bg-white p-3 shadow-[0_12px_30px_rgba(58,46,37,0.08)]';
+      ? 'rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 shadow-[4px_4px_0px_#111]'
+      : 'rounded-none border-2 border-[#111] bg-[#F4F0E6] p-3 shadow-[4px_4px_0px_#111]';
   const activeCommandIdx = Math.min(selectedIdx, Math.max(commandItems.length - 1, 0));
   const contextSummary = useMemo(() => {
     const parts: string[] = [];
@@ -279,7 +279,7 @@ export default function GlobalChatComposer({
                   event.target.value === '__all__' ? null : event.target.value
                 )
               }
-              className="appearance-none rounded-full border border-[#E3D9CE] bg-[#F8F4EF] px-4 py-2 pr-10 text-[12px] text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none"
+              className="appearance-none rounded-none border-2 border-[#111] bg-[#EAE3D2] px-4 py-2 pr-10 text-[12px] text-[#111] focus:outline-none"
             >
               <option value="__all__">全部工作区</option>
               {workspaces.map((workspace) => (
@@ -290,7 +290,7 @@ export default function GlobalChatComposer({
             </select>
             <ChevronDown
               size={12}
-              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#8C7A6B]"
+              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#8A8578]"
             />
           </label>
 
@@ -298,11 +298,11 @@ export default function GlobalChatComposer({
             type="button"
             ref={contextButtonRef}
             onClick={() => setShowContext((value) => !value)}
-            className="inline-flex items-center gap-1 rounded-full border border-[#E3D9CE] bg-[#FBF8F4] px-3 py-2 text-[12px] text-[#6B5C50] transition-colors hover:bg-white"
+            className="inline-flex items-center gap-1 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2 text-[12px] text-[#111] transition-colors hover:bg-[#EAE3D2]"
           >
             <SlidersHorizontal size={13} />
             Add context
-            {contextSummary ? <span className="text-[#A08C79]">{contextSummary}</span> : null}
+            {contextSummary ? <span className="text-[#8A8578]">{contextSummary}</span> : null}
             <ChevronDown size={12} />
           </button>
         </div>
@@ -318,17 +318,17 @@ export default function GlobalChatComposer({
             placeholder={placeholder}
             disabled={disabled || loading}
             rows={1}
-            className="min-h-[72px] flex-1 resize-none bg-transparent px-2 py-2 text-[16px] leading-7 text-[#3A2E25] placeholder:text-[#B4A79A] focus:outline-none disabled:opacity-50"
+            className="min-h-[72px] flex-1 resize-none bg-transparent px-2 py-2 text-[16px] leading-7 text-[#111] placeholder:text-[#8A8578] focus:outline-none disabled:opacity-50"
           />
 
           <button
             type="button"
             onClick={toggleDictation}
             disabled={disabled || loading}
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all ${
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-none border-2 border-[#111] transition-all ${
               isDictating
-                ? 'bg-sky-500 text-white shadow-md'
-                : 'bg-[#F7F3EE] text-[#8C7A6B] hover:bg-sky-50 hover:text-sky-500'
+                ? 'bg-[#D9423E] text-[#F4F0E6] shadow-[2px_2px_0px_#111]'
+                : 'bg-[#EAE3D2] text-[#8A8578] hover:bg-[#D9423E]/10 hover:text-[#D9423E]'
             } disabled:cursor-not-allowed disabled:opacity-40`}
           >
             <Mic size={18} />
@@ -338,10 +338,10 @@ export default function GlobalChatComposer({
             type="button"
             onClick={() => void onSubmit()}
             disabled={disabled || loading || !input.trim()}
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all ${
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-none border-2 border-[#111] transition-all ${
               input.trim() && !loading && !disabled
-                ? 'bg-[#3A2E25] text-white shadow-md hover:bg-[#2B2420]'
-                : 'bg-[#F7F3EE] text-[#B4A79A]'
+                ? 'bg-[#111] text-[#F4F0E6] shadow-[2px_2px_0px_#555] hover:bg-[#333]'
+                : 'bg-[#EAE3D2] text-[#8A8578]'
             }`}
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
@@ -352,18 +352,18 @@ export default function GlobalChatComposer({
       {showContext ? (
         <div
           ref={contextCardRef}
-          className="absolute left-0 right-0 top-[calc(100%+12px)] z-20 rounded-[24px] border border-[#E3D9CE] bg-[#FCFAF7] p-4 shadow-[0_22px_48px_rgba(58,46,37,0.14)]"
+          className="absolute left-0 right-0 top-[calc(100%+12px)] z-20 rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 shadow-[4px_4px_0px_#111]"
         >
           <div className="grid gap-3 sm:grid-cols-2">
             {selectedWorkspaceId ? (
-              <label className="text-[12px] text-[#8C7A6B]">
+              <label className="text-[12px] text-[#8A8578]">
                 Collection
                 <select
                   value={filters.collectionId || ''}
                   onChange={(event) =>
                     onFiltersChange({ ...filters, collectionId: event.target.value })
                   }
-                  className="mt-1.5 w-full rounded-xl border border-[#E3D9CE] bg-white px-3 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none"
+                  className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2.5 text-sm text-[#111] focus:outline-none"
                 >
                   <option value="">全部 Collections</option>
                   <option value="__ungrouped">未归类</option>
@@ -375,12 +375,12 @@ export default function GlobalChatComposer({
                 </select>
               </label>
             ) : (
-              <div className="rounded-xl border border-dashed border-[#E3D9CE] bg-white/70 px-3 py-3 text-[12px] leading-6 text-[#9A8877]">
+              <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6]/70 px-3 py-3 text-[12px] leading-6 text-[#8A8578]">
                 选中全部工作区时，不提供 Collection 筛选。
               </div>
             )}
 
-            <label className="text-[12px] text-[#8C7A6B]">
+            <label className="text-[12px] text-[#8A8578]">
               开始日期
               <input
                 type="date"
@@ -388,10 +388,10 @@ export default function GlobalChatComposer({
                 onChange={(event) =>
                   onFiltersChange({ ...filters, dateFrom: event.target.value })
                 }
-                className="mt-1.5 w-full rounded-xl border border-[#E3D9CE] bg-white px-3 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none"
+                className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2.5 text-sm text-[#111] focus:outline-none"
               />
             </label>
-            <label className="text-[12px] text-[#8C7A6B]">
+            <label className="text-[12px] text-[#8A8578]">
               结束日期
               <input
                 type="date"
@@ -399,7 +399,7 @@ export default function GlobalChatComposer({
                 onChange={(event) =>
                   onFiltersChange({ ...filters, dateTo: event.target.value })
                 }
-                className="mt-1.5 w-full rounded-xl border border-[#E3D9CE] bg-white px-3 py-2.5 text-sm text-[#3A2E25] focus:border-[#BFAE9E] focus:outline-none"
+                className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2.5 text-sm text-[#111] focus:outline-none"
               />
             </label>
           </div>
@@ -407,13 +407,13 @@ export default function GlobalChatComposer({
       ) : null}
 
       {showCommands ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-30 overflow-hidden rounded-[24px] border border-[#E3D9CE] bg-white shadow-[0_24px_60px_rgba(58,46,37,0.16)]">
-          <div className="border-b border-[#EFE7DE] px-4 py-3 text-[11px] uppercase tracking-[0.2em] text-[#A69B8F]">
+        <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-30 overflow-hidden rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111]">
+          <div className="border-b-2 border-[#111] px-4 py-3 text-[11px] uppercase tracking-[0.2em] text-[#8A8578]">
             Recipes
           </div>
           <div className="max-h-[360px] overflow-y-auto p-2">
             {commandItems.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-[#A69B8F]">没有匹配的 recipes</div>
+              <div className="px-4 py-6 text-sm text-[#8A8578]">没有匹配的 recipes</div>
             ) : (
               <div className="space-y-1">
                 {commandItems.map((item, index) => (
@@ -423,28 +423,28 @@ export default function GlobalChatComposer({
                     onClick={() => {
                       void selectRecipe(item.recipe);
                     }}
-                    className={`flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-left transition-all ${
-                      index === activeCommandIdx ? 'bg-[#F7F3EE]' : 'hover:bg-[#FBF8F4]'
+                    className={`flex w-full items-start gap-3 rounded-none px-3 py-3 text-left transition-all ${
+                      index === activeCommandIdx ? 'bg-[#EAE3D2] border-2 border-[#111]' : 'hover:bg-[#EAE3D2]'
                     }`}
                   >
-                    <div className={`mt-0.5 h-8 w-1.5 rounded-full ${accentClass(item.accent)}`} />
+                    <div className={`mt-0.5 h-8 w-1.5 rounded-none ${accentClass(item.accent)}`} />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[14px] font-semibold text-[#3A2E25]">
+                        <span className="text-[14px] font-semibold text-[#111]">
                           {item.label}
                         </span>
                         {item.command ? (
-                          <code className="rounded-md bg-[#F7F3EE] px-1.5 py-0.5 text-[10px] text-[#8C7A6B]">
+                          <code className="rounded-none bg-[#EAE3D2] px-1.5 py-0.5 text-[10px] text-[#8A8578] border border-[#111]">
                             {item.command}
                           </code>
                         ) : null}
                         {!item.recipe.isSystem ? (
-                          <span className="rounded-full bg-[#F1EBE3] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
+                          <span className="rounded-none bg-[#EAE3D2] px-2 py-0.5 text-[10px] text-[#8A8578] border border-[#111]">
                             {item.sourceLabel}
                           </span>
                         ) : null}
                       </div>
-                      <p className="mt-1 text-[12px] leading-5 text-[#8C7A6B]">
+                      <p className="mt-1 text-[12px] leading-5 text-[#8A8578]">
                         {item.description}
                       </p>
                     </div>

@@ -391,19 +391,19 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
 
   return (
     <div className="relative flex h-full flex-col bg-transparent">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.04] px-4 py-4 sm:px-6 sm:py-5">
-        <h3 className="font-song flex items-center text-[15px] font-semibold text-stone-800">
-          <Sparkles size={16} className="mr-2 text-sky-400" />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-2 border-[#111] px-4 py-4 sm:px-6 sm:py-5">
+        <h3 className="font-[family-name:var(--font-vt323)] flex items-center text-[15px] font-semibold text-[#111]">
+          <Sparkles size={16} className="mr-2 text-[#D9423E]" />
           AI 助手
         </h3>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
-          <div className="flex flex-1 items-center rounded-xl border border-black/[0.02] bg-[#F9F8F6] p-1 sm:flex-none">
+          <div className="flex flex-1 items-center rounded-none border-2 border-[#111] bg-[#F4F0E6] p-1 sm:flex-none">
             <button
               onClick={() => switchMode('meeting')}
-              className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:flex-none ${
+              className={`flex-1 rounded-none px-3 py-1.5 text-xs font-medium transition-all sm:flex-none ${
                 chatMode === 'meeting'
-                  ? 'bg-white text-stone-800 shadow-sm border border-black/[0.04]'
-                  : 'text-stone-400 hover:text-stone-600'
+                  ? 'bg-[#F4F0E6] text-[#111] shadow-[4px_4px_0px_#111] border-2 border-[#111]'
+                  : 'text-[#8A8578] hover:text-[#111]'
               }`}
               title="当前会议"
             >
@@ -412,10 +412,10 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
             </button>
             <button
               onClick={() => switchMode('global')}
-              className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:flex-none ${
+              className={`flex-1 rounded-none px-3 py-1.5 text-xs font-medium transition-all sm:flex-none ${
                 chatMode === 'global'
-                  ? 'bg-white text-stone-800 shadow-sm border border-black/[0.04]'
-                  : 'text-stone-400 hover:text-stone-600'
+                  ? 'bg-[#F4F0E6] text-[#111] shadow-[4px_4px_0px_#111] border-2 border-[#111]'
+                  : 'text-[#8A8578] hover:text-[#111]'
               }`}
               title="跨会议"
             >
@@ -430,7 +430,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
                 onClick={() => setShowAISettings(true)}
                 label="AI 设置"
                 tooltipSide="bottom"
-                className="rounded-xl p-2 text-stone-400 transition-colors hover:bg-[#F9F8F6] hover:text-stone-600"
+                className="rounded-none p-2 text-[#8A8578] transition-colors hover:bg-[#F4F0E6] hover:text-[#111]"
               >
                 <Settings2 size={16} />
               </TooltipIconButton>
@@ -438,7 +438,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
                 onClick={() => setShowTemplateManager(true)}
                 label="Recipe 管理"
                 tooltipSide="bottom"
-                className="rounded-xl p-2 text-stone-400 transition-colors hover:bg-[#F9F8F6] hover:text-stone-600"
+                className="rounded-none p-2 text-[#8A8578] transition-colors hover:bg-[#F4F0E6] hover:text-[#111]"
               >
                 <LayoutTemplate size={16} />
               </TooltipIconButton>
@@ -448,17 +448,17 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
               onClick={() => setShowGlobalFilters((v) => !v)}
               label="筛选条件"
               tooltipSide="bottom"
-              className={`relative rounded-xl border p-2 transition-all ${
+              className={`relative rounded-none border-2 p-2 transition-all ${
                 showGlobalFilters
-                  ? 'border-[#CFC2B5] bg-[#F7F1EA] text-stone-700 shadow-sm'
+                  ? 'border-[#111] bg-[#F4F0E6] text-[#111] shadow-[4px_4px_0px_#111]'
                   : hasActiveGlobalFilters
-                    ? 'border-[#D8CEC4] bg-[#FBF7F2] text-stone-700 hover:border-[#C8B9AA] hover:bg-[#F7F1EA]'
-                    : 'border-transparent text-stone-400 hover:border-[#E5DDD5] hover:bg-[#F9F8F6] hover:text-stone-600'
+                    ? 'border-[#111] bg-[#F4F0E6] text-[#111] hover:bg-[#F4F0E6]'
+                    : 'border-transparent text-[#8A8578] hover:border-[#111] hover:bg-[#F4F0E6] hover:text-[#111]'
               }`}
             >
               <ListFilter size={16} />
               {hasActiveGlobalFilters && (
-                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-white bg-stone-800 px-1 text-[10px] font-semibold text-white shadow-sm">
+                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-none border-2 border-[#111] bg-[#111] px-1 text-[10px] font-semibold text-white shadow-none">
                   {activeGlobalFilterCount}
                 </span>
               )}
@@ -466,12 +466,12 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
           )}
 
           {onClose && (
-            <div className="w-px h-4 bg-black/[0.04] ml-1 mr-1" />
+            <div className="w-px h-4 bg-[#111] ml-1 mr-1" />
           )}
           {onClose && (
             <button
               onClick={onClose}
-              className="rounded-xl p-2 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+              className="rounded-none p-2 text-[#8A8578] transition-colors hover:bg-[#F4F0E6] hover:text-[#111]"
               title="关闭"
             >
               <X size={18} />
@@ -489,15 +489,15 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
         }`}
       >
         {activeMessages.length === 0 && (
-          <div className="flex h-full flex-col items-center justify-start px-2 pt-6 text-stone-400 sm:pt-10">
-            <div className="w-full max-w-[360px] rounded-[28px] border border-dashed border-stone-200/90 bg-[#FCFBF8] px-5 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-8 sm:py-10">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-100/50 bg-sky-50 shadow-sm">
-                <Bot size={20} className="text-sky-400" strokeWidth={2} />
+          <div className="flex h-full flex-col items-center justify-start px-2 pt-6 text-[#8A8578] sm:pt-10">
+            <div className="w-full max-w-[360px] rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-5 py-8 shadow-none sm:px-8 sm:py-10">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-none border-2 border-[#111] bg-[#D9423E]/10 shadow-[4px_4px_0px_#111]">
+                <Bot size={20} className="text-[#D9423E]" strokeWidth={2} />
               </div>
-              <p className="font-song mb-2 text-center text-[17px] font-semibold text-stone-700">
+              <p className="font-[family-name:var(--font-vt323)] mb-2 text-center text-[17px] font-semibold text-[#111]">
                 {chatMode === 'meeting' ? '会议专属助手' : '全局知识库'}
               </p>
-              <p className="mx-auto mb-7 max-w-[240px] text-center text-[13px] leading-6 text-stone-400">
+              <p className="mx-auto mb-7 max-w-[240px] text-center text-[13px] leading-6 text-[#8A8578]">
                 {chatMode === 'meeting'
                   ? hasMeetingContent
                     ? '围绕当前会议提问，提炼决策、行动项与结论。'
@@ -505,7 +505,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
                   : '跨会议提问，快速召回相关结论与线索。'}
               </p>
               {chatMode === 'global' && (
-                <p className="mx-auto max-w-[240px] text-center text-[12px] leading-5 text-stone-400/80">
+                <p className="mx-auto max-w-[240px] text-center text-[12px] leading-5 text-[#8A8578]/80">
                   更多检索功能请使用底栏「知识库」
                 </p>
               )}
@@ -516,28 +516,28 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
         {activeMessages.map((msg) => (
           <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             {msg.role === 'assistant' && (
-              <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-50 shadow-sm border border-sky-100/50">
-                <Bot size={16} className="text-sky-500" />
+              <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-[#D9423E]/10 border-2 border-[#111]">
+                <Bot size={16} className="text-[#D9423E]" />
               </div>
             )}
             <div
-              className={`max-w-[85%] rounded-2xl px-5 py-3.5 text-[15px] leading-relaxed shadow-sm ${
-                msg.role === 'user' 
-                  ? 'bg-sky-500 text-white rounded-tr-sm border-transparent' 
-                  : 'bg-white text-stone-700 border border-black/[0.04] rounded-tl-sm'
+              className={`max-w-[85%] rounded-none px-5 py-3.5 text-[15px] leading-relaxed shadow-[4px_4px_0px_#111] ${
+                msg.role === 'user'
+                  ? 'bg-[#D9423E] text-white border-2 border-[#111]'
+                  : 'bg-[#F4F0E6] text-[#111] border-2 border-[#111]'
               }`}
             >
               <div className="whitespace-pre-wrap">{msg.content}</div>
               {msg.role === 'assistant' && !msg.content && activeLoading && (
-                <div className="flex items-center gap-2 text-sky-400">
+                <div className="flex items-center gap-2 text-[#D9423E]">
                   <Loader2 size={16} className="animate-spin" />
                   <span className="text-sm">思考中...</span>
                 </div>
               )}
             </div>
             {msg.role === 'user' && (
-              <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F9F8F6] border border-black/[0.04]">
-                <User size={16} className="text-stone-400" />
+              <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-[#F4F0E6] border-2 border-[#111]">
+                <User size={16} className="text-[#8A8578]" />
               </div>
             )}
           </div>
@@ -550,21 +550,21 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
             type="button"
             aria-label="关闭全局检索筛选"
             onClick={() => setShowGlobalFilters(false)}
-            className="absolute inset-0 z-20 bg-white/50 backdrop-blur-[10px] transition-all"
+            className="absolute inset-0 z-20 bg-[#F4F0E6]/50 transition-all"
           />
           <div
-            className="absolute inset-x-4 z-30 max-h-[min(52vh,420px)] overflow-y-auto rounded-[26px] border border-stone-200/90 bg-[#FCFAF7]/92 p-4 shadow-[0_28px_60px_-24px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:inset-x-6 sm:p-5"
+            className="absolute inset-x-4 z-30 max-h-[min(52vh,420px)] overflow-y-auto rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 shadow-[4px_4px_0px_#111] sm:inset-x-6 sm:p-5"
             style={{ bottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-medium tracking-wide text-stone-500">全局检索筛选</p>
+                <p className="text-xs font-medium tracking-wide text-[#8A8578]">全局检索筛选</p>
                 <div className="flex items-center gap-2">
                   {hasActiveGlobalFilters && (
                     <button
                       type="button"
                       onClick={handleResetGlobalFilters}
-                      className="inline-flex items-center gap-1 rounded-full border border-stone-200/90 bg-white/85 px-2.5 py-1 text-[11px] text-stone-500 transition-colors hover:text-stone-700"
+                      className="inline-flex items-center gap-1 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2.5 py-1 text-[11px] text-[#8A8578] transition-colors hover:text-[#111]"
                     >
                       <RotateCcw size={12} />
                       清空
@@ -573,7 +573,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
                   <button
                     type="button"
                     onClick={() => setShowGlobalFilters(false)}
-                    className="rounded-full border border-stone-200/90 bg-white/85 px-2.5 py-1 text-[11px] text-stone-500 transition-colors hover:text-stone-700"
+                    className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2.5 py-1 text-[11px] text-[#8A8578] transition-colors hover:text-[#111]"
                   >
                     收起
                   </button>
@@ -581,32 +581,32 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="text-xs text-stone-500">
+                <label className="text-xs text-[#8A8578]">
                   开始日期
                   <input
                     type="date"
                     value={globalDateFrom}
                     onChange={(e) => setGlobalDateFrom(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white/90 px-3 py-2.5 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
+                    className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2.5 text-sm text-[#111] focus:border-[#111] focus:outline-none"
                   />
                 </label>
-                <label className="text-xs text-stone-500">
+                <label className="text-xs text-[#8A8578]">
                   结束日期
                   <input
                     type="date"
                     value={globalDateTo}
                     onChange={(e) => setGlobalDateTo(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white/90 px-3 py-2.5 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
+                    className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2.5 text-sm text-[#111] focus:border-[#111] focus:outline-none"
                   />
                 </label>
               </div>
 
-              <label className="block text-xs text-stone-500">
+              <label className="block text-xs text-[#8A8578]">
                 Collection 范围
                 <select
                   value={globalCollectionFilter}
                   onChange={(e) => setGlobalCollectionFilter(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white/90 px-3 py-2.5 text-sm text-stone-700 focus:border-stone-400 focus:outline-none"
+                  className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-[#F4F0E6] px-3 py-2.5 text-sm text-[#111] focus:border-[#111] focus:outline-none"
                 >
                   <option value="">全部会议</option>
                   <option value="__ungrouped">未归类的会议</option>
@@ -618,21 +618,21 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
                 </select>
               </label>
 
-              <p className="text-[11px] text-stone-400">默认不限制 Collection，只按时间范围缩小检索。</p>
+              <p className="text-[11px] text-[#8A8578]">默认不限制 Collection，只按时间范围缩小检索。</p>
             </div>
           </div>
         </>
       )}
 
       {chatMode === 'meeting' && showTemplates && (
-        <div className="absolute bottom-[88px] left-4 right-4 z-20 overflow-hidden rounded-2xl border border-white/40 bg-white/80 shadow-2xl backdrop-blur-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-bottom-2 duration-200 sm:bottom-[84px] sm:left-6 sm:right-6">
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-black/[0.04] bg-[#F9F8F6]/50">
-            <Sparkles size={14} className="text-sky-400" />
-            <span className="text-[11px] font-medium text-stone-500 tracking-widest uppercase">选择 Recipe</span>
+        <div className="absolute bottom-[88px] left-4 right-4 z-20 overflow-hidden rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111] duration-200 sm:bottom-[84px] sm:left-6 sm:right-6">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-2 border-[#111] bg-[#F4F0E6]">
+            <Sparkles size={14} className="text-[#D9423E]" />
+            <span className="text-[11px] font-medium text-[#8A8578] tracking-widest uppercase">选择 Recipe</span>
           </div>
           <div className="max-h-[240px] overflow-y-auto p-2">
             {templatesLoading && (
-              <p className="px-4 py-4 text-sm text-stone-400 text-center">技能加载中...</p>
+              <p className="px-4 py-4 text-sm text-[#8A8578] text-center">技能加载中...</p>
             )}
             {!templatesLoading && templatesError && (
               <p className="px-4 py-4 text-sm text-red-500 text-center">{templatesError}</p>
@@ -643,22 +643,22 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
                 <button
                   key={t.id}
                   onClick={() => selectTemplate(t)}
-                  className={`flex w-full items-start gap-4 p-3 rounded-xl text-left transition-all ${
-                    idx === selectedIdx ? 'bg-[#F9F8F6]' : 'hover:bg-[#F9F8F6]/50'
+                  className={`flex w-full items-start gap-4 p-3 rounded-none text-left transition-all ${
+                    idx === selectedIdx ? 'bg-[#F4F0E6] border-2 border-[#111]' : 'hover:bg-[#F4F0E6]/50'
                   }`}
                 >
                   <span className="text-xl mt-0.5">{t.icon}</span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[14px] font-semibold text-stone-800">{t.name}</span>
-                      <code className="rounded-md bg-white border border-black/[0.04] px-1.5 py-0.5 text-[10px] text-stone-400 font-mono shadow-sm">{t.command}</code>
+                      <span className="text-[14px] font-semibold text-[#111]">{t.name}</span>
+                      <code className="rounded-none bg-[#F4F0E6] border-2 border-[#111] px-1.5 py-0.5 text-[10px] text-[#8A8578] font-mono shadow-none">{t.command}</code>
                     </div>
-                    <p className="text-xs text-stone-500 leading-relaxed line-clamp-1">{t.description}</p>
+                    <p className="text-xs text-[#8A8578] leading-relaxed line-clamp-1">{t.description}</p>
                   </div>
                 </button>
               ))}
             {!templatesLoading && !templatesError && filteredTemplates.length === 0 && (
-              <p className="px-4 py-4 text-sm text-stone-400 text-center">无匹配技能</p>
+              <p className="px-4 py-4 text-sm text-[#8A8578] text-center">无匹配技能</p>
             )}
           </div>
         </div>
@@ -666,7 +666,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
 
       {/* Floating Command Bar */}
       <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-10 sm:bottom-6 sm:left-6 sm:right-6">
-        <div className={`pointer-events-auto flex items-end gap-2 rounded-[24px] border border-black/[0.04] bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.12)] ${isDictating ? 'ring-2 ring-sky-300/70 shadow-[0_12px_36px_rgba(14,165,233,0.18)]' : ''}`}>
+        <div className={`pointer-events-auto flex items-end gap-2 rounded-none border-2 border-[#111] bg-[#F4F0E6] p-2 shadow-[4px_4px_0px_#111] transition-all focus-within:ring-2 focus-within:ring-[#D9423E]/20 ${isDictating ? 'ring-2 ring-[#D9423E]/70 shadow-[4px_4px_0px_#111]' : ''}`}>
           <textarea
             ref={inputRef}
             value={input}
@@ -682,15 +682,15 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
             disabled={!canAsk || activeLoading}
             rows={1}
             style={{ minHeight: '44px', maxHeight: '120px' }}
-            className="flex-1 resize-none bg-transparent px-4 py-3 text-[15px] text-stone-800 placeholder:text-stone-400 focus:outline-none disabled:opacity-50 leading-relaxed font-sans"
+            className="flex-1 resize-none bg-transparent px-4 py-3 text-[15px] text-[#111] placeholder:text-[#8A8578] focus:outline-none disabled:opacity-50 leading-relaxed font-sans"
           />
           <button
             onClick={toggleDictation}
             disabled={!canAsk || activeLoading}
-            className={`rounded-full p-3 transition-all flex items-center justify-center mb-0.5 h-11 w-11 ${
+            className={`rounded-none p-3 transition-all flex items-center justify-center mb-0.5 h-11 w-11 ${
               isDictating
-                ? 'bg-sky-500 text-white shadow-sm animate-pulse'
-                : 'bg-[#F9F8F6] text-stone-400 hover:bg-sky-50 hover:text-sky-500'
+                ? 'bg-[#D9423E] text-white border-2 border-[#111] animate-pulse'
+                : 'bg-[#F4F0E6] text-[#8A8578] hover:bg-[#D9423E]/10 hover:text-[#D9423E] border-2 border-[#111]'
             } disabled:cursor-not-allowed disabled:opacity-40`}
             title={isDictating ? '停止语音输入' : '语音输入'}
           >
@@ -699,10 +699,10 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
           <button
             onClick={() => handleSend()}
             disabled={!input.trim() || activeLoading || !canAsk}
-            className={`rounded-full p-3 transition-all flex items-center justify-center mb-0.5 h-11 w-11 ${
+            className={`rounded-none p-3 transition-all flex items-center justify-center mb-0.5 h-11 w-11 ${
               input.trim() && !activeLoading && canAsk
-                ? 'bg-sky-500 text-white hover:bg-sky-400 shadow-sm'
-                : 'bg-[#F9F8F6] text-stone-300'
+                ? 'bg-[#D9423E] text-white hover:bg-[#D9423E]/90 border-2 border-[#111] shadow-[4px_4px_0px_#111]'
+                : 'bg-[#F4F0E6] text-[#8A8578] border-2 border-[#111]'
             }`}
           >
             {activeLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} className="ml-0.5" />}
@@ -718,14 +718,14 @@ export default function ChatPanel({ onClose }: ChatPanelProps = {}) {
       />
 
       {showAISettings && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/20 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-           <div className="w-full max-w-[500px] rounded-3xl bg-white shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100">
-                <h3 className="font-semibold text-base text-stone-800 flex items-center gap-2">
-                  <Settings2 size={18} className="text-stone-400" />
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/20 p-4">
+           <div className="w-full max-w-[500px] rounded-none border-2 border-[#111] bg-[#F4F0E6] shadow-[4px_4px_0px_#111] overflow-hidden flex flex-col">
+             <div className="flex items-center justify-between px-6 py-4 border-b border-2 border-[#111]">
+                <h3 className="font-semibold text-base text-[#111] flex items-center gap-2">
+                  <Settings2 size={18} className="text-[#8A8578]" />
                   AI 输出设置
                 </h3>
-                <button onClick={() => setShowAISettings(false)} className="p-2 rounded-full hover:bg-stone-50 text-stone-400 transition-colors">
+                <button onClick={() => setShowAISettings(false)} className="p-2 rounded-none hover:bg-[#F4F0E6] text-[#8A8578] transition-colors border-2 border-[#111]">
                   <X size={18} />
                 </button>
              </div>

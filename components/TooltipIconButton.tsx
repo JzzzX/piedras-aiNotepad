@@ -39,7 +39,7 @@ export default function TooltipIconButton({
       <div
         className={`pointer-events-none absolute ${tooltipPosition} z-[60] flex flex-col items-center opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 group-active:opacity-0 ${transformInitial}`}
       >
-        <span className="whitespace-nowrap rounded-md bg-stone-800 px-2 py-1 text-[11px] font-medium tracking-wide text-stone-100 shadow-lg border border-stone-700">
+        <span className="whitespace-nowrap rounded-none border-2 border-[#111] bg-[#111] px-2 py-1 text-[11px] font-medium tracking-wide text-white shadow-[4px_4px_0px_#111]">
           {label}
         </span>
       </div>

@@ -205,7 +205,7 @@ export default function AssetLibrary({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[24px] border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm leading-6 text-amber-800">
+      <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-3 text-sm leading-6 text-[#111]">
         <div className="flex items-start gap-2">
           <AlertCircle size={16} className="mt-0.5 shrink-0" />
           <p>
@@ -214,27 +214,27 @@ export default function AssetLibrary({
         </div>
       </div>
 
-      <div className="grid gap-3 rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] p-4 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(180px,0.5fr))]">
+      <div className="grid gap-3 rounded-none border-2 border-[#111] bg-[#F4F0E6] p-4 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(180px,0.5fr))]">
         <label className="relative">
           <Search
             size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#B4A79A]"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8578]"
           />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="搜索资料名称"
-            className="w-full rounded-2xl border border-[#E3D9CE] bg-white px-10 py-3 text-sm text-[#3A2E25] placeholder:text-[#AE9D8E] focus:border-[#C2B3A4] focus:outline-none"
+            className="w-full rounded-none border-2 border-[#111] bg-white px-10 py-3 text-sm text-[#111] placeholder:text-[#8A8578] focus:border-[#111] focus:outline-none"
           />
         </label>
 
         {fixedCollectionId === undefined ? (
-          <label className="text-[12px] text-[#8C7A6B]">
+          <label className="text-[12px] text-[#8A8578]">
             资料范围
             <select
               value={collectionFilter}
               onChange={(event) => setCollectionFilter(event.target.value)}
-              className="mt-1.5 w-full rounded-2xl border border-[#E3D9CE] bg-white px-3 py-3 text-sm text-[#3A2E25] focus:border-[#C2B3A4] focus:outline-none"
+              className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-white px-3 py-3 text-sm text-[#111] focus:border-[#111] focus:outline-none"
             >
               <option value="all">全部资料</option>
               <option value="__workspace_shared">工作区共享</option>
@@ -246,19 +246,19 @@ export default function AssetLibrary({
             </select>
           </label>
         ) : (
-          <div className="rounded-2xl border border-[#E3D9CE] bg-white px-4 py-3 text-sm text-[#6C5D50]">
+          <div className="rounded-none border-2 border-[#111] bg-white px-4 py-3 text-sm text-[#8A8578]">
             {fixedCollectionId === null ? '当前显示：工作区共享资料' : '当前显示：这个 Collection 下的资料'}
           </div>
         )}
 
         <div className="flex flex-col gap-2">
           {fixedCollectionId === undefined ? (
-            <label className="text-[12px] text-[#8C7A6B]">
+            <label className="text-[12px] text-[#8A8578]">
               上传目标
               <select
                 value={uploadCollectionId}
                 onChange={(event) => setUploadCollectionId(event.target.value)}
-                className="mt-1.5 w-full rounded-2xl border border-[#E3D9CE] bg-white px-3 py-3 text-sm text-[#3A2E25] focus:border-[#C2B3A4] focus:outline-none"
+                className="mt-1.5 w-full rounded-none border-2 border-[#111] bg-white px-3 py-3 text-sm text-[#111] focus:border-[#111] focus:outline-none"
               >
                 <option value="__workspace_shared">工作区共享</option>
                 {collections.map((collection) => (
@@ -269,7 +269,7 @@ export default function AssetLibrary({
               </select>
             </label>
           ) : (
-            <div className="rounded-2xl border border-dashed border-[#D8CEC4] bg-white px-4 py-3 text-xs leading-6 text-[#8C7A6B]">
+            <div className="rounded-none border-2 border-dashed border-[#111] bg-white px-4 py-3 text-xs leading-6 text-[#8A8578]">
               新资料会直接归入当前 {fixedCollectionId ? 'Collection' : '工作区共享'}。
             </div>
           )}
@@ -278,7 +278,7 @@ export default function AssetLibrary({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#3A2E25] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#2B2420] disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-none border-2 border-[#111] bg-[#111] px-4 py-3 text-sm font-medium text-white shadow-[4px_4px_0px_#111] transition-colors hover:bg-black disabled:opacity-60"
           >
             {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
             导入 PDF / 图片
@@ -297,46 +297,46 @@ export default function AssetLibrary({
       />
 
       {isLoading ? (
-        <div className="rounded-[24px] border border-[#E8DED3] bg-[#FCFAF7] px-6 py-12 text-center text-sm text-[#9A8877]">
+        <div className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-6 py-12 text-center text-sm text-[#8A8578]">
           正在加载资料...
         </div>
       ) : filteredAssets.length === 0 ? (
-        <div className="rounded-[24px] border border-dashed border-[#DDD2C7] bg-[#FCFAF7] px-6 py-12 text-center">
-          <p className="text-base font-medium text-[#5C4D42]">{emptyTitle}</p>
-          <p className="mt-2 text-sm text-[#8B796A]">{emptyDescription}</p>
+        <div className="rounded-none border-2 border-dashed border-[#111] bg-[#F4F0E6] px-6 py-12 text-center">
+          <p className="text-base font-medium text-[#111]">{emptyTitle}</p>
+          <p className="mt-2 text-sm text-[#8A8578]">{emptyDescription}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredAssets.map((asset) => (
             <div
               key={asset.id}
-              className="flex items-start gap-4 rounded-[24px] border border-[#ECE4DA] bg-[#FCFAF7] px-4 py-4"
+              className="flex items-start gap-4 rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-4 shadow-[4px_4px_0px_#111]"
             >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#E3D9CE] bg-white text-[#7C6B5C]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-none border-2 border-[#111] bg-white text-[#111]">
                 {asset.assetType === 'pdf' ? <FileText size={20} /> : <FileImage size={20} />}
               </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="truncate text-[15px] font-semibold text-[#3A2E25]">
+                  <div className="truncate text-[15px] font-semibold text-[#111]">
                     {asset.name}
                   </div>
-                  <span className="rounded-full bg-[#F1EBE3] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
+                  <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2 py-0.5 text-[10px] text-[#8A8578]">
                     {asset.assetType === 'pdf' ? 'PDF' : '图片'}
                   </span>
-                  <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-[#8C7A6B]">
+                  <span className="rounded-none border-2 border-[#111] bg-white px-2 py-0.5 text-[10px] text-[#8A8578]">
                     {asset.collection?.name || '工作区共享'}
                   </span>
-                  <span className="rounded-full bg-[#F4EFE7] px-2 py-0.5 text-[10px] text-[#8C7A6B]">
+                  <span className="rounded-none border-2 border-[#111] bg-[#F4F0E6] px-2 py-0.5 text-[10px] text-[#8A8578]">
                     仅预览
                   </span>
                 </div>
 
-                <div className="mt-1 text-[12px] text-[#9A8877]">
+                <div className="mt-1 text-[12px] text-[#8A8578]">
                   {formatDate(asset.updatedAt)} · {formatFileSize(asset.fileSize)}
                 </div>
 
-                <p className="mt-2 line-clamp-3 text-[13px] leading-6 text-[#746556]">
+                <p className="mt-2 line-clamp-3 text-[13px] leading-6 text-[#111]">
                   当前仅支持文件预览与归档管理。后续接入外部识别工具后，这些资料才会参与内容检索与 AI 使用。
                 </p>
               </div>
@@ -346,7 +346,7 @@ export default function AssetLibrary({
                   href={`/api/assets/${asset.id}/file`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-[#8C7A6B] transition-colors hover:bg-[#F1EBE3] hover:text-[#5C4D42]"
+                  className="inline-flex items-center gap-1 rounded-none px-2 py-1.5 text-xs text-[#8A8578] transition-colors hover:bg-[#F4F0E6] hover:text-[#111]"
                 >
                   <ExternalLink size={12} />
                   预览
@@ -357,7 +357,7 @@ export default function AssetLibrary({
                   <select
                     value={asset.collectionId || '__workspace_shared'}
                     onChange={(event) => void handleMoveAsset(asset.id, event.target.value)}
-                    className="w-full rounded-xl border border-[#E3D9CE] bg-white px-3 py-2 text-sm text-[#5C4D42] focus:border-[#C2B3A4] focus:outline-none"
+                    className="w-full rounded-none border-2 border-[#111] bg-white px-3 py-2 text-sm text-[#111] focus:border-[#111] focus:outline-none"
                   >
                     {moveOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -370,7 +370,7 @@ export default function AssetLibrary({
                 <button
                   type="button"
                   onClick={() => void handleDeleteAsset(asset.id)}
-                  className="rounded-lg px-2 py-1.5 text-xs text-[#A09082] transition-colors hover:bg-rose-50 hover:text-rose-600"
+                  className="rounded-none px-2 py-1.5 text-xs text-[#8A8578] transition-colors hover:bg-[#D9423E]/10 hover:text-[#D9423E]"
                 >
                   <span className="inline-flex items-center gap-1">
                     <Trash2 size={12} />
