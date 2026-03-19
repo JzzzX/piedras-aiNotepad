@@ -211,9 +211,9 @@ export default function FloatingBottomBar({
                   <button
                     type="button"
                     onClick={handleToggleAudioMenu}
-                    className="flex h-16 items-center gap-3 rounded-full border border-[#434C35] bg-[#313827] px-3 pr-4 text-white shadow-[0_18px_48px_rgba(49,56,39,0.28)] transition-colors hover:bg-[#28301f]"
+                    className="flex h-16 items-center gap-3 rounded-none border-2 border-[#111] bg-[#111] px-3 pr-4 font-[family-name:var(--font-vt323)] text-white shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#222]"
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none border-2 border-white/20 bg-white/10">
                       <Mic size={18} />
                     </span>
                     <WaveformIndicator
@@ -231,9 +231,9 @@ export default function FloatingBottomBar({
               <div className="min-w-0 flex-1">
                 <div
                   onClick={handleChatActivate}
-                  className="flex min-h-[74px] items-end gap-3 rounded-[38px] border border-[#D8DEC8] bg-[#FFFDF9] p-3 shadow-[0_18px_48px_rgba(59,64,46,0.12)] transition-shadow hover:shadow-[0_22px_56px_rgba(59,64,46,0.14)]"
+                  className="flex min-h-[74px] items-end gap-3 rounded-none border-2 border-[#111] bg-[#F4F0E6] p-3 shadow-[4px_4px_0px_#111]"
                 >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F4F7EC] text-[#647344]">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6] text-[#111]">
                     <MessageSquare size={18} />
                   </span>
 
@@ -265,7 +265,7 @@ export default function FloatingBottomBar({
                         : '开始录音后可提问…'
                     }
                     style={{ minHeight: '44px', maxHeight: '136px' }}
-                    className="max-h-[136px] min-h-[44px] flex-1 resize-none self-center bg-transparent py-2 text-[15px] leading-7 text-[#2F3526] outline-none placeholder:text-[#A0A68F] disabled:cursor-not-allowed disabled:opacity-55"
+                    className="max-h-[136px] min-h-[44px] flex-1 resize-none self-center bg-transparent py-2 font-[family-name:var(--font-vt323)] text-[15px] leading-7 text-[#111] outline-none placeholder:text-[#8A8578] disabled:cursor-not-allowed disabled:opacity-55"
                   />
 
                   <button
@@ -279,14 +279,14 @@ export default function FloatingBottomBar({
                         ? filteredTemplates.length === 0 || isLoading || !canAsk
                         : !input.trim() || isLoading || !canAsk
                     }
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors ${
+                    className={`retro-btn flex h-12 w-12 shrink-0 items-center justify-center rounded-none border-2 border-[#111] shadow-[4px_4px_0px_#111] transition-colors active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111] ${
                       (assistantView === 'recipes'
                         ? filteredTemplates.length > 0
                         : input.trim()) &&
                       !isLoading &&
                       canAsk
-                        ? 'bg-[#5B6B3B] text-white hover:bg-[#4d5a33]'
-                        : 'bg-[#EEF2E3] text-[#AAB39A]'
+                        ? 'bg-[#111] text-white hover:bg-[#333]'
+                        : 'bg-[#F4F0E6] text-[#8A8578]'
                     }`}
                   >
                     {isLoading ? (
@@ -302,17 +302,17 @@ export default function FloatingBottomBar({
         </div>
 
         {autoStopPrompt && (
-          <div className="pointer-events-auto absolute inset-0 z-[70] flex items-center justify-center bg-[rgba(47,53,38,0.14)] p-4">
-            <div className="w-full max-w-md rounded-[30px] border border-[#DCE3CE] bg-white p-6 shadow-2xl">
+          <div className="pointer-events-auto absolute inset-0 z-[70] flex items-center justify-center bg-[rgba(0,0,0,0.25)] p-4">
+            <div className="retro-window w-full max-w-md rounded-none border-2 border-[#111] bg-[#F4F0E6] p-6 shadow-[4px_4px_0px_#111]">
               <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFF4E8] text-[#D08727]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none border-2 border-[#111] bg-[#F4F0E6] text-[#111]">
                   <AlertTriangle size={18} />
                 </div>
                 <div>
-                  <h4 className="text-base font-semibold text-[#2F3526]">
+                  <h4 className="font-[family-name:var(--font-vt323)] text-base font-semibold text-[#111]">
                     {autoStopPrompt.title}
                   </h4>
-                  <p className="mt-2 text-sm leading-6 text-[#72785F]">
+                  <p className="mt-2 font-[family-name:var(--font-vt323)] text-sm leading-6 text-[#8A8578]">
                     {autoStopPrompt.description}
                   </p>
                 </div>
@@ -321,7 +321,7 @@ export default function FloatingBottomBar({
                 <button
                   type="button"
                   onClick={continueRecording}
-                  className="rounded-full border border-[#DCE3CE] px-4 py-2 text-sm font-medium text-[#526038] transition-colors hover:bg-[#F5F7EE]"
+                  className="retro-btn rounded-none border-2 border-[#111] bg-[#F4F0E6] px-4 py-2 font-[family-name:var(--font-vt323)] text-sm font-medium text-[#111] shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#E8E4DA] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111]"
                 >
                   继续录音
                 </button>
@@ -330,7 +330,7 @@ export default function FloatingBottomBar({
                   onClick={() => {
                     void stopRecording();
                   }}
-                  className="rounded-full bg-[#4E5E34] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#44512d]"
+                  className="retro-btn rounded-none border-2 border-[#111] bg-[#111] px-4 py-2 font-[family-name:var(--font-vt323)] text-sm font-semibold text-white shadow-[4px_4px_0px_#111] transition-colors hover:bg-[#333] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111]"
                 >
                   停止录音
                 </button>

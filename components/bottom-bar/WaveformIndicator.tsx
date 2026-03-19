@@ -24,7 +24,7 @@ export default function WaveformIndicator({
 
   return (
     <div
-      className={`flex items-end gap-1 rounded-full ${
+      className={`flex items-end gap-1 rounded-none ${
         compact ? 'px-2 py-1.5' : 'px-3 py-2'
       }`}
       aria-hidden="true"
@@ -35,14 +35,14 @@ export default function WaveformIndicator({
         return (
           <span
             key={index}
-            className={`block w-[3px] rounded-full transition-all duration-150 ${
+            className={`block w-[3px] rounded-none transition-all duration-150 ${
               tone === 'dark'
                 ? isActive
-                  ? 'bg-white'
-                  : 'bg-white/28'
+                  ? 'bg-[#F4F0E6]'
+                  : 'bg-[#8A8578]'
                 : isActive
-                  ? 'bg-[#4E5E34]'
-                  : 'bg-[#C5D0B3]'
+                  ? 'bg-[#111]'
+                  : 'bg-[#8A8578]'
             }`}
             style={{ height }}
           />
